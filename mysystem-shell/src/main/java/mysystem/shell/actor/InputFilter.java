@@ -1,6 +1,7 @@
 package mysystem.shell.actor;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
@@ -17,7 +18,7 @@ import java.util.Objects;
 public class InputFilter extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-    private final ActorRef inputTokenizer;
+    private final ActorSelection inputTokenizer;
 
     /**
      * @param actorSystem the {@link ActorSystem} that will host the actor
@@ -29,17 +30,24 @@ public class InputFilter extends UntypedActor {
     }
 
     /**
+     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
+        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + InputFilter.class.getSimpleName());
+    }
+
+    /**
      * Default constructor.
      */
     public InputFilter() {
-        this.inputTokenizer = InputTokenizer.create(context().system());
-        log.error("Input Tokenizer: {}", this.inputTokenizer);
+        this.inputTokenizer = InputTokenizer.getActorSelection(context().system());
     }
 
     /**
      * @return a reference to the input tokenizer actor
      */
-    protected ActorRef getInputTokenizer() {
+    protected ActorSelection getInputTokenizer() {
         return this.inputTokenizer;
     }
 

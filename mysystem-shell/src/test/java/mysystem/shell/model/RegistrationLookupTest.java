@@ -4,7 +4,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.typesafe.config.ConfigException;
 import org.junit.Test;
 
 import java.text.ParseException;
@@ -15,23 +14,25 @@ import java.text.ParseException;
 public class RegistrationLookupTest {
     @Test
     public void testCompareTo() throws ParseException {
-        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
-        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
-        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
+        final CommandPath cA = new CommandPath.Builder("a b").build();
+        final CommandPath cB = new CommandPath.Builder("a c").build();
+        final CommandPath cC = new CommandPath.Builder("b c").build();
 
-        final RegistrationLookup a = new RegistrationLookup.Builder(uA).build();
-        final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
-        final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
+        final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
+
+        final RegistrationLookup a = new RegistrationLookup.Builder(cA, cB).build();
+        final RegistrationLookup b = new RegistrationLookup.Builder(cA, cB, cC).build();
+        final RegistrationLookup c = new RegistrationLookup.Builder(u).build();
 
         assertEquals(1, a.compareTo(null));
         assertEquals(0, a.compareTo(a));
         assertEquals(-1, a.compareTo(b));
-        assertEquals(-2, a.compareTo(c));
+        assertEquals(2, a.compareTo(c));
         assertEquals(1, b.compareTo(a));
         assertEquals(0, b.compareTo(b));
-        assertEquals(-1, b.compareTo(c));
-        assertEquals(2, c.compareTo(a));
-        assertEquals(1, c.compareTo(b));
+        assertEquals(2, b.compareTo(c));
+        assertEquals(-2, c.compareTo(a));
+        assertEquals(-2, c.compareTo(b));
         assertEquals(0, c.compareTo(c));
     }
 
@@ -67,15 +68,20 @@ public class RegistrationLookupTest {
         final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
         final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
 
-        assertEquals(128, a.hashCode());
-        assertEquals(129, b.hashCode());
-        assertEquals(130, c.hashCode());
+        assertEquals(28137, a.hashCode());
+        assertEquals(28175, b.hashCode());
+        assertEquals(28213, c.hashCode());
     }
 
     @Test
     public void testToString() throws ParseException {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
-        assertEquals("RegistrationLookup[userInput=a]", lookup.toString());
+        assertEquals("RegistrationLookup[paths=[a],userInput=Optional[a]]", lookup.toString());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoPaths() throws ParseException {
+        new RegistrationLookup.Builder().build();
     }
 }

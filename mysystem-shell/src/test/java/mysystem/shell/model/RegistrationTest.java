@@ -67,14 +67,26 @@ public class RegistrationTest {
     @Test
     public void testBuilderWithPath() {
         final ActorRef ref = Mockito.mock(ActorRef.class);
-        assertEquals("a b", new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build().toString());
+        assertEquals                                                                                       (
+                "Registration[path=a b,description=Optional.empty]",
+                new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build().toString());
     }
 
     @Test
-    public void testBuilderWithCommand() {
+    public void testBuilderCopy() {
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration cmd = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        assertEquals("a b", new Registration.Builder(cmd).build().toString());
+        assertEquals                                                                                                 (
+                "Registration[path=a b,description=Optional.empty]", new Registration.Builder(cmd).build().toString());
+    }
+
+    @Test
+    public void testBuilderCopyWithOptions() {
+        final ActorRef ref = Mockito.mock(ActorRef.class);
+        final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
+        final Registration cmd = new Registration.Builder(ref, commandPath, new Options()).build();
+        assertEquals                                                                                                 (
+                "Registration[path=a b,description=Optional.empty]", new Registration.Builder(cmd).build().toString());
     }
 
     @Test
@@ -82,6 +94,15 @@ public class RegistrationTest {
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
         final Registration cmd = new Registration.Builder(ref, commandPath, new Options()).build();
-        assertEquals("a b", new Registration.Builder(cmd).build().toString());
+        assertEquals("Registration[path=a b,description=Optional.empty]", cmd.toString());
+        assertTrue(cmd.getOptions().isPresent());
+    }
+
+    @Test
+    public void testBuilderWithDescription() {
+        final ActorRef ref = Mockito.mock(ActorRef.class);
+        final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
+        final Registration cmd = new Registration.Builder(ref, commandPath, new Options(), "description").build();
+        assertEquals("Registration[path=a b,description=Optional[description]]", cmd.toString());
     }
 }

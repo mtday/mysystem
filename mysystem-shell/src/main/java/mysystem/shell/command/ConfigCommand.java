@@ -47,12 +47,13 @@ public class ConfigCommand extends UntypedActor {
     }
 
     private void handleRegistrationRequest() {
+        final String description = "provides information about the system configuration";
         final Options options = new Options();
         options.addOption(new Option("f", "filter", true, "a regular expression used to filter the output"));
 
         final CommandPath config = new CommandPath.Builder("config").build();
-        final Registration configRegistration = new Registration.Builder(self(), config, options).build();
-        sender().tell(new RegistrationResponse.Builder().add(configRegistration).build(), self());
+        final Registration reg = new Registration.Builder(self(), config, options, description).build();
+        sender().tell(new RegistrationResponse.Builder().add(reg).build(), self());
     }
 
     protected void handleCommand(final Command command) {

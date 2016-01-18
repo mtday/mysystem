@@ -23,7 +23,7 @@ public class RegistrationFinder extends UntypedActor {
     private final ActorSelection registrationManager;
     private final ActorSelection consoleManager;
     private final ActorSelection inputTokenizer;
-    private final ActorRef commandExecutor;
+    private final ActorSelection commandExecutor;
 
     /**
      * @param actorSystem the {@link ActorSystem} that will host the actor
@@ -35,14 +35,21 @@ public class RegistrationFinder extends UntypedActor {
     }
 
     /**
+     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
+        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + RegistrationFinder.class.getSimpleName());
+    }
+
+    /**
      * Default constructor.
      */
     public RegistrationFinder() {
-        this.registrationManager =
-                context().system().actorSelection("/user/" + RegistrationManager.class.getSimpleName());
-        this.consoleManager = context().system().actorSelection("/user/" + ConsoleManager.class.getSimpleName());
-        this.inputTokenizer = context().system().actorSelection("/user/" + InputTokenizer.class.getSimpleName());
-        this.commandExecutor = CommandExecutor.create(context().system());
+        this.registrationManager = RegistrationManager.getActorSelection(context().system());
+        this.consoleManager = ConsoleManager.getActorSelection(context().system());
+        this.inputTokenizer = InputTokenizer.getActorSelection(context().system());
+        this.commandExecutor = CommandExecutor.getActorSelection(context().system());
     }
 
     /**
@@ -69,7 +76,7 @@ public class RegistrationFinder extends UntypedActor {
     /**
      * @return a reference to the command executor actor
      */
-    protected ActorRef getCommandExecutor() {
+    protected ActorSelection getCommandExecutor() {
         return this.commandExecutor;
     }
 

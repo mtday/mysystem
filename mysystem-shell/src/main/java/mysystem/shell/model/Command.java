@@ -20,19 +20,31 @@ import java.util.Optional;
 public class Command implements Comparable<Command>, Serializable {
     private final static long serialVersionUID = 1L;
 
+    private final CommandPath commandPath;
     private final Registration registration;
     private final TokenizedUserInput userInput;
     private final Optional<CommandLine> commandLine;
 
     /**
+     * @param commandPath the {@link CommandPath} representing the user-specified command
      * @param registration the {@link Registration} associated with the command being invoked
      * @param userInput the {@link TokenizedUserInput} entered in the shell to be executed
      * @param commandLine the parsed {@link CommandLine} parameters for this command
      */
-    public Command(final Registration registration, final TokenizedUserInput userInput, final Optional<CommandLine> commandLine) {
+    public Command(
+            final CommandPath commandPath, final Registration registration, final TokenizedUserInput userInput,
+            final Optional<CommandLine> commandLine) {
+        this.commandPath = commandPath;
         this.registration = registration;
         this.userInput = userInput;
         this.commandLine = commandLine;
+    }
+
+    /**
+     * @return the {@link CommandPath} representing the user-specified command
+     */
+    public CommandPath getCommandPath() {
+        return this.commandPath;
     }
 
     /**
@@ -62,6 +74,7 @@ public class Command implements Comparable<Command>, Serializable {
     @Override
     public String toString() {
         final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        str.append("commandPath", getCommandPath());
         str.append("registration", getRegistration());
         str.append("userInput", getUserInput());
         return str.build();
@@ -77,6 +90,7 @@ public class Command implements Comparable<Command>, Serializable {
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
+        cmp.append(getCommandPath(), other.getCommandPath());
         cmp.append(getRegistration(), other.getRegistration());
         cmp.append(getUserInput(), other.getUserInput());
         return cmp.toComparison();
@@ -102,6 +116,7 @@ public class Command implements Comparable<Command>, Serializable {
      * Used to build {@link Command} instances.
      */
     public static class Builder {
+        private final CommandPath commandPath;
         private final Registration registration;
         private final TokenizedUserInput userInput;
         private final Optional<CommandLine> commandLine;
@@ -118,6 +133,7 @@ public class Command implements Comparable<Command>, Serializable {
             this.registration = response.getRegistrations().iterator().next();
             this.userInput = response.getUserInput().get();
             this.commandLine = getCommandLine(this.registration, this.userInput);
+            this.commandPath = new CommandPath.Builder(this.userInput).build();
         }
 
         private Optional<CommandLine> getCommandLine(
@@ -137,6 +153,7 @@ public class Command implements Comparable<Command>, Serializable {
         public Builder(final Command command) {
             Objects.requireNonNull(command);
 
+            this.commandPath = command.getCommandPath();
             this.registration = command.getRegistration();
             this.userInput = command.getUserInput();
             this.commandLine = command.getCommandLine();
@@ -146,7 +163,7 @@ public class Command implements Comparable<Command>, Serializable {
          * @return the {@link Command} represented by this builder
          */
         public Command build() {
-            return new Command(this.registration, this.userInput, this.commandLine);
+            return new Command(this.commandPath, this.registration, this.userInput, this.commandLine);
         }
     }
 }

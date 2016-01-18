@@ -5,6 +5,7 @@ import com.typesafe.config.Config;
 import org.apache.commons.lang3.StringUtils;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
@@ -28,7 +29,7 @@ import java.util.Objects;
 public class ConsoleManager extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-    private final ActorRef inputParser;
+    private final ActorSelection inputParser;
     private final ConsoleReader consoleReader;
 
     /**
@@ -41,10 +42,18 @@ public class ConsoleManager extends UntypedActor {
     }
 
     /**
+     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
+        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + ConsoleManager.class.getSimpleName());
+    }
+
+    /**
      * @throws IOException if there is a problem creating the console reader
      */
     public ConsoleManager() throws IOException {
-        this.inputParser = InputFilter.create(context().system());
+        this.inputParser = InputFilter.getActorSelection(context().system());
         this.consoleReader = new ConsoleReader();
         this.consoleReader.setHandleUserInterrupt(false);
         this.consoleReader.setPaginationEnabled(true);
@@ -54,7 +63,7 @@ public class ConsoleManager extends UntypedActor {
     /**
      * @return a reference to the actor used to parse user input
      */
-    protected ActorRef getInputParser() {
+    protected ActorSelection getInputParser() {
         return this.inputParser;
     }
 

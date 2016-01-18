@@ -16,7 +16,7 @@ import java.util.Objects;
 public class InputTokenizer extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
-    private final ActorRef registrationFinder;
+    private final ActorSelection registrationFinder;
     private final ActorSelection consoleManager;
 
     /**
@@ -29,17 +29,25 @@ public class InputTokenizer extends UntypedActor {
     }
 
     /**
+     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
+        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + InputTokenizer.class.getSimpleName());
+    }
+
+    /**
      * Default constructor.
      */
     public InputTokenizer() {
-        this.registrationFinder = RegistrationFinder.create(context().system());
-        this.consoleManager = context().system().actorSelection("/user/" + ConsoleManager.class.getSimpleName());
+        this.registrationFinder = RegistrationFinder.getActorSelection(context().system());
+        this.consoleManager = ConsoleManager.getActorSelection(context().system());
     }
 
     /**
      * @return a reference to the registration finder actor
      */
-    protected ActorRef getRegistrationFinder() {
+    protected ActorSelection getRegistrationFinder() {
         return this.registrationFinder;
     }
 
@@ -58,6 +66,7 @@ public class InputTokenizer extends UntypedActor {
         if (message instanceof UserInput) {
             final UserInput userInput = (UserInput) message;
             try {
+                // Tokenize the user input and send to the registration finder.
                 getRegistrationFinder().tell(new TokenizedUserInput.Builder(userInput).build(), self());
             } catch (final ParseException parseException) {
                 getConsoleManager().tell(new InvalidInput.Builder(userInput, parseException).build(), self());

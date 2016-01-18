@@ -14,6 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
@@ -23,14 +24,15 @@ import java.util.TreeSet;
 public class RegistrationResponse implements Comparable<RegistrationResponse>, Serializable {
     private final static long serialVersionUID = 1L;
 
-    private final Set<Registration> registrations = new TreeSet<>();
+    private final SortedSet<Registration> registrations = new TreeSet<>();
     private final Optional<TokenizedUserInput> userInput;
 
     /**
      * @param registrations the registrations describing commands available in the shell
-     * @param userInput the tokenized user input
+     * @param userInput the tokenized user input, possibly empty
      */
-    private RegistrationResponse(final Collection<Registration> registrations, final Optional<TokenizedUserInput> userInput) {
+    private RegistrationResponse(
+            final Collection<Registration> registrations, final Optional<TokenizedUserInput> userInput) {
         this.registrations.addAll(registrations);
         this.userInput = userInput;
     }
@@ -38,8 +40,8 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
     /**
      * @return the registrations describing commands available in the shell
      */
-    public Set<Registration> getRegistrations() {
-        return Collections.unmodifiableSet(this.registrations);
+    public SortedSet<Registration> getRegistrations() {
+        return Collections.unmodifiableSortedSet(this.registrations);
     }
 
     /**
@@ -129,13 +131,38 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
         }
 
         /**
-         * @param lookup        the {@link RegistrationLookup} indicating the desired registrations
-         * @param registrations the map containing all registrations
+         * @param lookup the {@link RegistrationLookup} indicating the desired registrations
+         * @param registrationMap the map containing all registrations
          */
-        public Builder(final RegistrationLookup lookup, final Map<CommandPath, Registration> registrations) {
-            setUserInput(lookup.getUserInput());
-            final CommandPath path = new CommandPath.Builder(lookup.getUserInput()).build();
-            registrations.keySet().stream().filter(cp -> cp.isPrefix(path)).forEach(cp -> add(registrations.get(cp)));
+        public Builder(final RegistrationLookup lookup, final Map<CommandPath, Registration> registrationMap) {
+            if (Objects.requireNonNull(lookup).getUserInput().isPresent()) {
+                setUserInput(lookup.getUserInput().get());
+            }
+            for (final CommandPath path : lookup.getPaths()) {
+                boolean foundMatch = false;
+                for (final CommandPath registeredPath : registrationMap.keySet()) {
+                    if (registeredPath.isPrefix(path)) {
+                        add(registrationMap.get(registeredPath));
+                        foundMatch = true;
+                    }
+                }
+
+                if (!foundMatch) {
+                    Optional<CommandPath> commandPath = Optional.of(path);
+                    while (commandPath.isPresent()) {
+                        final Optional<Registration> match =
+                                Optional.ofNullable(registrationMap.get(commandPath.get()));
+                        if (match.isPresent()) {
+                            add(match.get());
+
+                            // Now that we have found a match, do not process any more parents.
+                            commandPath = Optional.empty();
+                        } else {
+                            commandPath = commandPath.get().getParent();
+                        }
+                    }
+                }
+            }
         }
 
         /**

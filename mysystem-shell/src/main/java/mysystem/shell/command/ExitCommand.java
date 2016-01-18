@@ -24,23 +24,21 @@ public class ExitCommand extends UntypedActor {
         if (message instanceof RegistrationRequest) {
             handleRegistrationRequest();
         } else if (message instanceof Command) {
-            handleCommand((Command) message);
+            // Send output with the terminate flag turned on.
+            sender().tell(new ConsoleOutput.Builder("Disconnecting").setTerminate(true).build(), self());
         } else {
             unhandled(message);
         }
     }
 
     protected void handleRegistrationRequest() {
+        final String description = "exit the shell";
         final CommandPath exit = new CommandPath.Builder("exit").build();
         final CommandPath quit = new CommandPath.Builder("quit").build();
 
-        final Registration exitRegistration = new Registration.Builder(self(), exit).build();
-        final Registration quitRegistration = new Registration.Builder(self(), quit).build();
+        final Registration exitReg = new Registration.Builder(self(), exit).setDescription(description).build();
+        final Registration quitReg = new Registration.Builder(self(), quit).setDescription(description).build();
 
-        sender().tell(new RegistrationResponse.Builder().add(exitRegistration, quitRegistration).build(), self());
-    }
-
-    protected void handleCommand(final Command command) {
-        sender().tell(new ConsoleOutput.Builder("Disconnecting").setTerminate(true).build(), self());
+        sender().tell(new RegistrationResponse.Builder().add(exitReg, quitReg).build(), self());
     }
 }

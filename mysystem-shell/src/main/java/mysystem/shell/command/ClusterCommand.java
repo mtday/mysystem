@@ -31,9 +31,10 @@ public class ClusterCommand extends UntypedActor {
     }
 
     private void handleRegistrationRequest() {
+        final String description = "provides information about the system cluster and its members";
         final CommandPath cluster = new CommandPath.Builder("cluster").build();
-        final Registration clusterRegistration = new Registration.Builder(self(), cluster).build();
-        sender().tell(new RegistrationResponse.Builder().add(clusterRegistration).build(), self());
+        final Registration reg = new Registration.Builder(self(), cluster).setDescription(description).build();
+        sender().tell(new RegistrationResponse.Builder().add(reg).build(), self());
     }
 
     protected void handleCommand(final Command command) {

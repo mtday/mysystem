@@ -5,7 +5,11 @@ import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
 import mysystem.core.config.CoreConfig;
+import mysystem.shell.actor.CommandExecutor;
 import mysystem.shell.actor.ConsoleManager;
+import mysystem.shell.actor.InputFilter;
+import mysystem.shell.actor.InputTokenizer;
+import mysystem.shell.actor.RegistrationFinder;
 import mysystem.shell.actor.RegistrationManager;
 
 /**
@@ -33,6 +37,10 @@ public class Shell {
     private void createActors() {
         RegistrationManager.create(getActorSystem());
         ConsoleManager.create(getActorSystem());
+        CommandExecutor.create(getActorSystem());
+        InputFilter.create(getActorSystem());
+        InputTokenizer.create(getActorSystem());
+        RegistrationFinder.create(getActorSystem());
     }
 
     private void registerShutdownHook() {

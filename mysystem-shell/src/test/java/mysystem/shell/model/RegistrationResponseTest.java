@@ -150,12 +150,18 @@ public class RegistrationResponseTest {
 
         final TokenizedUserInput inputA = new TokenizedUserInput.Builder("a").build();
         final TokenizedUserInput inputB = new TokenizedUserInput.Builder("a b").build();
+        final TokenizedUserInput inputC = new TokenizedUserInput.Builder("a b c").build();
+        final TokenizedUserInput inputD = new TokenizedUserInput.Builder("a b -i 1").build();
 
         final RegistrationLookup lookupA = new RegistrationLookup.Builder(inputA).build();
         final RegistrationLookup lookupB = new RegistrationLookup.Builder(inputB).build();
+        final RegistrationLookup lookupC = new RegistrationLookup.Builder(inputC).build();
+        final RegistrationLookup lookupD = new RegistrationLookup.Builder(inputD).build();
 
         final RegistrationResponse responseA = new RegistrationResponse.Builder(lookupA, map).build();
         final RegistrationResponse responseB = new RegistrationResponse.Builder(lookupB, map).build();
+        final RegistrationResponse responseC = new RegistrationResponse.Builder(lookupC, map).build();
+        final RegistrationResponse responseD = new RegistrationResponse.Builder(lookupD, map).build();
 
         assertEquals(2, responseA.getRegistrations().size());
         assertTrue(responseA.getRegistrations().contains(regA));
@@ -163,5 +169,11 @@ public class RegistrationResponseTest {
 
         assertEquals(1, responseB.getRegistrations().size());
         assertTrue(responseB.getRegistrations().contains(regB));
+
+        assertEquals(1, responseC.getRegistrations().size());
+        assertTrue(responseC.getRegistrations().contains(regB));
+
+        assertEquals(1, responseD.getRegistrations().size());
+        assertTrue(responseD.getRegistrations().contains(regB));
     }
 }

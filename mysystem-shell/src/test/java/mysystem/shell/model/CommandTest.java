@@ -97,7 +97,9 @@ public class CommandTest {
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
         final Command command = new Command.Builder(rr).build();
 
-        assertEquals("Command[registration=a b,userInput=a]", command.toString());
+        assertEquals              (
+                "Command[commandPath=a,registration=Registration[path=a b,description=Optional.empty],userInput=a]",
+                command.toString());
     }
 
     @Test
@@ -135,7 +137,6 @@ public class CommandTest {
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
         final Command command = new Command.Builder(response).build();
 
-        assertEquals("Command[registration=a b,userInput=a b -i 1]", command.toString());
         assertTrue(command.getCommandLine().isPresent());
 
         final CommandLine commandLine = command.getCommandLine().get();

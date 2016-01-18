@@ -30,10 +30,18 @@ public class CommandExecutor extends UntypedActor {
     }
 
     /**
+     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
+        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + CommandExecutor.class.getSimpleName());
+    }
+
+    /**
      * Default constructor.
      */
     public CommandExecutor() {
-        this.consoleManager = context().system().actorSelection("/user/" + ConsoleManager.class.getSimpleName());
+        this.consoleManager = ConsoleManager.getActorSelection(context().system());
     }
 
     /**

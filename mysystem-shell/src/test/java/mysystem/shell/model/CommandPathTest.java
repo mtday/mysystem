@@ -8,6 +8,7 @@ import org.junit.Test;
 
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Perform testing of the {@link CommandPath} class and builder.
@@ -162,5 +163,46 @@ public class CommandPathTest {
         assertFalse(e.isPrefix(c));
         assertFalse(e.isPrefix(d));
         assertTrue(e.isPrefix(e));
+    }
+
+    @Test
+    public void testGetParent() {
+        final CommandPath a = new CommandPath.Builder("a", "b", "c").build();
+
+        final Optional<CommandPath> b = a.getParent();
+        assertTrue(b.isPresent());
+        assertEquals("a b", b.get().toString());
+
+        final Optional<CommandPath> c = b.get().getParent();
+        assertTrue(c.isPresent());
+        assertEquals("a", c.get().toString());
+
+        final Optional<CommandPath> d = c.get().getParent();
+        assertFalse(d.isPresent());
+    }
+
+    @Test
+    public void testGetChild() {
+        final CommandPath a = new CommandPath.Builder("a", "b", "c").build();
+
+        final Optional<CommandPath> b = a.getChild();
+        assertTrue(b.isPresent());
+        assertEquals("b c", b.get().toString());
+
+        final Optional<CommandPath> c = b.get().getChild();
+        assertTrue(c.isPresent());
+        assertEquals("c", c.get().toString());
+
+        final Optional<CommandPath> d = c.get().getChild();
+        assertFalse(d.isPresent());
+    }
+
+    @Test
+    public void testGetSize() {
+        final CommandPath a = new CommandPath.Builder("a", "b").build();
+        final CommandPath b = new CommandPath.Builder("a", "b", "c").build();
+
+        assertEquals(2, a.getSize());
+        assertEquals(3, b.getSize());
     }
 }

@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValueType;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
@@ -36,6 +37,14 @@ public class RegistrationManager extends UntypedActor {
     public static ActorRef create(final ActorSystem actorSystem) {
         Objects.requireNonNull(actorSystem);
         return actorSystem.actorOf(Props.create(RegistrationManager.class), RegistrationManager.class.getSimpleName());
+    }
+
+    /**
+     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
+        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + RegistrationManager.class.getSimpleName());
     }
 
     private final Map<CommandPath, Registration> registrations = new TreeMap<>();
@@ -71,12 +80,17 @@ public class RegistrationManager extends UntypedActor {
     @Override
     public void onReceive(final Object message) {
         if (message instanceof RegistrationResponse) {
+            // Add the provided registrations to the local registration state.
             for (final Registration registration : ((RegistrationResponse) message).getRegistrations()) {
                 this.registrations.put(registration.getPath(), registration);
             }
         } else if (message instanceof RegistrationLookup) {
+            // Send all of the matching registrations back to the caller.
             final RegistrationLookup lookup = (RegistrationLookup) message;
             sender().tell(new RegistrationResponse.Builder(lookup, getRegistrations()).build(), self());
+        } else if (message instanceof RegistrationRequest) {
+            // Send all of the known registrations back to the caller.
+            sender().tell(new RegistrationResponse.Builder(getRegistrations().values()).build(), self());
         } else {
             unhandled(message);
         }
