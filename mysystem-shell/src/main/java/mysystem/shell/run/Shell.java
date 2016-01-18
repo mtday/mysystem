@@ -22,7 +22,7 @@ public class Shell {
      * Create the shell.
      */
     public Shell() {
-        final Config config = ConfigFactory.load();
+        final Config config = ConfigFactory.load("shell-config").withFallback(ConfigFactory.load());
         final String systemName = config.getString(CoreConfig.ACTOR_SYSTEM_NAME.getKey());
         this.actorSystem = ActorSystem.create(systemName, config);
 

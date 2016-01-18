@@ -79,7 +79,7 @@ public class ConfigCommand extends UntypedActor {
             // Remove the surrounding quote characters when they are present.
             value = StringUtils.substringBetween(value, "\"");
         }
-        return String.format("%s => %s", entry.getKey(), value);
+        return String.format("  %s => %s", entry.getKey(), value);
     }
 
     protected ConsoleOutput getOutput(final String configString) {

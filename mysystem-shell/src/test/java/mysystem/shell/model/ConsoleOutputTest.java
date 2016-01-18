@@ -48,8 +48,8 @@ public class ConsoleOutputTest {
         final ConsoleOutput a = new ConsoleOutput.Builder("output").setTerminate(true).build();
         final ConsoleOutput b = new ConsoleOutput.Builder("more output").setHasMore(true).build();
 
-        assertEquals("ConsoleOutput[output=output,hasMore=false,terminate=true]", a.toString());
-        assertEquals("ConsoleOutput[output=more output,hasMore=true,terminate=false]", b.toString());
+        assertEquals("ConsoleOutput[output=Optional[output],hasMore=false,terminate=true]", a.toString());
+        assertEquals("ConsoleOutput[output=Optional[more output],hasMore=true,terminate=false]", b.toString());
     }
 
     @Test

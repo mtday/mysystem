@@ -124,7 +124,10 @@ public class ConsoleManager extends UntypedActor {
     }
 
     protected void handleConsoleOutput(final ConsoleOutput consoleOutput) throws Exception {
-        getConsoleReader().println(consoleOutput.getOutput());
+        if (consoleOutput.getOutput().isPresent()) {
+            getConsoleReader().println(consoleOutput.getOutput().get());
+        }
+
         if (consoleOutput.isTerminate()) {
             self().tell(new Terminate.Builder().build(), self());
         } else if (!consoleOutput.hasMore()) {

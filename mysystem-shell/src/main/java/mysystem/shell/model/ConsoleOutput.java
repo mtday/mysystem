@@ -5,15 +5,18 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.core.util.OptionalComparator;
+
 import java.io.Serializable;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable representation of output to be sent to the shell display.
  */
 public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
     private final static long serialVersionUID = 1L;
-    private final String output;
+    private final Optional<String> output;
     private final boolean hasMore;
     private final boolean terminate;
 
@@ -22,7 +25,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
      * @param hasMore whether more output will follow in subsequent messages
      * @param terminate whether the shell should terminate after displaying this output
      */
-    private ConsoleOutput(final String output, final boolean hasMore, final boolean terminate) {
+    private ConsoleOutput(final Optional<String> output, final boolean hasMore, final boolean terminate) {
         this.output = output;
         this.hasMore = hasMore;
         this.terminate = terminate;
@@ -31,7 +34,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
     /**
      * @return the output text to be sent to the shell display
      */
-    public String getOutput() {
+    public Optional<String> getOutput() {
         return this.output;
     }
 
@@ -71,7 +74,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-        cmp.append(getOutput(), other.getOutput());
+        cmp.append(getOutput(), other.getOutput(), new OptionalComparator());
         cmp.append(hasMore(), other.hasMore());
         cmp.append(isTerminate(), other.isTerminate());
         return cmp.toComparison();
@@ -101,7 +104,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
      * Used to create {@link ConsoleOutput} instances.
      */
     public static class Builder {
-        private final String output;
+        private final Optional<String> output;
         private boolean hasMore = false;
         private boolean terminate = false;
 
@@ -109,7 +112,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
          * Default constructor, output will be a blank string.
          */
         public Builder() {
-            this.output = "";
+            this.output = Optional.empty();
         }
 
         /**
@@ -125,7 +128,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
          * @param output the output to be sent to the shell display
          */
         public Builder(final String output) {
-            this.output = Objects.requireNonNull(output);
+            this.output = Optional.of(Objects.requireNonNull(output));
         }
 
         /**

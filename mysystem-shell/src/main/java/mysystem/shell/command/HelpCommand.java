@@ -19,6 +19,7 @@ import mysystem.shell.model.RegistrationResponse;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.OptionalInt;
 
 /**
  * This actor implements the {@code help} command in the shell.
@@ -90,7 +91,8 @@ public class HelpCommand extends UntypedActor {
         final boolean includeOptions = response.getRegistrations().size() == 1;
 
         // Determine the longest command path length to better format the output
-        final int longestPath = getLongestPath(response);
+        final OptionalInt longestPath =
+                response.getRegistrations().stream().mapToInt(r -> r.getPath().toString().length()).max();
 
         final List<ConsoleOutput> output = new LinkedList<>();
         response.getRegistrations().forEach(r -> output.addAll(getOutput(r, includeOptions, longestPath)));
@@ -98,13 +100,8 @@ public class HelpCommand extends UntypedActor {
         getConsoleManager().tell(new ConsoleOutput.Builder().build(), self());
     }
 
-    protected int getLongestPath(final RegistrationResponse response) {
-        return response.getRegistrations().stream().map(r -> r.getPath().toString().length())
-                .reduce(0, (a, b) -> Math.max(a, b));
-    }
-
     protected List<ConsoleOutput> getOutput(
-            final Registration registration, final boolean includeOptions, final int longestPath) {
+            final Registration registration, final boolean includeOptions, final OptionalInt longestPath) {
         final List<ConsoleOutput> output = new LinkedList<>();
         output.add(new ConsoleOutput.Builder(getDescription(registration, longestPath)).setHasMore(true).build());
         if (includeOptions) {
@@ -113,10 +110,10 @@ public class HelpCommand extends UntypedActor {
         return output;
     }
 
-    protected String getDescription(final Registration registration, final int longestPath) {
+    protected String getDescription(final Registration registration, final OptionalInt longestPath) {
         if (registration.getDescription().isPresent()) {
-            return String.format("  %s  %s", StringUtils.rightPad(registration.getPath().toString(), longestPath),
-                    registration.getDescription().get());
+            final String path = StringUtils.rightPad(registration.getPath().toString(), longestPath.getAsInt());
+            return String.format("  %s  %s", path, registration.getDescription().get());
         }
         return String.format("  %s", registration.getPath().toString());
     }
