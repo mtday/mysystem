@@ -1,10 +1,12 @@
 package mysystem.shell.model;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import java.text.ParseException;
-
-import static org.junit.Assert.*;
 
 /**
  * Perform testing of the {@link InvalidInput} class and builder.
@@ -64,13 +66,22 @@ public class InvalidInputTest {
     public void testToString() {
         final ParseException ex = new ParseException("Message", 10);
         final InvalidInput a = new InvalidInput.Builder(new UserInput.Builder("a").build(), ex).build();
-        assertEquals("InvalidInput[userInput=a,error=Message,location=10]", a.toString());
+        assertEquals("InvalidInput[userInput=a,error=Message,location=Optional[10]]", a.toString());
     }
 
     @Test
     public void testBuilderCopy() {
         final ParseException ex = new ParseException("Message", 10);
         final InvalidInput a = new InvalidInput.Builder(new UserInput.Builder("a").build(), ex).build();
+        final InvalidInput b = new InvalidInput.Builder(a).build();
+
+        assertEquals(a, b);
+    }
+
+    @Test
+    public void testBuilderTokenizedInput() throws ParseException {
+        final org.apache.commons.cli.ParseException ex = new org.apache.commons.cli.ParseException("Message");
+        final InvalidInput a = new InvalidInput.Builder(new TokenizedUserInput.Builder("a").build(), ex).build();
         final InvalidInput b = new InvalidInput.Builder(a).build();
 
         assertEquals(a, b);

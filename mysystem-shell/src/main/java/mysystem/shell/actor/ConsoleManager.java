@@ -2,6 +2,8 @@ package mysystem.shell.actor;
 
 import com.typesafe.config.Config;
 
+import org.apache.commons.lang3.StringUtils;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -10,8 +12,12 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import jline.console.ConsoleReader;
 import mysystem.core.config.CoreConfig;
-import mysystem.shell.model.*;
-import org.apache.commons.lang3.StringUtils;
+import mysystem.shell.model.AcceptInput;
+import mysystem.shell.model.ConsoleOutput;
+import mysystem.shell.model.InvalidInput;
+import mysystem.shell.model.Terminate;
+import mysystem.shell.model.UnrecognizedCommand;
+import mysystem.shell.model.UserInput;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -81,7 +87,6 @@ public class ConsoleManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) throws Exception {
-        log.error("Received: {}", message);
         if (message instanceof AcceptInput) {
             handleAcceptInput();
         } else if (message instanceof ConsoleOutput) {
@@ -126,7 +131,9 @@ public class ConsoleManager extends UntypedActor {
     }
 
     protected void handleInvalidInput(final InvalidInput invalidInput) throws IOException {
-        getConsoleReader().println(StringUtils.leftPad("^", invalidInput.getLocation(), "-"));
+        if (invalidInput.getLocation().isPresent()) {
+            getConsoleReader().println(StringUtils.leftPad("^", invalidInput.getLocation().get(), "-"));
+        }
         getConsoleReader().println(invalidInput.getError());
         getConsoleReader().flush();
         self().tell(new AcceptInput.Builder().build(), self());

@@ -13,13 +13,23 @@ import java.util.*;
 public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Serializable {
     private final static long serialVersionUID = 1L;
 
+    private final UserInput userInput;
     private final List<String> tokens;
 
     /**
+     * @param userInput the original user-provided input
      * @param tokens the tokenized user-provided input from the shell interface
      */
-    private TokenizedUserInput(final List<String> tokens) {
+    private TokenizedUserInput(final UserInput userInput, final List<String> tokens) {
+        this.userInput = userInput;
         this.tokens = new ArrayList<>(tokens);
+    }
+
+    /**
+     * @return the original user-provided input
+     */
+    public UserInput getUserInput() {
+        return this.userInput;
     }
 
     /**
@@ -85,6 +95,7 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
      * Used to create {@link TokenizedUserInput} instances.
      */
     public static class Builder {
+        private final UserInput userInput;
         private final List<String> tokens;
 
         /**
@@ -93,6 +104,7 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
          * @param other the {@link TokenizedUserInput} to duplicate
          */
         public Builder(final TokenizedUserInput other) {
+            this.userInput = other.getUserInput();
             this.tokens = new ArrayList<>(Objects.requireNonNull(other).getTokens());
         }
 
@@ -101,7 +113,7 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
          * @throws ParseException if there is a problem with the input text
          */
         public Builder(final String input) throws ParseException {
-            this.tokens = tokenize(Objects.requireNonNull(input));
+            this(new UserInput.Builder(Objects.requireNonNull(input)).build());
         }
 
         /**
@@ -109,7 +121,8 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
          * @throws ParseException if there is a problem with the input text
          */
         public Builder(final UserInput userInput) throws ParseException {
-            this(Objects.requireNonNull(userInput).getInput());
+            this.userInput = Objects.requireNonNull(userInput);
+            this.tokens = tokenize(userInput.getInput());
         }
 
         private List<String> tokenize(final String input) throws ParseException {
@@ -191,7 +204,7 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
          * @return the {@link TokenizedUserInput} defined in this builder
          */
         public TokenizedUserInput build() {
-            return new TokenizedUserInput(this.tokens);
+            return new TokenizedUserInput(this.userInput, this.tokens);
         }
     }
 }

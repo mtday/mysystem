@@ -3,12 +3,16 @@ package mysystem.shell.model;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.ParseException;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The immutable parsed command to be executed.
@@ -18,14 +22,14 @@ public class Command implements Comparable<Command>, Serializable {
 
     private final Registration registration;
     private final TokenizedUserInput userInput;
-    private final CommandLine commandLine;
+    private final Optional<CommandLine> commandLine;
 
     /**
      * @param registration the {@link Registration} associated with the command being invoked
      * @param userInput the {@link TokenizedUserInput} entered in the shell to be executed
      * @param commandLine the parsed {@link CommandLine} parameters for this command
      */
-    public Command(final Registration registration, final TokenizedUserInput userInput, final CommandLine commandLine) {
+    public Command(final Registration registration, final TokenizedUserInput userInput, final Optional<CommandLine> commandLine) {
         this.registration = registration;
         this.userInput = userInput;
         this.commandLine = commandLine;
@@ -48,7 +52,7 @@ public class Command implements Comparable<Command>, Serializable {
     /**
      * @return the parsed {@link CommandLine} parameters for this command
      */
-    public CommandLine getCommandLine() {
+    public Optional<CommandLine> getCommandLine() {
         return this.commandLine;
     }
 
@@ -100,19 +104,31 @@ public class Command implements Comparable<Command>, Serializable {
     public static class Builder {
         private final Registration registration;
         private final TokenizedUserInput userInput;
-        private final CommandLine commandLine;
+        private final Optional<CommandLine> commandLine;
 
         /**
          * @param response the {@link RegistrationResponse} providing the command registration and the user input
+         * @throws ParseException if there is a problem with the user input matching the command options
          */
-        public Builder(final RegistrationResponse response) {
+        public Builder(final RegistrationResponse response) throws ParseException {
             Objects.requireNonNull(response);
             Preconditions.checkArgument(response.getRegistrations().size() == 1);
             Preconditions.checkArgument(response.getUserInput().isPresent());
 
             this.registration = response.getRegistrations().iterator().next();
             this.userInput = response.getUserInput().get();
-            this.commandLine = null; // TODO
+            this.commandLine = getCommandLine(this.registration, this.userInput);
+        }
+
+        private Optional<CommandLine> getCommandLine(
+                final Registration registration, final TokenizedUserInput userInput) throws ParseException {
+            if (registration.getOptions().isPresent()) {
+                final List<String> tokens = userInput.getTokens();
+                final String[] array = tokens.toArray(new String[tokens.size()]);
+                return Optional.of(new DefaultParser().parse(registration.getOptions().get(), array));
+            } else {
+                return Optional.empty();
+            }
         }
 
         /**

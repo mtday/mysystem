@@ -87,8 +87,7 @@ public class CommandPathTest {
 
     @Test
     public void testBuilderWithMultipleAdds() {
-        assertEquals(
-                "a b c d e",
+        assertEquals                                                                                      ("a b c d e",
                 new CommandPath.Builder("a", "b").add("c").add(Arrays.asList("d", "e")).build().toString());
     }
 
@@ -108,6 +107,17 @@ public class CommandPathTest {
 
         assertEquals("a bc d", a.toString());
         assertEquals("a bc d", b.toString());
+    }
+
+    @Test
+    public void testBuilderWithEmptyString() throws ParseException {
+        assertEquals("a", new CommandPath.Builder(new TokenizedUserInput.Builder("a  ''").build()).build().toString());
+    }
+
+    @Test
+    public void testBuilderWithString() throws ParseException {
+        assertEquals(
+                "a b", new CommandPath.Builder(new TokenizedUserInput.Builder("a 'b'").build()).build().toString());
     }
 
     @Test(expected = IllegalStateException.class)

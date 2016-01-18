@@ -1,5 +1,7 @@
 package mysystem.shell.actor;
 
+import org.apache.commons.cli.ParseException;
+
 import akka.actor.ActorRef;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
@@ -36,7 +38,8 @@ public class RegistrationFinder extends UntypedActor {
      * Default constructor.
      */
     public RegistrationFinder() {
-        this.registrationManager = context().system().actorSelection("/user/" + RegistrationManager.class.getSimpleName());
+        this.registrationManager =
+                context().system().actorSelection("/user/" + RegistrationManager.class.getSimpleName());
         this.consoleManager = context().system().actorSelection("/user/" + ConsoleManager.class.getSimpleName());
         this.inputTokenizer = context().system().actorSelection("/user/" + InputTokenizer.class.getSimpleName());
         this.commandExecutor = CommandExecutor.create(context().system());
@@ -75,7 +78,6 @@ public class RegistrationFinder extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        log.error("Received: {}", message);
         if (message instanceof TokenizedUserInput) {
             // Lookup the available commands matching the user input.
             getRegistrationManager().tell(new RegistrationLookup.Builder((TokenizedUserInput) message).build(), self());
@@ -89,7 +91,13 @@ public class RegistrationFinder extends UntypedActor {
                 // Multiple registrations match, turn into a help command.
                 getInputTokenizer().tell(new UserInput.Builder("help " + resp.getUserInput().get()).build(), self());
             } else {
-                getCommandExecutor().tell(new Command.Builder(resp).build(), self());
+                try {
+                    getCommandExecutor().tell(new Command.Builder(resp).build(), self());
+                } catch (final ParseException error) {
+                    // No registrations found so the command is not recognized.
+                    getConsoleManager()
+                            .tell(new InvalidInput.Builder(resp.getUserInput().get(), error).build(), self());
+                }
             }
         } else {
             unhandled(message);

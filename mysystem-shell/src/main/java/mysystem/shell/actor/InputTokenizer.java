@@ -55,11 +55,10 @@ public class InputTokenizer extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        log.error("Received: {}", message);
         if (message instanceof UserInput) {
             final UserInput userInput = (UserInput) message;
             try {
-                getRegistrationFinder().tell(new TokenizedUserInput.Builder(userInput), self());
+                getRegistrationFinder().tell(new TokenizedUserInput.Builder(userInput).build(), self());
             } catch (final ParseException parseException) {
                 getConsoleManager().tell(new InvalidInput.Builder(userInput, parseException).build(), self());
             }

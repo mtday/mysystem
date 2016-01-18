@@ -11,9 +11,9 @@ import mysystem.shell.model.RegistrationRequest;
 import mysystem.shell.model.RegistrationResponse;
 
 /**
- * This actor implements the {@code help} command in the shell.
+ * This actor implements the {@code cluster} commands in the shell.
  */
-public class HelpCommand extends UntypedActor {
+public class ClusterCommand extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     /**
@@ -31,12 +31,12 @@ public class HelpCommand extends UntypedActor {
     }
 
     private void handleRegistrationRequest() {
-        final CommandPath help = new CommandPath.Builder("help").build();
-        final Registration helpRegistration = new Registration.Builder(self(), help).build();
-        sender().tell(new RegistrationResponse.Builder().add(helpRegistration).build(), self());
+        final CommandPath cluster = new CommandPath.Builder("cluster").build();
+        final Registration clusterRegistration = new Registration.Builder(self(), cluster).build();
+        sender().tell(new RegistrationResponse.Builder().add(clusterRegistration).build(), self());
     }
 
     protected void handleCommand(final Command command) {
-        sender().tell(new ConsoleOutput.Builder("help information goes here: " + command.getUserInput()).build(), self());
+        sender().tell(new ConsoleOutput.Builder("cluster info goes here").build(), self());
     }
 }

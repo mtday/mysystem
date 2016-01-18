@@ -5,9 +5,12 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.core.util.OptionalComparator;
+
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable object used to represent invalid input provided by the user.
@@ -17,14 +20,14 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
 
     private final UserInput userInput;
     private final String error;
-    private final Integer location;
+    private final Optional<Integer> location;
 
     /**
      * @param userInput the {@link UserInput} representing the missing command
      * @param error     the error message to display back to the user
      * @param location  the location in the input where the error occurred
      */
-    private InvalidInput(final UserInput userInput, final String error, final Integer location) {
+    private InvalidInput(final UserInput userInput, final String error, final Optional<Integer> location) {
         this.userInput = userInput;
         this.error = error;
         this.location = location;
@@ -47,7 +50,7 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
     /**
      * @return the location in the user input where the error occurred.
      */
-    public Integer getLocation() {
+    public Optional<Integer> getLocation() {
         return this.location;
     }
 
@@ -75,7 +78,7 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
         final CompareToBuilder cmp = new CompareToBuilder();
         cmp.append(getUserInput(), other.getUserInput());
         cmp.append(getError(), other.getError());
-        cmp.append(getLocation(), other.getLocation());
+        cmp.append(getLocation(), other.getLocation(), new OptionalComparator());
         return cmp.toComparison();
     }
 
@@ -105,7 +108,7 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
     public static class Builder {
         private final UserInput userInput;
         private final String error;
-        private final Integer location;
+        private final Optional<Integer> location;
 
         /**
          * @param userInput      the user input to include in the request
@@ -114,7 +117,17 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
         public Builder(final UserInput userInput, final ParseException parseException) {
             this.userInput = Objects.requireNonNull(userInput);
             this.error = Objects.requireNonNull(parseException).getMessage();
-            this.location = parseException.getErrorOffset();
+            this.location = Optional.of(parseException.getErrorOffset());
+        }
+
+        /**
+         * @param userInput      the user input to include in the request
+         * @param parseException the parse exception caused by the invalid input
+         */
+        public Builder(final TokenizedUserInput userInput, final org.apache.commons.cli.ParseException parseException) {
+            this.userInput = Objects.requireNonNull(userInput).getUserInput();
+            this.error = Objects.requireNonNull(parseException).getMessage();
+            this.location = Optional.empty();
         }
 
         /**

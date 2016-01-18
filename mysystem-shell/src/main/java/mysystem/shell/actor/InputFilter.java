@@ -33,6 +33,7 @@ public class InputFilter extends UntypedActor {
      */
     public InputFilter() {
         this.inputTokenizer = InputTokenizer.create(context().system());
+        log.error("Input Tokenizer: {}", this.inputTokenizer);
     }
 
     /**
@@ -47,7 +48,6 @@ public class InputFilter extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        log.error("Received: {}", message);
         if (message instanceof UserInput) {
             final UserInput userInput = (UserInput) message;
             // Filter the user input if appropriate.
