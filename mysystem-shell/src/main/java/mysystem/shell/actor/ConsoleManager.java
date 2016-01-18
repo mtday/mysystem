@@ -10,11 +10,8 @@ import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import jline.console.ConsoleReader;
 import mysystem.core.config.CoreConfig;
-import mysystem.shell.model.AcceptInput;
-import mysystem.shell.model.ConsoleOutput;
-import mysystem.shell.model.Terminate;
-import mysystem.shell.model.UnrecognizedCommand;
-import mysystem.shell.model.UserInput;
+import mysystem.shell.model.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -84,12 +81,15 @@ public class ConsoleManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) throws Exception {
+        log.error("Received: {}", message);
         if (message instanceof AcceptInput) {
             handleAcceptInput();
         } else if (message instanceof ConsoleOutput) {
             handleConsoleOutput((ConsoleOutput) message);
         } else if (message instanceof UnrecognizedCommand) {
             handleUnrecognizedCommand((UnrecognizedCommand) message);
+        } else if (message instanceof InvalidInput) {
+            handleInvalidInput((InvalidInput) message);
         } else if (message instanceof Terminate) {
             handleTerminate();
         } else {
@@ -121,6 +121,13 @@ public class ConsoleManager extends UntypedActor {
     protected void handleUnrecognizedCommand(final UnrecognizedCommand unrecognizedCommand) throws IOException {
         getConsoleReader().println("The specified command was not recognized: " + unrecognizedCommand.getUserInput());
         getConsoleReader().println("Use 'help' to see all the available commands.");
+        getConsoleReader().flush();
+        self().tell(new AcceptInput.Builder().build(), self());
+    }
+
+    protected void handleInvalidInput(final InvalidInput invalidInput) throws IOException {
+        getConsoleReader().println(StringUtils.leftPad("^", invalidInput.getLocation(), "-"));
+        getConsoleReader().println(invalidInput.getError());
         getConsoleReader().flush();
         self().tell(new AcceptInput.Builder().build(), self());
     }

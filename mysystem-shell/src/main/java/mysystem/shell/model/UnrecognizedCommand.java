@@ -12,19 +12,19 @@ import java.util.Objects;
 public class UnrecognizedCommand implements Comparable<UnrecognizedCommand>, Serializable {
     private final static long serialVersionUID = 1L;
 
-    private final UserInput userInput;
+    private final TokenizedUserInput userInput;
 
     /**
-     * @param userInput the {@link UserInput} representing the missing command
+     * @param userInput the {@link TokenizedUserInput} representing the missing command
      */
-    private UnrecognizedCommand(final UserInput userInput) {
+    private UnrecognizedCommand(final TokenizedUserInput userInput) {
         this.userInput = userInput;
     }
 
     /**
-     * @return the {@link UserInput} representing the missing command
+     * @return the {@link TokenizedUserInput} representing the missing command
      */
-    public UserInput getUserInput() {
+    public TokenizedUserInput getUserInput() {
         return this.userInput;
     }
 
@@ -70,12 +70,12 @@ public class UnrecognizedCommand implements Comparable<UnrecognizedCommand>, Ser
      * Used to create {@link UnrecognizedCommand} objects.
      */
     public static class Builder {
-        private final UserInput userInput;
+        private final TokenizedUserInput userInput;
 
         /**
          * @param userInput the user input to include in the request
          */
-        public Builder(final UserInput userInput) {
+        public Builder(final TokenizedUserInput userInput) {
             this.userInput = Objects.requireNonNull(userInput);
         }
 

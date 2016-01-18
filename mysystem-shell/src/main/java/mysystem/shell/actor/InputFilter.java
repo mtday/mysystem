@@ -47,6 +47,7 @@ public class InputFilter extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
+        log.error("Received: {}", message);
         if (message instanceof UserInput) {
             final UserInput userInput = (UserInput) message;
             // Filter the user input if appropriate.

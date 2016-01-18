@@ -17,15 +17,15 @@ public class Command implements Comparable<Command>, Serializable {
     private final static long serialVersionUID = 1L;
 
     private final Registration registration;
-    private final UserInput userInput;
+    private final TokenizedUserInput userInput;
     private final CommandLine commandLine;
 
     /**
      * @param registration the {@link Registration} associated with the command being invoked
-     * @param userInput the {@link UserInput} entered in the shell to be executed
+     * @param userInput the {@link TokenizedUserInput} entered in the shell to be executed
      * @param commandLine the parsed {@link CommandLine} parameters for this command
      */
-    public Command(final Registration registration, final UserInput userInput, final CommandLine commandLine) {
+    public Command(final Registration registration, final TokenizedUserInput userInput, final CommandLine commandLine) {
         this.registration = registration;
         this.userInput = userInput;
         this.commandLine = commandLine;
@@ -41,7 +41,7 @@ public class Command implements Comparable<Command>, Serializable {
     /**
      * @return the {@link UserInput} entered in the shell to be executed
      */
-    public UserInput getUserInput() {
+    public TokenizedUserInput getUserInput() {
         return this.userInput;
     }
 
@@ -99,7 +99,7 @@ public class Command implements Comparable<Command>, Serializable {
      */
     public static class Builder {
         private final Registration registration;
-        private final UserInput userInput;
+        private final TokenizedUserInput userInput;
         private final CommandLine commandLine;
 
         /**

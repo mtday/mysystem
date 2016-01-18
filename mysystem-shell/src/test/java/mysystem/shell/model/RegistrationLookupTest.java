@@ -4,17 +4,24 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.typesafe.config.ConfigException;
 import org.junit.Test;
+
+import java.text.ParseException;
 
 /**
  * Perform testing of the {@link RegistrationLookup} class and builder.
  */
 public class RegistrationLookupTest {
     @Test
-    public void testCompareTo() {
-        final RegistrationLookup a = new RegistrationLookup.Builder(new UserInput.Builder("a").build()).build();
-        final RegistrationLookup b = new RegistrationLookup.Builder(new UserInput.Builder("b").build()).build();
-        final RegistrationLookup c = new RegistrationLookup.Builder(new UserInput.Builder("c").build()).build();
+    public void testCompareTo() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
+
+        final RegistrationLookup a = new RegistrationLookup.Builder(uA).build();
+        final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
+        final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
 
         assertEquals(1, a.compareTo(null));
         assertEquals(0, a.compareTo(a));
@@ -29,10 +36,14 @@ public class RegistrationLookupTest {
     }
 
     @Test
-    public void testEquals() {
-        final RegistrationLookup a = new RegistrationLookup.Builder(new UserInput.Builder("a").build()).build();
-        final RegistrationLookup b = new RegistrationLookup.Builder(new UserInput.Builder("b").build()).build();
-        final RegistrationLookup c = new RegistrationLookup.Builder(new UserInput.Builder("c").build()).build();
+    public void testEquals() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
+
+        final RegistrationLookup a = new RegistrationLookup.Builder(uA).build();
+        final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
+        final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
 
         assertFalse(a.equals(null));
         assertTrue(a.equals(a));
@@ -47,19 +58,24 @@ public class RegistrationLookupTest {
     }
 
     @Test
-    public void testHashCode() {
-        final RegistrationLookup a = new RegistrationLookup.Builder(new UserInput.Builder("a").build()).build();
-        final RegistrationLookup b = new RegistrationLookup.Builder(new UserInput.Builder("b").build()).build();
-        final RegistrationLookup c = new RegistrationLookup.Builder(new UserInput.Builder("c").build()).build();
+    public void testHashCode() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
 
-        assertEquals(97, a.hashCode());
-        assertEquals(98, b.hashCode());
-        assertEquals(99, c.hashCode());
+        final RegistrationLookup a = new RegistrationLookup.Builder(uA).build();
+        final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
+        final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
+
+        assertEquals(128, a.hashCode());
+        assertEquals(129, b.hashCode());
+        assertEquals(130, c.hashCode());
     }
 
     @Test
-    public void testToString() {
-        final RegistrationLookup a = new RegistrationLookup.Builder(new UserInput.Builder("a").build()).build();
-        assertEquals("RegistrationLookup[userInput=a]", a.toString());
+    public void testToString() throws ParseException {
+        final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
+        final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
+        assertEquals("RegistrationLookup[userInput=a]", lookup.toString());
     }
 }

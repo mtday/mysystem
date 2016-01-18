@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import java.text.ParseException;
 import java.util.Arrays;
 
 /**
@@ -98,17 +99,20 @@ public class CommandPathTest {
     }
 
     @Test
-    public void testBuilderWithUserInput() {
-        final CommandPath a = new CommandPath.Builder(new UserInput.Builder("  a   bc\td  ").build()).build();
-        final CommandPath b = new CommandPath.Builder(new UserInput.Builder("  a   bc\td  -e  ").build()).build();
+    public void testBuilderWithUserInput() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("  a   bc\td  ").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("  a   bc\td  -e  ").build();
+
+        final CommandPath a = new CommandPath.Builder(uA).build();
+        final CommandPath b = new CommandPath.Builder(uB).build();
 
         assertEquals("a bc d", a.toString());
         assertEquals("a bc d", b.toString());
     }
 
     @Test(expected = IllegalStateException.class)
-    public void testBuilderWithUserInputWhitespace() {
-        new CommandPath.Builder(new UserInput.Builder("  ").build()).build();
+    public void testBuilderWithUserInputWhitespace() throws ParseException {
+        new CommandPath.Builder(new TokenizedUserInput.Builder("  ").build()).build();
     }
 
     @Test

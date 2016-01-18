@@ -24,12 +24,13 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
     private final static long serialVersionUID = 1L;
 
     private final Set<Registration> registrations = new TreeSet<>();
-    private final Optional<UserInput> userInput;
+    private final Optional<TokenizedUserInput> userInput;
 
     /**
      * @param registrations the registrations describing commands available in the shell
+     * @param userInput the tokenized user input
      */
-    private RegistrationResponse(final Collection<Registration> registrations, final Optional<UserInput> userInput) {
+    private RegistrationResponse(final Collection<Registration> registrations, final Optional<TokenizedUserInput> userInput) {
         this.registrations.addAll(registrations);
         this.userInput = userInput;
     }
@@ -42,9 +43,9 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
     }
 
     /**
-     * @return the user input from the shell used to determine which registrations are in this response
+     * @return the tokenized user input from the shell used to determine which registrations are in this response
      */
-    public Optional<UserInput> getUserInput() {
+    public Optional<TokenizedUserInput> getUserInput() {
         return this.userInput;
     }
 
@@ -112,7 +113,7 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
      */
     public static class Builder {
         private final Set<Registration> registrations = new TreeSet<>();
-        private Optional<UserInput> userInput = Optional.empty();
+        private Optional<TokenizedUserInput> userInput = Optional.empty();
 
         /**
          * Default constructor.
@@ -128,7 +129,7 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
         }
 
         /**
-         * @param lookup the {@link RegistrationLookup} indicating the desired registrations
+         * @param lookup        the {@link RegistrationLookup} indicating the desired registrations
          * @param registrations the map containing all registrations
          */
         public Builder(final RegistrationLookup lookup, final Map<CommandPath, Registration> registrations) {
@@ -172,7 +173,7 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
          * @param userInput the user input from the shell used to determine which registrations are in this response
          * @return {@code this} for fluent-style usage
          */
-        public Builder setUserInput(final UserInput userInput) {
+        public Builder setUserInput(final TokenizedUserInput userInput) {
             this.userInput = Optional.of(Objects.requireNonNull(userInput));
             return this;
         }

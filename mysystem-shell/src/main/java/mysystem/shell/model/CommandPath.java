@@ -138,9 +138,8 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
         /**
          * @param userInput the user input from which a {@link CommandPath} will be generated
          */
-        public Builder(final UserInput userInput) {
-            final String[] parts = userInput.getInput().split("\\s");
-            for (final String part : parts) {
+        public Builder(final TokenizedUserInput userInput) {
+            for (final String part : userInput.getTokens()) {
                 final String trimmed = StringUtils.trimToEmpty(part);
                 if (StringUtils.isEmpty(trimmed)) {
                     continue;

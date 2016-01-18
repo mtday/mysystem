@@ -12,19 +12,19 @@ import java.util.Objects;
 public class RegistrationLookup implements Comparable<RegistrationLookup>, Serializable {
     private final static long serialVersionUID = 1L;
 
-    private final UserInput userInput;
+    private final TokenizedUserInput userInput;
 
     /**
-     * @param userInput the {@link UserInput} for which a command registration should be found
+     * @param userInput the {@link TokenizedUserInput} for which a command registration should be found
      */
-    private RegistrationLookup(final UserInput userInput) {
+    private RegistrationLookup(final TokenizedUserInput userInput) {
         this.userInput = userInput;
     }
 
     /**
      * @return the {@link UserInput} for which a command registration should be found
      */
-    public UserInput getUserInput() {
+    public TokenizedUserInput getUserInput() {
         return this.userInput;
     }
 
@@ -70,12 +70,12 @@ public class RegistrationLookup implements Comparable<RegistrationLookup>, Seria
      * Used to create {@link RegistrationLookup} objects.
      */
     public static class Builder {
-        private final UserInput userInput;
+        private final TokenizedUserInput userInput;
 
         /**
-         * @param userInput the user input to include in the request
+         * @param userInput the tokenized user input to include in the request
          */
-        public Builder(final UserInput userInput) {
+        public Builder(final TokenizedUserInput userInput) {
             this.userInput = Objects.requireNonNull(userInput);
         }
 

@@ -48,6 +48,7 @@ public class CommandExecutor extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
+        log.error("Received: {}", message);
         if (message instanceof Command) {
             final Command command = (Command) message;
             // Proxy the command to the command's implementation actor.

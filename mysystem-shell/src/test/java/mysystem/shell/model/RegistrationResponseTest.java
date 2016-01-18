@@ -10,6 +10,7 @@ import org.mockito.Mockito;
 
 import akka.actor.ActorRef;
 
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -125,9 +126,9 @@ public class RegistrationResponseTest {
     }
 
     @Test
-    public void testBuilderWithUserInput() {
+    public void testBuilderWithUserInput() throws ParseException {
         final ActorRef ref = Mockito.mock(ActorRef.class);
-        final UserInput userInput = new UserInput.Builder("input").build();
+        final TokenizedUserInput userInput = new TokenizedUserInput.Builder("input").build();
         final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
         final Registration registration = new Registration.Builder(ref, commandPath).build();
         final RegistrationResponse a = new RegistrationResponse.Builder(registration).setUserInput(userInput).build();
@@ -138,7 +139,7 @@ public class RegistrationResponseTest {
     }
 
     @Test
-    public void testBuilderWithLookup() {
+    public void testBuilderWithLookup() throws ParseException {
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration regA = new Registration.Builder(ref, new CommandPath.Builder("a").build()).build();
         final Registration regB = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
@@ -147,8 +148,11 @@ public class RegistrationResponseTest {
         map.put(regA.getPath(), regA);
         map.put(regB.getPath(), regB);
 
-        final RegistrationLookup lookupA = new RegistrationLookup.Builder(new UserInput.Builder("a").build()).build();
-        final RegistrationLookup lookupB = new RegistrationLookup.Builder(new UserInput.Builder("a b").build()).build();
+        final TokenizedUserInput inputA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput inputB = new TokenizedUserInput.Builder("a b").build();
+
+        final RegistrationLookup lookupA = new RegistrationLookup.Builder(inputA).build();
+        final RegistrationLookup lookupB = new RegistrationLookup.Builder(inputB).build();
 
         final RegistrationResponse responseA = new RegistrationResponse.Builder(lookupA, map).build();
         final RegistrationResponse responseB = new RegistrationResponse.Builder(lookupB, map).build();

@@ -9,15 +9,17 @@ import org.mockito.Mockito;
 
 import akka.actor.ActorRef;
 
+import java.text.ParseException;
+
 /**
  * Perform testing of the {@link Command} class and builder.
  */
 public class CommandTest {
     @Test
-    public void testCompareTo() {
-        final UserInput uA = new UserInput.Builder("a").build();
-        final UserInput uB = new UserInput.Builder("b").build();
-        final UserInput uC = new UserInput.Builder("a b c").build();
+    public void testCompareTo() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("a b c").build();
 
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
@@ -44,10 +46,10 @@ public class CommandTest {
     }
 
     @Test
-    public void testEquals() {
-        final UserInput uA = new UserInput.Builder("a").build();
-        final UserInput uB = new UserInput.Builder("b").build();
-        final UserInput uC = new UserInput.Builder("a b c").build();
+    public void testEquals() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("a b c").build();
 
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
@@ -74,8 +76,8 @@ public class CommandTest {
     }
 
     @Test
-    public void testHashCode() {
-        final UserInput u = new UserInput.Builder("a").build();
+    public void testHashCode() throws ParseException {
+        final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration r = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
@@ -85,8 +87,8 @@ public class CommandTest {
     }
 
     @Test
-    public void testToString() {
-        final UserInput u = new UserInput.Builder("a").build();
+    public void testToString() throws ParseException {
+        final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration r = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
@@ -96,8 +98,8 @@ public class CommandTest {
     }
 
     @Test
-    public void testBuilderCopy() {
-        final UserInput u = new UserInput.Builder("a").build();
+    public void testBuilderCopy() throws ParseException {
+        final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration r = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
@@ -109,8 +111,8 @@ public class CommandTest {
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testBuilderTooManyRegistrations() {
-        final UserInput u = new UserInput.Builder("a").build();
+    public void testBuilderTooManyRegistrations() throws ParseException {
+        final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
         final ActorRef ref = Mockito.mock(ActorRef.class);
         final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
         final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("a", "b", "c").build()).build();

@@ -70,6 +70,7 @@ public class RegistrationManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
+        log.error("Received: {}", message);
         if (message instanceof RegistrationResponse) {
             for (final Registration registration : ((RegistrationResponse) message).getRegistrations()) {
                 this.registrations.put(registration.getPath(), registration);

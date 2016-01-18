@@ -7,12 +7,7 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import mysystem.shell.model.Command;
-import mysystem.shell.model.Registration;
-import mysystem.shell.model.RegistrationLookup;
-import mysystem.shell.model.RegistrationResponse;
-import mysystem.shell.model.UnrecognizedCommand;
-import mysystem.shell.model.UserInput;
+import mysystem.shell.model.*;
 
 import java.util.Objects;
 import java.util.Set;
@@ -25,6 +20,7 @@ public class RegistrationFinder extends UntypedActor {
 
     private final ActorSelection registrationManager;
     private final ActorSelection consoleManager;
+    private final ActorSelection inputTokenizer;
     private final ActorRef commandExecutor;
 
     /**
@@ -42,6 +38,7 @@ public class RegistrationFinder extends UntypedActor {
     public RegistrationFinder() {
         this.registrationManager = context().system().actorSelection("/user/" + RegistrationManager.class.getSimpleName());
         this.consoleManager = context().system().actorSelection("/user/" + ConsoleManager.class.getSimpleName());
+        this.inputTokenizer = context().system().actorSelection("/user/" + InputTokenizer.class.getSimpleName());
         this.commandExecutor = CommandExecutor.create(context().system());
     }
 
@@ -60,6 +57,13 @@ public class RegistrationFinder extends UntypedActor {
     }
 
     /**
+     * @return a reference to the input tokenizer actor
+     */
+    protected ActorSelection getInputTokenizer() {
+        return this.inputTokenizer;
+    }
+
+    /**
      * @return a reference to the command executor actor
      */
     protected ActorRef getCommandExecutor() {
@@ -71,21 +75,21 @@ public class RegistrationFinder extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        if (message instanceof UserInput) {
+        log.error("Received: {}", message);
+        if (message instanceof TokenizedUserInput) {
             // Lookup the available commands matching the user input.
-            getRegistrationManager().tell(new RegistrationLookup.Builder((UserInput) message).build(), self());
+            getRegistrationManager().tell(new RegistrationLookup.Builder((TokenizedUserInput) message).build(), self());
         } else if (message instanceof RegistrationResponse) {
-            final RegistrationResponse response = (RegistrationResponse) message;
-            final Set<Registration> registrations = response.getRegistrations();
+            final RegistrationResponse resp = (RegistrationResponse) message;
+            final Set<Registration> registrations = resp.getRegistrations();
             if (registrations.isEmpty()) {
                 // No registrations found so the command is not recognized.
-                getConsoleManager()
-                        .tell(new UnrecognizedCommand.Builder(response.getUserInput().get()).build(), self());
+                getConsoleManager().tell(new UnrecognizedCommand.Builder(resp.getUserInput().get()).build(), self());
             } else if (registrations.size() > 1) {
                 // Multiple registrations match, turn into a help command.
-                self().tell(new UserInput.Builder("help " + response.getUserInput().get()).build(), self());
+                getInputTokenizer().tell(new UserInput.Builder("help " + resp.getUserInput().get()).build(), self());
             } else {
-                getCommandExecutor().tell(new Command.Builder(response).build(), self());
+                getCommandExecutor().tell(new Command.Builder(resp).build(), self());
             }
         } else {
             unhandled(message);

@@ -6,15 +6,21 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import java.text.ParseException;
+
 /**
  * Perform testing of the {@link UnrecognizedCommand} class and builder.
  */
 public class UnrecognizedCommandTest {
     @Test
-    public void testCompareTo() {
-        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(new UserInput.Builder("a").build()).build();
-        final UnrecognizedCommand b = new UnrecognizedCommand.Builder(new UserInput.Builder("b").build()).build();
-        final UnrecognizedCommand c = new UnrecognizedCommand.Builder(new UserInput.Builder("c").build()).build();
+    public void testCompareTo() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
+
+        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(uA).build();
+        final UnrecognizedCommand b = new UnrecognizedCommand.Builder(uB).build();
+        final UnrecognizedCommand c = new UnrecognizedCommand.Builder(uC).build();
 
         assertEquals(1, a.compareTo(null));
         assertEquals(0, a.compareTo(a));
@@ -29,10 +35,14 @@ public class UnrecognizedCommandTest {
     }
 
     @Test
-    public void testEquals() {
-        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(new UserInput.Builder("a").build()).build();
-        final UnrecognizedCommand b = new UnrecognizedCommand.Builder(new UserInput.Builder("b").build()).build();
-        final UnrecognizedCommand c = new UnrecognizedCommand.Builder(new UserInput.Builder("c").build()).build();
+    public void testEquals() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
+
+        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(uA).build();
+        final UnrecognizedCommand b = new UnrecognizedCommand.Builder(uB).build();
+        final UnrecognizedCommand c = new UnrecognizedCommand.Builder(uC).build();
 
         assertFalse(a.equals(null));
         assertTrue(a.equals(a));
@@ -47,19 +57,24 @@ public class UnrecognizedCommandTest {
     }
 
     @Test
-    public void testHashCode() {
-        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(new UserInput.Builder("a").build()).build();
-        final UnrecognizedCommand b = new UnrecognizedCommand.Builder(new UserInput.Builder("b").build()).build();
-        final UnrecognizedCommand c = new UnrecognizedCommand.Builder(new UserInput.Builder("c").build()).build();
+    public void testHashCode() throws ParseException {
+        final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
+        final TokenizedUserInput uC = new TokenizedUserInput.Builder("c").build();
 
-        assertEquals(97, a.hashCode());
-        assertEquals(98, b.hashCode());
-        assertEquals(99, c.hashCode());
+        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(uA).build();
+        final UnrecognizedCommand b = new UnrecognizedCommand.Builder(uB).build();
+        final UnrecognizedCommand c = new UnrecognizedCommand.Builder(uC).build();
+
+        assertEquals(128, a.hashCode());
+        assertEquals(129, b.hashCode());
+        assertEquals(130, c.hashCode());
     }
 
     @Test
-    public void testToString() {
-        final UnrecognizedCommand a = new UnrecognizedCommand.Builder(new UserInput.Builder("a").build()).build();
-        assertEquals("UnrecognizedCommand[userInput=a]", a.toString());
+    public void testToString() throws ParseException {
+        final TokenizedUserInput input = new TokenizedUserInput.Builder("a").build();
+        final UnrecognizedCommand cmd = new UnrecognizedCommand.Builder(input).build();
+        assertEquals("UnrecognizedCommand[userInput=a]", cmd.toString());
     }
 }

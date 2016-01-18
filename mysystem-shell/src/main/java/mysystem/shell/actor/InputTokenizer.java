@@ -1,13 +1,13 @@
 package mysystem.shell.actor;
 
-import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
-import akka.actor.Props;
-import akka.actor.UntypedActor;
+import akka.actor.*;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
+import mysystem.shell.model.InvalidInput;
+import mysystem.shell.model.TokenizedUserInput;
 import mysystem.shell.model.UserInput;
 
+import java.text.ParseException;
 import java.util.Objects;
 
 /**
@@ -17,6 +17,7 @@ public class InputTokenizer extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private final ActorRef registrationFinder;
+    private final ActorSelection consoleManager;
 
     /**
      * @param actorSystem the {@link ActorSystem} that will host the actor
@@ -32,6 +33,7 @@ public class InputTokenizer extends UntypedActor {
      */
     public InputTokenizer() {
         this.registrationFinder = RegistrationFinder.create(context().system());
+        this.consoleManager = context().system().actorSelection("/user/" + ConsoleManager.class.getSimpleName());
     }
 
     /**
@@ -42,14 +44,25 @@ public class InputTokenizer extends UntypedActor {
     }
 
     /**
+     * @return a reference to the console manager actor
+     */
+    protected ActorSelection getConsoleManager() {
+        return this.consoleManager;
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
     public void onReceive(final Object message) {
+        log.error("Received: {}", message);
         if (message instanceof UserInput) {
-            // TODO: Tokenize the user input.
-
-            getRegistrationFinder().tell(message, self());
+            final UserInput userInput = (UserInput) message;
+            try {
+                getRegistrationFinder().tell(new TokenizedUserInput.Builder(userInput), self());
+            } catch (final ParseException parseException) {
+                getConsoleManager().tell(new InvalidInput.Builder(userInput, parseException).build(), self());
+            }
         } else {
             unhandled(message);
         }
