@@ -23,6 +23,7 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -73,13 +74,17 @@ public class ConfigCommand extends UntypedActor {
                 .collect(Collectors.toCollection(supplier));
     }
 
-    protected String toString(final Map.Entry<String, ConfigValue> entry) {
-        String value = entry.getValue().render();
+    protected String toString(final ConfigValue configValue) {
+        String value = configValue.render();
         if (StringUtils.startsWith(value, "\"") && StringUtils.endsWith(value, "\"")) {
             // Remove the surrounding quote characters when they are present.
             value = StringUtils.substringBetween(value, "\"");
         }
-        return String.format("  %s => %s", entry.getKey(), value);
+        return value;
+    }
+
+    protected String toString(final Map.Entry<String, ConfigValue> entry) {
+        return String.format("  %s => %s", entry.getKey(), toString(entry.getValue()));
     }
 
     protected ConsoleOutput getOutput(final String configString) {
@@ -107,8 +112,9 @@ public class ConfigCommand extends UntypedActor {
 
     protected boolean accept(final Map.Entry<String, ConfigValue> entry, final Optional<Pattern> pattern) {
         if (pattern.isPresent()) {
-            return pattern.get().matcher(entry.getKey()).matches() || pattern.get().matcher(entry.getValue().render())
-                    .matches();
+            final Matcher keyMatcher = pattern.get().matcher(entry.getKey());
+            final Matcher valMatcher = pattern.get().matcher(toString(entry.getValue()));
+            return keyMatcher.matches() || valMatcher.matches();
         }
         return true;
     }
