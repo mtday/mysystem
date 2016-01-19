@@ -8,7 +8,6 @@ import akka.cluster.ClusterEvent;
 import akka.cluster.Member;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
-import mysystem.shell.model.ClusterMember;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
@@ -21,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * This actor implements the {@code cluster} commands in the shell.
@@ -30,7 +28,6 @@ public class ClusterCommand extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private final Cluster cluster = Cluster.get(context().system());
-    private final Set<ClusterMember> members = new TreeSet<>();
 
     /**
      * @return the {@link Cluster} instance used to track and manage cluster members

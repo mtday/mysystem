@@ -80,13 +80,15 @@ public class ConsoleManager extends UntypedActor {
     @Override
     public void preStart() throws Exception {
         final Config config = context().system().settings().config();
-        final String system = config.getString(CoreConfig.ACTOR_SYSTEM_NAME.getKey());
-        final String version = config.getString(CoreConfig.VERSION.getKey());
+        if (config.hasPath(CoreConfig.ACTOR_SYSTEM_NAME.getKey()) && config.hasPath(CoreConfig.VERSION.getKey())) {
+            final String system = config.getString(CoreConfig.ACTOR_SYSTEM_NAME.getKey());
+            final String version = config.getString(CoreConfig.VERSION.getKey());
 
-        getConsoleReader().println();
-        getConsoleReader().println(String.format("%s %s", system, version));
-        getConsoleReader().println();
-        getConsoleReader().println("Type 'help' to list the available commands");
+            getConsoleReader().println();
+            getConsoleReader().println(String.format("%s %s", system, version));
+            getConsoleReader().println();
+            getConsoleReader().println("Type 'help' to list the available commands");
+        }
 
         self().tell(new AcceptInput.Builder().build(), ActorRef.noSender());
     }

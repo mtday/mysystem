@@ -13,7 +13,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -114,7 +113,7 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
      * Used to create {@link RegistrationResponse} objects.
      */
     public static class Builder {
-        private final Set<Registration> registrations = new TreeSet<>();
+        private final SortedSet<Registration> registrations = new TreeSet<>();
         private Optional<TokenizedUserInput> userInput = Optional.empty();
 
         /**

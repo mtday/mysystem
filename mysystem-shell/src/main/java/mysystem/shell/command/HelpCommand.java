@@ -68,7 +68,7 @@ public class HelpCommand extends UntypedActor {
         }
     }
 
-    private void handleRegistrationRequest() {
+    protected void handleRegistrationRequest() {
         final String description = "display usage information for available shell commands";
         final CommandPath help = new CommandPath.Builder("help").build();
         final Registration reg = new Registration.Builder(self(), help).setDescription(description).build();
@@ -77,7 +77,7 @@ public class HelpCommand extends UntypedActor {
 
     protected void handleCommand(final Command command) {
         final CommandPath path = command.getCommandPath();
-        if (path.isPrefix(new CommandPath.Builder("help").build()) && path.getSize() > 1) {
+        if (path.getSize() > 1) {
             // Strip off the "help" at the front and lookup the registrations for which help should be retrieved.
             getRegistrationManager().tell(new RegistrationLookup.Builder(path.getChild().get()).build(), self());
         } else {
@@ -87,10 +87,10 @@ public class HelpCommand extends UntypedActor {
     }
 
     protected void handleRegistrations(final RegistrationResponse response) {
-        // Only show options for help with a single command
+        // Only show options for help with a single command.
         final boolean includeOptions = response.getRegistrations().size() == 1;
 
-        // Determine the longest command path length to better format the output
+        // Determine the longest command path length to better format the output.
         final OptionalInt longestPath =
                 response.getRegistrations().stream().mapToInt(r -> r.getPath().toString().length()).max();
 
