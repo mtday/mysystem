@@ -5,8 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import akka.actor.ActorSelection;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.actor.ConsoleManager;
 import mysystem.shell.actor.RegistrationManager;
 import mysystem.shell.model.Command;
@@ -25,8 +23,6 @@ import java.util.OptionalInt;
  * This actor implements the {@code help} command in the shell.
  */
 public class HelpCommand extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     private final ActorSelection registrationManager;
     private final ActorSelection consoleManager;
 

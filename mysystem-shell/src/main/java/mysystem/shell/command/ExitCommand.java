@@ -1,8 +1,6 @@
 package mysystem.shell.command;
 
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
@@ -14,8 +12,6 @@ import mysystem.shell.model.RegistrationResponse;
  * This actor implements the {@code exit} and {@code quit} commands in the shell.
  */
 public class ExitCommand extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     /**
      * {@inheritDoc}
      */

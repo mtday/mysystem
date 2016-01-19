@@ -1,13 +1,13 @@
 package mysystem.shell.command;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.commons.lang3.StringUtils;
 
 import akka.actor.UntypedActor;
 import akka.cluster.Cluster;
 import akka.cluster.ClusterEvent;
 import akka.cluster.Member;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
@@ -18,6 +18,7 @@ import mysystem.shell.model.RegistrationResponse;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -25,34 +26,28 @@ import java.util.Set;
  * This actor implements the {@code cluster} commands in the shell.
  */
 public class ClusterCommand extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+    private final Cluster cluster;
 
-    private final Cluster cluster = Cluster.get(context().system());
+    /**
+     * Default constructor.
+     */
+    public ClusterCommand() {
+        this.cluster = Cluster.get(context().system());
+    }
+
+    /**
+     * @param cluster the {@link Cluster} from which cluster information will be retrieved
+     */
+    @VisibleForTesting
+    protected ClusterCommand(final Cluster cluster) {
+        this.cluster = Objects.requireNonNull(cluster);
+    }
 
     /**
      * @return the {@link Cluster} instance used to track and manage cluster members
      */
     protected Cluster getCluster() {
         return this.cluster;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void preStart() {
-        final List<Class<?>> classes = new LinkedList<>();
-        classes.add(ClusterEvent.MemberEvent.class);
-        classes.add(ClusterEvent.UnreachableMember.class);
-        getCluster().subscribe(self(), ClusterEvent.initialStateAsEvents(), classes.toArray(new Class[0]));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void postStop() {
-        getCluster().unsubscribe(self());
     }
 
     /**
@@ -69,7 +64,7 @@ public class ClusterCommand extends UntypedActor {
         }
     }
 
-    private void handleRegistrationRequest() {
+    protected void handleRegistrationRequest() {
         final String description = "provides information about the system cluster and its members";
         final CommandPath cluster = new CommandPath.Builder("cluster", "list").build();
         final Registration reg = new Registration.Builder(self(), cluster).setDescription(description).build();
@@ -84,6 +79,10 @@ public class ClusterCommand extends UntypedActor {
     protected List<String> getCurrentState() {
         final List<String> output = new LinkedList<>();
         final ClusterEvent.CurrentClusterState state = getCluster().state();
+
+        if (state == null) {
+            return output;
+        }
 
         final Set<Member> members = new LinkedHashSet<>();
         state.getMembers().forEach(m -> members.add(m));

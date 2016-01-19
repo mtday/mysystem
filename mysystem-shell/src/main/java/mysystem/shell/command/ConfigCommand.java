@@ -9,8 +9,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.StringUtils;
 
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
@@ -31,8 +29,6 @@ import java.util.stream.Collectors;
  * This actor implements the {@code config} commands in the shell.
  */
 public class ConfigCommand extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     /**
      * {@inheritDoc}
      */
