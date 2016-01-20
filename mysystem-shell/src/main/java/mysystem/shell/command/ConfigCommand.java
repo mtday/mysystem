@@ -2,6 +2,7 @@ package mysystem.shell.command;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueType;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
@@ -71,12 +72,10 @@ public class ConfigCommand extends UntypedActor {
     }
 
     protected String toString(final ConfigValue configValue) {
-        String value = configValue.render();
-        if (StringUtils.startsWith(value, "\"") && StringUtils.endsWith(value, "\"")) {
-            // Remove the surrounding quote characters when they are present.
-            value = StringUtils.substringBetween(value, "\"");
+        if (configValue.valueType() == ConfigValueType.STRING) {
+            return StringUtils.substringBetween(configValue.render(), "\"");
         }
-        return value;
+        return configValue.render();
     }
 
     protected String toString(final Map.Entry<String, ConfigValue> entry) {

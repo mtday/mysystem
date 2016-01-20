@@ -58,28 +58,30 @@ public class ExitCommandTest {
             final ActorRef exitCommand =
                     system.actorOf(Props.create(ExitCommand.class), ExitCommand.class.getSimpleName());
 
-            exitCommand.tell(new RegistrationRequest.Builder().build(), getRef());
+            try {
+                exitCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-            final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
-            final Set<Registration> registrations = response.getRegistrations();
-            assertEquals(2, registrations.size());
+                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final Set<Registration> registrations = response.getRegistrations();
+                assertEquals(2, registrations.size());
 
-            final Iterator<Registration> iter = registrations.iterator();
-            final Registration exit = iter.next();
-            assertTrue(exit.getDescription().isPresent());
-            assertEquals("exit the shell", exit.getDescription().get());
-            assertEquals(new CommandPath.Builder("exit").build(), exit.getPath());
-            assertFalse(exit.getOptions().isPresent());
+                final Iterator<Registration> iter = registrations.iterator();
+                final Registration exit = iter.next();
+                assertTrue(exit.getDescription().isPresent());
+                assertEquals("exit the shell", exit.getDescription().get());
+                assertEquals(new CommandPath.Builder("exit").build(), exit.getPath());
+                assertFalse(exit.getOptions().isPresent());
 
-            final Registration quit = iter.next();
-            assertTrue(quit.getDescription().isPresent());
-            assertEquals("exit the shell", quit.getDescription().get());
-            assertEquals(new CommandPath.Builder("quit").build(), quit.getPath());
-            assertFalse(quit.getOptions().isPresent());
+                final Registration quit = iter.next();
+                assertTrue(quit.getDescription().isPresent());
+                assertEquals("exit the shell", quit.getDescription().get());
+                assertEquals(new CommandPath.Builder("quit").build(), quit.getPath());
+                assertFalse(quit.getOptions().isPresent());
 
-            expectNoMsg();
-
-            exitCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                exitCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -95,18 +97,20 @@ public class ExitCommandTest {
             final ActorRef exitCommand =
                     system.actorOf(Props.create(ExitCommand.class), ExitCommand.class.getSimpleName());
 
-            exitCommand.tell(command, getRef());
+            try {
+                exitCommand.tell(command, getRef());
 
-            final ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertTrue(output.getOutput().isPresent());
-            assertEquals("Disconnecting", output.getOutput().get());
-            assertFalse(output.hasMore());
-            assertTrue(output.isTerminate());
+                final ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertTrue(output.getOutput().isPresent());
+                assertEquals("Disconnecting", output.getOutput().get());
+                assertFalse(output.hasMore());
+                assertTrue(output.isTerminate());
 
-            expectNoMsg();
-
-            exitCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                exitCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -116,11 +120,13 @@ public class ExitCommandTest {
             final ActorRef exitCommand =
                     system.actorOf(Props.create(ExitCommand.class), ExitCommand.class.getSimpleName());
 
-            exitCommand.tell("unhandled", getRef());
+            try {
+                exitCommand.tell("unhandled", getRef());
 
-            expectNoMsg();
-
-            exitCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                exitCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 }

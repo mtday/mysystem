@@ -103,22 +103,24 @@ public class ClusterCommandTest {
             final ActorRef clusterCommand =
                     system.actorOf(Props.create(ClusterCommand.class, cluster), ClusterCommand.class.getSimpleName());
 
-            clusterCommand.tell(new RegistrationRequest.Builder().build(), getRef());
+            try {
+                clusterCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-            final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
-            final Set<Registration> registrations = response.getRegistrations();
-            assertEquals(1, registrations.size());
+                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final Set<Registration> registrations = response.getRegistrations();
+                assertEquals(1, registrations.size());
 
-            final Registration registration = registrations.iterator().next();
-            assertTrue(registration.getDescription().isPresent());
-            assertEquals                               ("provides information about the system cluster and its members",
-                    registration.getDescription().get());
-            assertEquals(new CommandPath.Builder("cluster", "list").build(), registration.getPath());
-            assertFalse(registration.getOptions().isPresent());
+                final Registration registration = registrations.iterator().next();
+                assertTrue(registration.getDescription().isPresent());
+                assertEquals("provides information about the system cluster and its members",
+                        registration.getDescription().get());
+                assertEquals(new CommandPath.Builder("cluster", "list").build(), registration.getPath());
+                assertFalse(registration.getOptions().isPresent());
 
-            expectNoMsg();
-
-            clusterCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                clusterCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -134,38 +136,40 @@ public class ClusterCommandTest {
             final ActorRef clusterCommand =
                     system.actorOf(Props.create(ClusterCommand.class, cluster), ClusterCommand.class.getSimpleName());
 
-            clusterCommand.tell(command, getRef());
+            try {
+                clusterCommand.tell(command, getRef());
 
-            ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertTrue(output.getOutput().isPresent());
-            assertEquals("  Cluster Members: 2", output.getOutput().get());
-            assertTrue(output.hasMore());
-            assertFalse(output.isTerminate());
+                ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertTrue(output.getOutput().isPresent());
+                assertEquals("  Cluster Members: 2", output.getOutput().get());
+                assertTrue(output.hasMore());
+                assertFalse(output.isTerminate());
 
-            output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertTrue(output.getOutput().isPresent());
-            assertEquals("    akka.tcp://mysystem@127.0.0.1:2551  Up  leader  0.0.0-SNAPSHOT shell",
-                    output.getOutput().get());
-            assertTrue(output.hasMore());
-            assertFalse(output.isTerminate());
+                output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertTrue(output.getOutput().isPresent());
+                assertEquals("    akka.tcp://mysystem@127.0.0.1:2551  Up  leader  0.0.0-SNAPSHOT shell",
+                        output.getOutput().get());
+                assertTrue(output.hasMore());
+                assertFalse(output.isTerminate());
 
-            output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertTrue(output.getOutput().isPresent());
-            assertEquals("    akka.tcp://mysystem@127.0.0.1:2552  Up          0.0.0-SNAPSHOT shell",
-                    output.getOutput().get());
-            assertTrue(output.hasMore());
-            assertFalse(output.isTerminate());
+                output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertTrue(output.getOutput().isPresent());
+                assertEquals("    akka.tcp://mysystem@127.0.0.1:2552  Up          0.0.0-SNAPSHOT shell",
+                        output.getOutput().get());
+                assertTrue(output.hasMore());
+                assertFalse(output.isTerminate());
 
-            output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertFalse(output.getOutput().isPresent());
-            assertFalse(output.hasMore());
-            assertFalse(output.isTerminate());
-
-            clusterCommand.tell(PoisonPill.getInstance(), getRef());
+                output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertFalse(output.getOutput().isPresent());
+                assertFalse(output.hasMore());
+                assertFalse(output.isTerminate());
+            } finally {
+                clusterCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -181,15 +185,17 @@ public class ClusterCommandTest {
             final ActorRef clusterCommand = system.actorOf(Props.create(ClusterCommand.class, clusterWithNoState),
                     ClusterCommand.class.getSimpleName());
 
-            clusterCommand.tell(command, getRef());
+            try {
+                clusterCommand.tell(command, getRef());
 
-            ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertFalse(output.getOutput().isPresent());
-            assertFalse(output.hasMore());
-            assertFalse(output.isTerminate());
-
-            clusterCommand.tell(PoisonPill.getInstance(), getRef());
+                ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertFalse(output.getOutput().isPresent());
+                assertFalse(output.hasMore());
+                assertFalse(output.isTerminate());
+            } finally {
+                clusterCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -199,11 +205,13 @@ public class ClusterCommandTest {
             final ActorRef clusterCommand =
                     system.actorOf(Props.create(ClusterCommand.class, cluster), ClusterCommand.class.getSimpleName());
 
-            clusterCommand.tell("unhandled", getRef());
+            try {
+                clusterCommand.tell("unhandled", getRef());
 
-            expectNoMsg();
-
-            clusterCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                clusterCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 }

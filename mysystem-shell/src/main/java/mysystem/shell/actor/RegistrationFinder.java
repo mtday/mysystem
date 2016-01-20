@@ -7,9 +7,14 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
-import mysystem.shell.model.*;
+import mysystem.shell.model.Command;
+import mysystem.shell.model.InvalidInput;
+import mysystem.shell.model.Registration;
+import mysystem.shell.model.RegistrationLookup;
+import mysystem.shell.model.RegistrationResponse;
+import mysystem.shell.model.TokenizedUserInput;
+import mysystem.shell.model.UnrecognizedCommand;
+import mysystem.shell.model.UserInput;
 
 import java.util.Objects;
 import java.util.Set;
@@ -18,8 +23,6 @@ import java.util.Set;
  * Responsible for finding the corresponding {@link Registration} for a user-entered command.
  */
 public class RegistrationFinder extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     private final ActorSelection registrationManager;
     private final ActorSelection consoleManager;
     private final ActorSelection inputTokenizer;

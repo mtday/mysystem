@@ -117,7 +117,11 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
         public Builder(final UserInput userInput, final ParseException parseException) {
             this.userInput = Objects.requireNonNull(userInput);
             this.error = Objects.requireNonNull(parseException).getMessage();
-            this.location = Optional.of(parseException.getErrorOffset());
+            if (parseException.getErrorOffset() >= 0) {
+                this.location = Optional.of(parseException.getErrorOffset());
+            } else {
+                this.location = Optional.empty();
+            }
         }
 
         /**

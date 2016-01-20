@@ -1,5 +1,6 @@
 package mysystem.shell.actor;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.typesafe.config.Config;
 
 import org.apache.commons.lang3.StringUtils;
@@ -9,8 +10,6 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import jline.console.ConsoleReader;
 import mysystem.core.config.CoreConfig;
 import mysystem.shell.model.AcceptInput;
@@ -27,9 +26,7 @@ import java.util.Objects;
  * Responsible for managing the console reader, along with user input and console output.
  */
 public class ConsoleManager extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
-    private final ActorSelection inputParser;
+    private final ActorSelection inputFilter;
     private final ConsoleReader consoleReader;
 
     /**
@@ -53,7 +50,8 @@ public class ConsoleManager extends UntypedActor {
      * @throws IOException if there is a problem creating the console reader
      */
     public ConsoleManager() throws IOException {
-        this.inputParser = InputFilter.getActorSelection(context().system());
+        this.inputFilter = InputFilter.getActorSelection(context().system());
+
         this.consoleReader = new ConsoleReader();
         this.consoleReader.setHandleUserInterrupt(false);
         this.consoleReader.setPaginationEnabled(true);
@@ -61,10 +59,19 @@ public class ConsoleManager extends UntypedActor {
     }
 
     /**
+     * @param consoleReader the {@link ConsoleReader} used to retrieve input from the user
+     */
+    @VisibleForTesting
+    protected ConsoleManager(final ConsoleReader consoleReader) {
+        this.consoleReader = Objects.requireNonNull(consoleReader);
+        this.inputFilter = InputFilter.getActorSelection(context().system());
+    }
+
+    /**
      * @return a reference to the actor used to parse user input
      */
-    protected ActorSelection getInputParser() {
-        return this.inputParser;
+    protected ActorSelection getInputFilter() {
+        return this.inputFilter;
     }
 
     /**
@@ -120,7 +127,7 @@ public class ConsoleManager extends UntypedActor {
             self().tell(new Terminate.Builder().build(), self());
         } else {
             // Send the user input down-stream.
-            getInputParser().tell(new UserInput.Builder(input).build(), self());
+            getInputFilter().tell(new UserInput.Builder(input).build(), self());
         }
         getConsoleReader().flush();
     }

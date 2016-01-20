@@ -5,10 +5,7 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.model.Command;
-import mysystem.shell.model.ConsoleOutput;
 
 import java.util.Objects;
 
@@ -16,8 +13,6 @@ import java.util.Objects;
  * Responsible for executing commands.
  */
 public class CommandExecutor extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     private final ActorSelection consoleManager;
 
     /**
@@ -57,13 +52,11 @@ public class CommandExecutor extends UntypedActor {
     @Override
     public void onReceive(final Object message) {
         if (message instanceof Command) {
-            final Command command = (Command) message;
             // Proxy the command to the command's implementation actor.
-            command.getRegistration().getActor().tell(command, self());
-        } else if (message instanceof ConsoleOutput) {
-            getConsoleManager().tell(message, self());
+            ((Command) message).getRegistration().getActor().tell(message, self());
         } else {
-            unhandled(message);
+            // Send everything else back to the console manager.
+            getConsoleManager().tell(message, self());
         }
     }
 }

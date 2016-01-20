@@ -9,8 +9,6 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.config.ShellConfig;
 import mysystem.shell.model.CommandConfig;
 import mysystem.shell.model.CommandPath;
@@ -20,16 +18,17 @@ import mysystem.shell.model.RegistrationRequest;
 import mysystem.shell.model.RegistrationResponse;
 
 import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * Responsible for managing all of the command registrations.
  */
 public class RegistrationManager extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     /**
      * @param actorSystem the {@link ActorSystem} that will host the actor
      * @return an {@link ActorRef} for the created actor
@@ -61,17 +60,7 @@ public class RegistrationManager extends UntypedActor {
      */
     @Override
     public void preStart() {
-        final Config config = context().system().settings().config();
-        if (config.hasPath(ShellConfig.SHELL_COMMANDS.getKey())) {
-            final RegistrationRequest registrationRequest = new RegistrationRequest.Builder().build();
-            final ConfigObject obj = config.getConfig(ShellConfig.SHELL_COMMANDS.getKey()).root();
-            obj.entrySet().stream().filter(e -> e.getValue().valueType() == ConfigValueType.OBJECT).forEach(entry -> {
-                final Config commandConfig = ((ConfigObject) entry.getValue()).toConfig();
-                final CommandConfig command = new CommandConfig.Builder(entry.getKey(), commandConfig).build();
-                context().system().actorOf(Props.create(command.getCommandClass()), command.getCommandName())
-                        .tell(registrationRequest, self());
-            });
-        }
+        createActorsAndRequestCommandRegistrations(context().system().settings().config());
     }
 
     /**
@@ -94,5 +83,32 @@ public class RegistrationManager extends UntypedActor {
         } else {
             unhandled(message);
         }
+    }
+
+    protected void createActorsAndRequestCommandRegistrations(final Config config) {
+        final RegistrationRequest request = new RegistrationRequest.Builder().build();
+        createCommandActors(config).forEach(actorRef -> actorRef.tell(request, self()));
+    }
+
+    protected List<ActorRef> createCommandActors(final Config config) {
+        return getCommandConfigs(config).stream().map(cmd -> actor(context().system(), cmd))
+                .collect(Collectors.toList());
+    }
+
+    protected ActorRef actor(final ActorSystem system, final CommandConfig commandConfig) {
+        final Props props = Props.create(commandConfig.getCommandClass());
+        return system.actorOf(props, commandConfig.getCommandName());
+    }
+
+    protected List<CommandConfig> getCommandConfigs(final Config config) {
+        final List<CommandConfig> commandConfigs = new LinkedList<>();
+        if (config.hasPath(ShellConfig.SHELL_COMMANDS.getKey())) {
+            final ConfigObject obj = config.getConfig(ShellConfig.SHELL_COMMANDS.getKey()).root();
+            obj.entrySet().stream().filter(e -> e.getValue().valueType() == ConfigValueType.OBJECT).forEach(entry -> {
+                final Config commandConfig = ((ConfigObject) entry.getValue()).toConfig();
+                commandConfigs.add(new CommandConfig.Builder(entry.getKey(), commandConfig).build());
+            });
+        }
+        return commandConfigs;
     }
 }

@@ -69,21 +69,24 @@ public class ConfigCommandTest {
             final ActorRef configCommand =
                     system.actorOf(Props.create(ConfigCommand.class), ConfigCommand.class.getSimpleName());
 
-            configCommand.tell(new RegistrationRequest.Builder().build(), getRef());
+            try {
+                configCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-            final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
-            final Set<Registration> registrations = response.getRegistrations();
-            assertEquals(1, registrations.size());
+                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final Set<Registration> registrations = response.getRegistrations();
+                assertEquals(1, registrations.size());
 
-            final Registration registration = registrations.iterator().next();
-            assertTrue(registration.getDescription().isPresent());
-            assertEquals("provides information about the system configuration", registration.getDescription().get());
-            assertEquals(new CommandPath.Builder("config").build(), registration.getPath());
-            assertTrue(registration.getOptions().isPresent());
+                final Registration registration = registrations.iterator().next();
+                assertTrue(registration.getDescription().isPresent());
+                assertEquals("provides information about the system configuration",
+                        registration.getDescription().get());
+                assertEquals(new CommandPath.Builder("config").build(), registration.getPath());
+                assertTrue(registration.getOptions().isPresent());
 
-            expectNoMsg();
-
-            configCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                configCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -99,18 +102,20 @@ public class ConfigCommandTest {
             final ActorRef configCommand =
                     system.actorOf(Props.create(ConfigCommand.class), ConfigCommand.class.getSimpleName());
 
-            configCommand.tell(command, getRef());
+            try {
+                configCommand.tell(command, getRef());
 
-            final ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
-            assertNotNull(output);
-            assertTrue(output.getOutput().isPresent());
-            assertEquals("  akka.actor.creation-timeout => 20s", output.getOutput().get());
-            assertTrue(output.hasMore());
-            assertFalse(output.isTerminate());
+                final ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                assertNotNull(output);
+                assertTrue(output.getOutput().isPresent());
+                assertEquals("  akka.actor.creation-timeout => 20s", output.getOutput().get());
+                assertTrue(output.hasMore());
+                assertFalse(output.isTerminate());
 
-            // The rest of the configuration information is ignored.
-
-            configCommand.tell(PoisonPill.getInstance(), getRef());
+                // The rest of the configuration information is ignored.
+            } finally {
+                configCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 
@@ -120,11 +125,13 @@ public class ConfigCommandTest {
             final ActorRef configCommand =
                     system.actorOf(Props.create(ConfigCommand.class), ConfigCommand.class.getSimpleName());
 
-            configCommand.tell("unhandled", getRef());
+            try {
+                configCommand.tell("unhandled", getRef());
 
-            expectNoMsg();
-
-            configCommand.tell(PoisonPill.getInstance(), getRef());
+                expectNoMsg();
+            } finally {
+                configCommand.tell(PoisonPill.getInstance(), getRef());
+            }
         }};
     }
 

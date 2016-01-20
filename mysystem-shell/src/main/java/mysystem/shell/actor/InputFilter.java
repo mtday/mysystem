@@ -5,8 +5,6 @@ import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import mysystem.shell.model.AcceptInput;
 import mysystem.shell.model.UserInput;
 
@@ -16,8 +14,6 @@ import java.util.Objects;
  * Responsible for filtering user input so it is not processed, things like comments and blank strings.
  */
 public class InputFilter extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     private final ActorSelection inputTokenizer;
 
     /**

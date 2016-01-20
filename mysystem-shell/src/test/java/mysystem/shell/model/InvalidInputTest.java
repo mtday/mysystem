@@ -86,4 +86,14 @@ public class InvalidInputTest {
 
         assertEquals(a, b);
     }
+
+    @Test
+    public void testBuilderWithNegativeErrorOffset() {
+        final ParseException ex = new ParseException("Message", -1);
+        final InvalidInput a = new InvalidInput.Builder(new UserInput.Builder("a").build(), ex).build();
+
+        assertEquals("Message", a.getError());
+        assertEquals("a", a.getUserInput().getInput());
+        assertFalse(a.getLocation().isPresent());
+    }
 }
