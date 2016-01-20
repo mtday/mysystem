@@ -136,6 +136,19 @@ public class RegistrationManagerTest {
     }
 
     @Test
+    public void testCreateActorsAndRequestCommandRegistrations() {
+        final Map<String, String> map = new HashMap<>();
+        final Config configWithoutCommands = ConfigFactory.parseMap(map);
+
+        map.put(ShellConfig.SHELL_COMMANDS.getKey() + ".a.class", ExitCommand.class.getName());
+        map.put(ShellConfig.SHELL_COMMANDS.getKey() + ".b.class", HelpCommand.class.getName());
+        final Config configWithCommands = ConfigFactory.parseMap(map);
+
+        actor.createActorsAndRequestCommandRegistrations(configWithoutCommands);
+        actor.createActorsAndRequestCommandRegistrations(configWithCommands);
+    }
+
+    @Test
     public void testCreateCommandActors() {
         final Map<String, String> map = new HashMap<>();
         map.put(ShellConfig.SHELL_COMMANDS.getKey() + ".exit.class", ExitCommand.class.getName());

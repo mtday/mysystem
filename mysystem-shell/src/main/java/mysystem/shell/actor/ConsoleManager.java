@@ -164,6 +164,6 @@ public class ConsoleManager extends UntypedActor {
         getConsoleReader().println();
         getConsoleReader().getTerminal().setEchoEnabled(true);
         getConsoleReader().shutdown();
-        context().system().shutdown();
+        context().system().terminate();
     }
 }

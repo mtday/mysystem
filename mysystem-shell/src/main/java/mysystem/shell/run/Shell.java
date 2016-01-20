@@ -21,33 +21,37 @@ public class Shell {
     /**
      * Create the shell.
      */
-    public Shell() {
+    protected Shell() {
         final Config config = ConfigFactory.load("shell-config").withFallback(ConfigFactory.load());
         final String systemName = config.getString(CoreConfig.ACTOR_SYSTEM_NAME.getKey());
         this.actorSystem = ActorSystem.create(systemName, config);
 
-        createActors();
+        createActors(getActorSystem());
         registerShutdownHook();
     }
 
-    private ActorSystem getActorSystem() {
+    protected ActorSystem getActorSystem() {
         return this.actorSystem;
     }
 
-    private void createActors() {
-        RegistrationManager.create(getActorSystem());
-        ConsoleManager.create(getActorSystem());
-        CommandExecutor.create(getActorSystem());
-        InputFilter.create(getActorSystem());
-        InputTokenizer.create(getActorSystem());
-        RegistrationFinder.create(getActorSystem());
+    protected void createActors(final ActorSystem actorSystem) {
+        RegistrationManager.create(actorSystem);
+        ConsoleManager.create(actorSystem);
+        CommandExecutor.create(actorSystem);
+        InputFilter.create(actorSystem);
+        InputTokenizer.create(actorSystem);
+        RegistrationFinder.create(actorSystem);
     }
 
-    private void registerShutdownHook() {
+    protected void terminate() {
+        getActorSystem().terminate();
+    }
+
+    protected void registerShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                getActorSystem().shutdown();
+                terminate();
             }
         });
     }

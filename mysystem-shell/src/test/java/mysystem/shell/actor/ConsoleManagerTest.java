@@ -4,7 +4,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import com.typesafe.config.ConfigValue;
+import com.typesafe.config.ConfigValueFactory;
 
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -19,6 +22,7 @@ import akka.testkit.JavaTestKit;
 import akka.testkit.TestActorRef;
 import jline.Terminal;
 import jline.console.ConsoleReader;
+import mysystem.core.config.CoreConfig;
 import mysystem.shell.model.AcceptInput;
 import mysystem.shell.model.ConsoleOutput;
 import mysystem.shell.model.InvalidInput;
@@ -29,10 +33,15 @@ import mysystem.shell.model.UserInput;
 
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -40,6 +49,76 @@ import java.util.TreeSet;
  * Perform testing of the {@link ConsoleManager} class.
  */
 public class ConsoleManagerTest {
+    @Test
+    public void testCreate() throws Exception {
+        final ActorSystem system = ActorSystem.create("console-output", ConfigFactory.load("test-config"));
+        final ActorRef ref = ConsoleManager.create(system);
+        try {
+            ref.tell(new Terminate.Builder().build(), ActorRef.noSender());
+        } finally {
+            system.terminate();
+        }
+    }
+
+    @Test
+    public void testPreStart() throws Exception {
+        testPreStartWithSystemNameAndVersion(Optional.of("system-name"), Optional.empty());
+        testPreStartWithSystemNameAndVersion(Optional.empty(), Optional.of("version"));
+        testPreStartWithSystemNameAndVersion(Optional.of("system-name"), Optional.of("version"));
+    }
+
+    private Class<?>[] getExpectedClasses() {
+        final List<Class<?>> list = new ArrayList<>(3);
+        list.add(AcceptInput.class);
+        list.add(Terminate.class);
+        list.add(Terminated.class);
+        return list.toArray(new Class[3]);
+    }
+
+    public void testPreStartWithSystemNameAndVersion(final Optional<String> systemName, final Optional<String> version) throws Exception {
+        final Map<String, ConfigValue> map = new HashMap<>();
+        if (systemName.isPresent()) {
+            map.put(CoreConfig.ACTOR_SYSTEM_NAME.getKey(), ConfigValueFactory.fromAnyRef(systemName.get()));
+        }
+        if (version.isPresent()) {
+            map.put(CoreConfig.VERSION.getKey(), ConfigValueFactory.fromAnyRef(version.get()));
+        }
+        final Config config = ConfigFactory.parseMap(map);
+
+        final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
+        final ActorSystem system = ActorSystem.create("console-output-" + new Random().nextInt(), config);
+
+        new JavaTestKit(system) {{
+            final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
+            watch(consoleManager);
+
+            try {
+                consoleManager.tell(new Terminate.Builder().build(), getRef());
+
+                expectMsgAnyClassOf(getExpectedClasses());
+
+                final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
+                if (systemName.isPresent() && version.isPresent()) {
+                    assertEquals(3, outputLines.size());
+
+                    final Iterator<String> iter = outputLines.iterator();
+                    assertEquals("\n", iter.next());
+                    assertEquals("Type 'help' to list the available commands", iter.next());
+                    assertEquals("system-name version", iter.next());
+                    assertFalse(iter.hasNext());
+                } else {
+                    assertEquals(1, outputLines.size());
+                    assertEquals("\n", outputLines.iterator().next());
+                }
+
+                assertTrue(consoleReader.isShutdown());
+            } finally {
+                consoleManager.tell(PoisonPill.getInstance(), getRef());
+                system.terminate();
+            }
+        }};
+    }
+
     @Test
     public void testReceiveWithConsoleOutput() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
@@ -52,21 +131,20 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new ConsoleOutput.Builder("output").build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
-                final List<String> outputLines = consoleReader.getOutputLines();
-                assertEquals(3, outputLines.size());
+                final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
+                assertEquals(2, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
+                assertEquals("\n", iter.next());
                 assertEquals("output", iter.next());
-                assertEquals("\n", iter.next());
-                assertEquals("\n", iter.next());
                 assertFalse(iter.hasNext());
 
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -83,7 +161,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new ConsoleOutput.Builder("output").setHasMore(true).build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(2, outputLines.size());
@@ -96,7 +174,7 @@ public class ConsoleManagerTest {
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -114,12 +192,12 @@ public class ConsoleManagerTest {
                 consoleManager.tell(new ConsoleOutput.Builder("a").setHasMore(true).build(), getRef());
                 consoleManager.tell(new ConsoleOutput.Builder("b").setTerminate(true).build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -136,7 +214,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new ConsoleOutput.Builder().build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(1, outputLines.size());
@@ -148,7 +226,7 @@ public class ConsoleManagerTest {
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -167,7 +245,7 @@ public class ConsoleManagerTest {
                 final TokenizedUserInput tokenized = new TokenizedUserInput.Builder(userInput).build();
                 consoleManager.tell(new UnrecognizedCommand.Builder(tokenized).build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(3, outputLines.size());
@@ -181,7 +259,7 @@ public class ConsoleManagerTest {
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -200,7 +278,7 @@ public class ConsoleManagerTest {
                 final ParseException parseException = new ParseException("message", 10);
                 consoleManager.tell(new InvalidInput.Builder(userInput, parseException).build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(3, outputLines.size());
@@ -214,7 +292,7 @@ public class ConsoleManagerTest {
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -233,7 +311,7 @@ public class ConsoleManagerTest {
                 final ParseException parseException = new ParseException("message", -1);
                 consoleManager.tell(new InvalidInput.Builder(userInput, parseException).build(), getRef());
 
-                expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
+                expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(2, outputLines.size());
@@ -246,7 +324,7 @@ public class ConsoleManagerTest {
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -266,7 +344,7 @@ public class ConsoleManagerTest {
                 assertTrue(consoleReader.isShutdown());
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -284,7 +362,7 @@ public class ConsoleManagerTest {
                 expectNoMsg();
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -296,7 +374,7 @@ public class ConsoleManagerTest {
             final ActorSelection expected = system.actorSelection("/user/" + ConsoleManager.class.getSimpleName());
             assertEquals(expected, ConsoleManager.getActorSelection(system));
         } finally {
-            system.shutdown();
+            system.terminate();
         }
     }
 
@@ -313,7 +391,7 @@ public class ConsoleManagerTest {
         assertTrue(consoleReader.isShutdown());
 
         actorRef.tell(PoisonPill.getInstance(), ActorRef.noSender());
-        system.shutdown();
+        system.terminate();
     }
 
     private static class CapturingConsoleReader extends ConsoleReader {
