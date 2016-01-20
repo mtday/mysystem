@@ -103,15 +103,16 @@ public class ConsoleManagerTest {
 
     @Test
     public void testReceiveWithConsoleOutputTerminate() throws Exception {
-        final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
+        final CapturingConsoleReader consoleReader = new CapturingConsoleReader("line");
         final ActorSystem system = ActorSystem.create("console-output-terminate", ConfigFactory.load("test-config"));
 
         new JavaTestKit(system) {{
-            final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
+            final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "c");
             watch(consoleManager);
 
             try {
-                consoleManager.tell(new ConsoleOutput.Builder().setTerminate(true).build(), getRef());
+                consoleManager.tell(new ConsoleOutput.Builder("a").setHasMore(true).build(), getRef());
+                consoleManager.tell(new ConsoleOutput.Builder("b").setTerminate(true).build(), getRef());
 
                 expectMsgAnyClassOf(AcceptInput.class, Terminate.class, Terminated.class);
 
