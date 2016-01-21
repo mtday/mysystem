@@ -22,7 +22,7 @@ import akka.testkit.JavaTestKit;
 import akka.testkit.TestActorRef;
 import jline.Terminal;
 import jline.console.ConsoleReader;
-import mysystem.core.config.CoreConfig;
+import mysystem.common.config.CommonConfig;
 import mysystem.shell.model.AcceptInput;
 import mysystem.shell.model.ConsoleOutput;
 import mysystem.shell.model.InvalidInput;
@@ -49,6 +49,26 @@ import java.util.TreeSet;
  * Perform testing of the {@link ConsoleManager} class.
  */
 public class ConsoleManagerTest {
+    private Class<?>[] getExpectedClasses() {
+        final List<Class<?>> list = new ArrayList<>(3);
+        list.add(AcceptInput.class);
+        list.add(Terminate.class);
+        list.add(Terminated.class);
+        return list.toArray(new Class[3]);
+    }
+
+    private String getSystemAndVersion(final Config config) {
+        String systemName = "";
+        if (config.hasPath(CommonConfig.ACTOR_SYSTEM_NAME.getKey())) {
+            systemName = config.getString(CommonConfig.ACTOR_SYSTEM_NAME.getKey());
+        }
+        String version = "";
+        if (config.hasPath(CommonConfig.VERSION.getKey())) {
+            version = config.getString(CommonConfig.VERSION.getKey());
+        }
+        return String.format("%s %s", systemName, version);
+    }
+
     @Test
     public void testCreate() throws Exception {
         final ActorSystem system = ActorSystem.create("console-output", ConfigFactory.load("test-config"));
@@ -67,21 +87,13 @@ public class ConsoleManagerTest {
         testPreStartWithSystemNameAndVersion(Optional.of("system-name"), Optional.of("version"));
     }
 
-    private Class<?>[] getExpectedClasses() {
-        final List<Class<?>> list = new ArrayList<>(3);
-        list.add(AcceptInput.class);
-        list.add(Terminate.class);
-        list.add(Terminated.class);
-        return list.toArray(new Class[3]);
-    }
-
     public void testPreStartWithSystemNameAndVersion(final Optional<String> systemName, final Optional<String> version) throws Exception {
         final Map<String, ConfigValue> map = new HashMap<>();
         if (systemName.isPresent()) {
-            map.put(CoreConfig.ACTOR_SYSTEM_NAME.getKey(), ConfigValueFactory.fromAnyRef(systemName.get()));
+            map.put(CommonConfig.ACTOR_SYSTEM_NAME.getKey(), ConfigValueFactory.fromAnyRef(systemName.get()));
         }
         if (version.isPresent()) {
-            map.put(CoreConfig.VERSION.getKey(), ConfigValueFactory.fromAnyRef(version.get()));
+            map.put(CommonConfig.VERSION.getKey(), ConfigValueFactory.fromAnyRef(version.get()));
         }
         final Config config = ConfigFactory.parseMap(map);
 
@@ -107,8 +119,12 @@ public class ConsoleManagerTest {
                     assertEquals("system-name version", iter.next());
                     assertFalse(iter.hasNext());
                 } else {
-                    assertEquals(1, outputLines.size());
-                    assertEquals("\n", outputLines.iterator().next());
+                    assertEquals(3, outputLines.size());
+
+                    final Iterator<String> iter = outputLines.iterator();
+                    assertEquals("\n", iter.next());
+                    assertEquals("Type 'help' to list the available commands", iter.next());
+                    // Ignoring the changing system name and version.
                 }
 
                 assertTrue(consoleReader.isShutdown());
@@ -122,7 +138,8 @@ public class ConsoleManagerTest {
     @Test
     public void testReceiveWithConsoleOutput() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
-        final ActorSystem system = ActorSystem.create("console-output", ConfigFactory.load("test-config"));
+        final Config config = ConfigFactory.load("test-config");
+        final ActorSystem system = ActorSystem.create("console-output", config);
 
         new JavaTestKit(system) {{
             final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
@@ -134,10 +151,12 @@ public class ConsoleManagerTest {
                 expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
-                assertEquals(2, outputLines.size());
+                assertEquals(4, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
                 assertEquals("\n", iter.next());
+                assertEquals("Type 'help' to list the available commands", iter.next());
+                assertEquals(getSystemAndVersion(config), iter.next());
                 assertEquals("output", iter.next());
                 assertFalse(iter.hasNext());
 
@@ -152,6 +171,7 @@ public class ConsoleManagerTest {
     @Test
     public void testReceiveWithConsoleOutputHasMore() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
+        final Config config = ConfigFactory.load("test-config");
         final ActorSystem system = ActorSystem.create("console-output-more", ConfigFactory.load("test-config"));
 
         new JavaTestKit(system) {{
@@ -164,10 +184,12 @@ public class ConsoleManagerTest {
                 expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
-                assertEquals(2, outputLines.size());
+                assertEquals(4, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
                 assertEquals("\n", iter.next());
+                assertEquals("Type 'help' to list the available commands", iter.next());
+                assertEquals(getSystemAndVersion(config), iter.next());
                 assertEquals("output", iter.next());
                 assertFalse(iter.hasNext());
 
@@ -205,7 +227,8 @@ public class ConsoleManagerTest {
     @Test
     public void testReceiveWithConsoleOutputEmpty() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
-        final ActorSystem system = ActorSystem.create("console-output-empty", ConfigFactory.load("test-config"));
+        final Config config = ConfigFactory.load("test-config");
+        final ActorSystem system = ActorSystem.create("console-output-empty", config);
 
         new JavaTestKit(system) {{
             final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
@@ -217,10 +240,12 @@ public class ConsoleManagerTest {
                 expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
-                assertEquals(1, outputLines.size());
+                assertEquals(3, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
                 assertEquals("\n", iter.next());
+                assertEquals("Type 'help' to list the available commands", iter.next());
+                assertEquals(getSystemAndVersion(config), iter.next());
                 assertFalse(iter.hasNext());
 
                 assertTrue(consoleReader.isShutdown());
@@ -234,7 +259,8 @@ public class ConsoleManagerTest {
     @Test
     public void testReceiveWithUnrecognizedCommand() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader("line");
-        final ActorSystem system = ActorSystem.create("unrecognized-command", ConfigFactory.load("test-config"));
+        final Config config = ConfigFactory.load("test-config");
+        final ActorSystem system = ActorSystem.create("unrecognized-command", config);
 
         new JavaTestKit(system) {{
             final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
@@ -248,12 +274,14 @@ public class ConsoleManagerTest {
                 expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
-                assertEquals(3, outputLines.size());
+                assertEquals(5, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
                 assertEquals("\n", iter.next());
                 assertEquals("The specified command was not recognized: input", iter.next());
+                assertEquals("Type 'help' to list the available commands", iter.next());
                 assertEquals("Use 'help' to see all the available commands.", iter.next());
+                assertEquals(getSystemAndVersion(config), iter.next());
                 assertFalse(iter.hasNext());
 
                 assertTrue(consoleReader.isShutdown());
@@ -267,7 +295,8 @@ public class ConsoleManagerTest {
     @Test
     public void testReceiveWithInvalidInputWithLocation() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
-        final ActorSystem system = ActorSystem.create("invalid-input-a", ConfigFactory.load("test-config"));
+        final Config config = ConfigFactory.load("test-config");
+        final ActorSystem system = ActorSystem.create("invalid-input-a", config);
 
         new JavaTestKit(system) {{
             final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
@@ -281,12 +310,14 @@ public class ConsoleManagerTest {
                 expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
-                assertEquals(3, outputLines.size());
+                assertEquals(5, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
                 assertEquals("\n", iter.next());
                 assertEquals("---------^", iter.next());
+                assertEquals("Type 'help' to list the available commands", iter.next());
                 assertEquals("message", iter.next());
+                assertEquals(getSystemAndVersion(config), iter.next());
                 assertFalse(iter.hasNext());
 
                 assertTrue(consoleReader.isShutdown());
@@ -300,7 +331,8 @@ public class ConsoleManagerTest {
     @Test
     public void testReceiveWithInvalidInputWithoutLocation() throws Exception {
         final CapturingConsoleReader consoleReader = new CapturingConsoleReader();
-        final ActorSystem system = ActorSystem.create("invalid-input-b", ConfigFactory.load("test-config"));
+        final Config config = ConfigFactory.load("test-config");
+        final ActorSystem system = ActorSystem.create("invalid-input-b", config);
 
         new JavaTestKit(system) {{
             final ActorRef consoleManager = system.actorOf(Props.create(ConsoleManager.class, consoleReader), "cm");
@@ -314,11 +346,13 @@ public class ConsoleManagerTest {
                 expectMsgAnyClassOf(getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
-                assertEquals(2, outputLines.size());
+                assertEquals(4, outputLines.size());
 
                 final Iterator<String> iter = outputLines.iterator();
                 assertEquals("\n", iter.next());
+                assertEquals("Type 'help' to list the available commands", iter.next());
                 assertEquals("message", iter.next());
+                assertEquals(getSystemAndVersion(config), iter.next());
                 assertFalse(iter.hasNext());
 
                 assertTrue(consoleReader.isShutdown());

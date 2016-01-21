@@ -1,4 +1,4 @@
-package mysystem.core.config;
+package mysystem.common.config;
 
 /**
  * Defines the interface required of configuration keys.

@@ -11,7 +11,7 @@ import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import jline.console.ConsoleReader;
-import mysystem.core.config.CoreConfig;
+import mysystem.common.config.CommonConfig;
 import mysystem.shell.model.AcceptInput;
 import mysystem.shell.model.ConsoleOutput;
 import mysystem.shell.model.InvalidInput;
@@ -87,9 +87,9 @@ public class ConsoleManager extends UntypedActor {
     @Override
     public void preStart() throws Exception {
         final Config config = context().system().settings().config();
-        if (config.hasPath(CoreConfig.ACTOR_SYSTEM_NAME.getKey()) && config.hasPath(CoreConfig.VERSION.getKey())) {
-            final String system = config.getString(CoreConfig.ACTOR_SYSTEM_NAME.getKey());
-            final String version = config.getString(CoreConfig.VERSION.getKey());
+        if (config.hasPath(CommonConfig.ACTOR_SYSTEM_NAME.getKey()) && config.hasPath(CommonConfig.VERSION.getKey())) {
+            final String system = config.getString(CommonConfig.ACTOR_SYSTEM_NAME.getKey());
+            final String version = config.getString(CommonConfig.VERSION.getKey());
 
             getConsoleReader().println();
             getConsoleReader().println(String.format("%s %s", system, version));

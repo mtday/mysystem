@@ -8,7 +8,7 @@
         <version>0.0.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>mysystem-core</artifactId>
+    <artifactId>mysystem-common</artifactId>
 
     <build>
         <resources>
@@ -20,16 +20,6 @@
     </build>
 
     <dependencies>
-        <!-- Akka -->
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-actor_2.11</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-cluster_2.11</artifactId>
-        </dependency>
-
         <!-- Common utilities -->
         <dependency>
             <groupId>org.apache.commons</groupId>

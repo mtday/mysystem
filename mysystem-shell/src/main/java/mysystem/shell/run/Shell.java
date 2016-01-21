@@ -4,7 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
-import mysystem.core.config.CoreConfig;
+import mysystem.common.config.CommonConfig;
 import mysystem.shell.actor.CommandExecutor;
 import mysystem.shell.actor.ConsoleManager;
 import mysystem.shell.actor.InputFilter;
@@ -23,7 +23,7 @@ public class Shell {
      */
     protected Shell() {
         final Config config = ConfigFactory.load("shell-config").withFallback(ConfigFactory.load());
-        final String systemName = config.getString(CoreConfig.ACTOR_SYSTEM_NAME.getKey());
+        final String systemName = config.getString(CommonConfig.ACTOR_SYSTEM_NAME.getKey());
         this.actorSystem = ActorSystem.create(systemName, config);
 
         createActors(getActorSystem());

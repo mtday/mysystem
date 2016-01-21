@@ -1,9 +1,9 @@
-package mysystem.core.config;
+package mysystem.common.config;
 
 /**
  *
  */
-public enum CoreConfig implements ConfigKey {
+public enum CommonConfig implements ConfigKey {
     /**
      * The system version.
      */
