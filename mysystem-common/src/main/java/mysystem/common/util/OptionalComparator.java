@@ -1,4 +1,4 @@
-package mysystem.util;
+package mysystem.common.util;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 

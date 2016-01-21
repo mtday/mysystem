@@ -1,4 +1,4 @@
-package mysystem.model;
+package mysystem.common.model;
 
 import com.google.common.base.Preconditions;
 
@@ -8,7 +8,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import mysystem.util.OptionalComparator;
+import mysystem.common.util.OptionalComparator;
 
 import java.io.Serializable;
 import java.util.Objects;

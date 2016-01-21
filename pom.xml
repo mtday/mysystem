@@ -14,7 +14,6 @@
     <modules>
         <module>mysystem-common</module>
         <module>mysystem-db</module>
-        <module>mysystem-model</module>
         <module>mysystem-shell</module>
         <module>mysystem-system</module>
     </modules>
@@ -108,11 +107,6 @@
             <dependency>
                 <groupId>${project.groupId}</groupId>
                 <artifactId>mysystem-db</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>${project.groupId}</groupId>
-                <artifactId>mysystem-model</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

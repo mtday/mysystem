@@ -1,4 +1,4 @@
-package mysystem.util;
+package mysystem.common.util;
 
 import org.junit.Assert;
 import org.junit.Test;
