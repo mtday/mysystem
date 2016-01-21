@@ -67,12 +67,12 @@ public class Registration implements Comparable<Registration>, Serializable {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Registration command) {
-        if (command == null) {
+    public int compareTo(final Registration registration) {
+        if (registration == null) {
             return 1;
         }
 
-        return getPath().compareTo(command.getPath());
+        return getPath().compareTo(registration.getPath());
     }
 
     /**

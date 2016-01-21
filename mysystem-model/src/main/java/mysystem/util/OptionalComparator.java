@@ -1,4 +1,4 @@
-package mysystem.core.util;
+package mysystem.util;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
@@ -15,16 +15,16 @@ public class OptionalComparator implements Comparator<Optional<?>> {
     @Override
     public int compare(final Optional<?> a, final Optional<?> b) {
         // Parameters expected to not be null. That is why optionals are used, after all.
-        if (!a.isPresent() && !b.isPresent()) {
+        if (a.isPresent() && b.isPresent()) {
+            final CompareToBuilder cmp = new CompareToBuilder();
+            cmp.append(a.get(), b.get());
+            return cmp.toComparison();
+        } else if (!a.isPresent() && !b.isPresent()) {
             return 0;
-        } else if (a.isPresent() && !b.isPresent()) {
+        } else if (a.isPresent()) {
             return 1;
-        } else if (!a.isPresent() && b.isPresent()) {
+        } else {
             return -1;
         }
-
-        final CompareToBuilder cmp = new CompareToBuilder();
-        cmp.append(a.get(), b.get());
-        return cmp.toComparison();
     }
 }
