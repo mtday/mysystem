@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigFactory;
 
 import akka.actor.ActorSystem;
 import mysystem.common.config.CommonConfig;
+import mysystem.db.actor.DatabaseManager;
 
 /**
  * Launch the system.
@@ -15,7 +16,7 @@ public class Runner {
     /**
      * Create the runner.
      */
-    public Runner() {
+    protected Runner() {
         final Config config = ConfigFactory.load();
         final String systemName = config.getString(CommonConfig.ACTOR_SYSTEM_NAME.getKey());
         this.actorSystem = ActorSystem.create(systemName, config);
@@ -25,6 +26,7 @@ public class Runner {
     }
 
     protected void createActors(final ActorSystem actorSystem) {
+        DatabaseManager.create(actorSystem);
     }
 
     protected ActorSystem getActorSystem() {
