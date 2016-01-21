@@ -1,7 +1,7 @@
 package mysystem.common.config;
 
 /**
- *
+ * An enumeration that defines the keys to use when accessing common configuration values in the system config.
  */
 public enum CommonConfig implements ConfigKey {
     /**

@@ -1,11 +1,12 @@
 package mysystem.shell.model;
 
-import com.typesafe.config.ConfigException;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import org.junit.Test;
 
 import java.text.ParseException;
-
-import static org.junit.Assert.*;
 
 /**
  * Perform testing of the {@link TokenizedUserInput} class and builder.
@@ -23,9 +24,9 @@ public class TokenizedUserInputTest {
         assertEquals(-4, a.compareTo(c));
         assertEquals(4, b.compareTo(a));
         assertEquals(0, b.compareTo(b));
-        assertEquals(-1, b.compareTo(c));
+        assertEquals(-6, b.compareTo(c));
         assertEquals(4, c.compareTo(a));
-        assertEquals(1, c.compareTo(b));
+        assertEquals(6, c.compareTo(b));
         assertEquals(0, c.compareTo(c));
     }
 
@@ -46,8 +47,8 @@ public class TokenizedUserInputTest {
         final TokenizedUserInput a = new TokenizedUserInput.Builder("input").build();
         final TokenizedUserInput b = new TokenizedUserInput.Builder("more input").build();
 
-        assertEquals(100358121, a.hashCode());
-        assertEquals(204442326, b.hashCode());
+        assertEquals(-481336572, a.hashCode());
+        assertEquals(-1245598246, b.hashCode());
     }
 
     @Test

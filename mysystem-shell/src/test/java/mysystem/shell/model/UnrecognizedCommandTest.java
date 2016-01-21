@@ -66,9 +66,9 @@ public class UnrecognizedCommandTest {
         final UnrecognizedCommand b = new UnrecognizedCommand.Builder(uB).build();
         final UnrecognizedCommand c = new UnrecognizedCommand.Builder(uC).build();
 
-        assertEquals(128, a.hashCode());
-        assertEquals(129, b.hashCode());
-        assertEquals(130, c.hashCode());
+        assertEquals(26990, a.hashCode());
+        assertEquals(27028, b.hashCode());
+        assertEquals(27066, c.hashCode());
     }
 
     @Test

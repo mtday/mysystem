@@ -5,10 +5,12 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.util.CollectionComparator;
+import mysystem.common.util.OptionalComparator;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -67,21 +69,8 @@ public class RegistrationLookup implements Comparable<RegistrationLookup>, Seria
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-        final Iterator<CommandPath> pathA = getPaths().iterator();
-        final Iterator<CommandPath> pathB = other.getPaths().iterator();
-
-        while (cmp.toComparison() == 0 && pathA.hasNext() && pathB.hasNext()) {
-            cmp.append(pathA.next(), pathB.next());
-        }
-
-        if (cmp.toComparison() == 0) {
-            if (pathA.hasNext()) {
-                return 1;
-            } else if (pathB.hasNext()) {
-                return -1;
-            }
-        }
-
+        cmp.append(getPaths(), other.getPaths(), new CollectionComparator<CommandPath>());
+        cmp.append(getUserInput(), other.getUserInput(), new OptionalComparator<UserInput>());
         return cmp.toComparison();
     }
 

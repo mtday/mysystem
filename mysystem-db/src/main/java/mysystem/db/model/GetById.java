@@ -1,25 +1,44 @@
-package mysystem.db.model.company;
+package mysystem.db.model;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.util.CollectionComparator;
+
 import java.io.Serializable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Objects;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * An immutable class that represents the information needed to fetch company objects from the database.
  */
-public class CompanyGet extends CompanyModel implements Comparable<CompanyGet>, Serializable {
+public class GetById implements HasDataType, Comparable<GetById>, Serializable {
     private final static long serialVersionUID = 1L;
 
+    private final DataType dataType;
     private final SortedSet<Integer> ids;
 
     /**
+     * @param dataType the type of data that should be retrieved using the request object
      * @param ids the unique identifiers of the company objects to fetch
      */
-    private CompanyGet(final SortedSet<Integer> ids) {
+    private GetById(final DataType dataType, final SortedSet<Integer> ids) {
+        this.dataType = dataType;
         this.ids = new TreeSet<>(ids);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public DataType getDataType() {
+        return this.dataType;
     }
 
     /**
@@ -35,6 +54,7 @@ public class CompanyGet extends CompanyModel implements Comparable<CompanyGet>, 
     @Override
     public String toString() {
         final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        str.append("dataType", getDataType());
         str.append("ids", getIds());
         return str.build();
     }
@@ -43,27 +63,14 @@ public class CompanyGet extends CompanyModel implements Comparable<CompanyGet>, 
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final CompanyGet other) {
+    public int compareTo(final GetById other) {
         if (other == null) {
             return 1;
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-        final Iterator<Integer> pathA = getIds().iterator();
-        final Iterator<Integer> pathB = other.getIds().iterator();
-
-        while (pathA.hasNext() && pathB.hasNext() && cmp.toComparison() == 0) {
-            cmp.append(pathA.next(), pathB.next());
-        }
-
-        if (cmp.toComparison() == 0) {
-            if (pathA.hasNext()) {
-                return 1;
-            } else if (pathB.hasNext()) {
-                return -1;
-            }
-        }
-
+        cmp.append(getDataType(), other.getDataType());
+        cmp.append(getIds(), other.getIds(), new CollectionComparator<Integer>());
         return cmp.toComparison();
     }
 
@@ -72,7 +79,7 @@ public class CompanyGet extends CompanyModel implements Comparable<CompanyGet>, 
      */
     @Override
     public boolean equals(final Object other) {
-        return (other instanceof CompanyGet) && compareTo((CompanyGet) other) == 0;
+        return (other instanceof GetById) && compareTo((GetById) other) == 0;
     }
 
     /**
@@ -80,32 +87,40 @@ public class CompanyGet extends CompanyModel implements Comparable<CompanyGet>, 
      */
     @Override
     public int hashCode() {
-        return getIds().hashCode();
+        final HashCodeBuilder hash = new HashCodeBuilder();
+        hash.append(getDataType().name());
+        hash.append(getIds());
+        return hash.toHashCode();
     }
 
     /**
-     * Used to create {@link CompanyGet} instances.
+     * Used to create {@link GetById} instances.
      */
     public static class Builder {
+        private final DataType dataType;
         private final SortedSet<Integer> ids = new TreeSet<>();
 
         /**
-         * Default constructor.
+         * @param dataType the {@link DataType} describing the type of data for which this database request applies
          */
-        public Builder() {
+        public Builder(final DataType dataType) {
+            this.dataType = Objects.requireNonNull(dataType);
         }
 
         /**
+         * @param dataType the {@link DataType} describing the type of data for which this database request applies
          * @param ids the unique identifiers of the company objects to fetch
          */
-        public Builder(final Integer... ids) {
-            this(Arrays.asList(Objects.requireNonNull(ids)));
+        public Builder(final DataType dataType, final Integer... ids) {
+            this(dataType, Arrays.asList(Objects.requireNonNull(ids)));
         }
 
         /**
+         * @param dataType the {@link DataType} describing the type of data for which this database request applies
          * @param ids the unique identifiers of the company objects to fetch
          */
-        public Builder(final Collection<Integer> ids) {
+        public Builder(final DataType dataType, final Collection<Integer> ids) {
+            this.dataType = Objects.requireNonNull(dataType);
             this.ids.addAll(Objects.requireNonNull(ids));
         }
 
@@ -127,14 +142,14 @@ public class CompanyGet extends CompanyModel implements Comparable<CompanyGet>, 
         }
 
         /**
-         * @return the {@link CompanyGet} represented by this builder
+         * @return the {@link GetById} represented by this builder
          */
-        public CompanyGet build() {
+        public GetById build() {
             if (this.ids.isEmpty()) {
-                throw new IllegalStateException("Cannot create CompanyGet without ids");
+                throw new IllegalStateException("At least one id is required");
             }
 
-            return new CompanyGet(this.ids);
+            return new GetById(this.dataType, this.ids);
         }
     }
 }

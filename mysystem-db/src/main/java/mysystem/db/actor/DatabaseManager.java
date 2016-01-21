@@ -10,6 +10,8 @@ import akka.actor.Props;
 import akka.actor.UntypedActor;
 import mysystem.db.actor.company.CompanyManager;
 import mysystem.db.config.DatabaseConfig;
+import mysystem.db.model.DataType;
+import mysystem.db.model.HasDataType;
 
 import java.util.Objects;
 
@@ -19,6 +21,8 @@ import javax.sql.DataSource;
  * This actor is responsible for managing all of the database actors, and is the supervisor for all of them.
  */
 public class DatabaseManager extends UntypedActor {
+    private final ActorRef companyManager;
+
     /**
      * @param actorSystem the {@link ActorSystem} that will host the actor
      * @return an {@link ActorRef} for the created actor
@@ -33,7 +37,7 @@ public class DatabaseManager extends UntypedActor {
      */
     public DatabaseManager(final Config config) {
         final DataSource dataSource = getDataSource(Objects.requireNonNull(config));
-        CompanyManager.create(context(), dataSource);
+        this.companyManager = CompanyManager.create(context(), dataSource);
     }
 
     protected DataSource getDataSource(final Config config) {
@@ -54,6 +58,13 @@ public class DatabaseManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        unhandled(message);
+        if (message instanceof HasDataType) {
+            final DataType dataType = ((HasDataType) message).getDataType();
+            if (dataType == DataType.COMPANY) {
+                this.companyManager.forward(message, context());
+            }
+        } else {
+            unhandled(message);
+        }
     }
 }

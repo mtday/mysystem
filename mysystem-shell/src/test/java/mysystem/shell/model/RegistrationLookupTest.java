@@ -68,9 +68,9 @@ public class RegistrationLookupTest {
         final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
         final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
 
-        assertEquals(28137, a.hashCode());
-        assertEquals(28175, b.hashCode());
-        assertEquals(28213, c.hashCode());
+        assertEquals(54999, a.hashCode());
+        assertEquals(55074, b.hashCode());
+        assertEquals(55149, c.hashCode());
     }
 
     @Test

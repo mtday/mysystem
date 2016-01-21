@@ -5,11 +5,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.util.CollectionComparator;
+import mysystem.common.util.OptionalComparator;
+
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -71,22 +73,8 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-
-        final Iterator<Registration> regA = getRegistrations().iterator();
-        final Iterator<Registration> regB = other.getRegistrations().iterator();
-
-        while (cmp.toComparison() == 0 && regA.hasNext() && regB.hasNext()) {
-            cmp.append(regA.next(), regB.next());
-        }
-
-        if (cmp.toComparison() == 0) {
-            if (regA.hasNext()) {
-                return 1;
-            } else if (regB.hasNext()) {
-                return -1;
-            }
-        }
-
+        cmp.append(getRegistrations(), other.getRegistrations(), new CollectionComparator<Registration>());
+        cmp.append(getUserInput(), other.getUserInput(), new OptionalComparator<TokenizedUserInput>());
         return cmp.toComparison();
     }
 

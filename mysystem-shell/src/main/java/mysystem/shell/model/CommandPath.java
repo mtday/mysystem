@@ -3,6 +3,8 @@ package mysystem.shell.model;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
+import mysystem.common.util.CollectionComparator;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,21 +150,7 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-        final Iterator<String> pathA = getPath().iterator();
-        final Iterator<String> pathB = other.getPath().iterator();
-
-        while (pathA.hasNext() && pathB.hasNext() && cmp.toComparison() == 0) {
-            cmp.append(pathA.next(), pathB.next());
-        }
-
-        if (cmp.toComparison() == 0) {
-            if (pathA.hasNext()) {
-                return 1;
-            } else if (pathB.hasNext()) {
-                return -1;
-            }
-        }
-
+        cmp.append(getPath(), other.getPath(), new CollectionComparator<String>());
         return cmp.toComparison();
     }
 

@@ -1,6 +1,9 @@
 package mysystem.shell.model;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import mysystem.common.util.CollectionComparator;
 
 import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
@@ -57,21 +60,8 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-        final Iterator<String> pathA = getTokens().iterator();
-        final Iterator<String> pathB = other.getTokens().iterator();
-
-        while (cmp.toComparison() == 0 && pathA.hasNext() && pathB.hasNext()) {
-            cmp.append(pathA.next(), pathB.next());
-        }
-
-        if (cmp.toComparison() == 0) {
-            if (pathA.hasNext()) {
-                return 1;
-            } else if (pathB.hasNext()) {
-                return -1;
-            }
-        }
-
+        cmp.append(getUserInput(), other.getUserInput());
+        cmp.append(getTokens(), other.getTokens(), new CollectionComparator<String>());
         return cmp.toComparison();
     }
 
@@ -88,7 +78,10 @@ public class TokenizedUserInput implements Comparable<TokenizedUserInput>, Seria
      */
     @Override
     public int hashCode() {
-        return getTokens().hashCode();
+        final HashCodeBuilder hash = new HashCodeBuilder();
+        hash.append(getUserInput());
+        hash.append(getTokens());
+        return hash.toHashCode();
     }
 
     /**

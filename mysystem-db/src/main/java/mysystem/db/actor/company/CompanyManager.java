@@ -1,14 +1,18 @@
 package mysystem.db.actor.company;
 
-import akka.actor.*;
-import mysystem.db.model.company.CompanyGet;
+import akka.actor.ActorContext;
+import akka.actor.ActorRef;
+import akka.actor.Props;
+import akka.actor.UntypedActor;
+import mysystem.db.model.GetById;
 
-import javax.sql.DataSource;
 import java.util.Objects;
 
+import javax.sql.DataSource;
+
 /**
- * This actor is responsible for managing all of the actors that have to do with {@link mysystem.model.Company} objects
- * in the configured data source.
+ * This actor is responsible for managing all of the actors that have to do with {@link mysystem.common.model.Company}
+ * objects in the configured data source.
  */
 public class CompanyManager extends UntypedActor {
     private final ActorRef companyGet;
@@ -35,8 +39,8 @@ public class CompanyManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        if (message instanceof CompanyGet) {
-            this.companyGet.tell(message, sender());
+        if (message instanceof GetById) {
+            this.companyGet.forward(message, context());
         } else {
             unhandled(message);
         }
