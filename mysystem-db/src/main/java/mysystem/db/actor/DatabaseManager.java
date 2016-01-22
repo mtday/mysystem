@@ -17,7 +17,6 @@ import akka.pattern.CircuitBreaker;
 import mysystem.db.config.DatabaseConfig;
 import mysystem.db.model.DataType;
 import mysystem.db.model.DatabaseActorConfig;
-import mysystem.db.model.GetById;
 import mysystem.db.model.HasDataType;
 
 import java.util.Map;
@@ -95,11 +94,6 @@ public class DatabaseManager extends UntypedActor {
             });
         }
         return actors;
-    }
-
-    @Override
-    public void preStart() {
-        self().tell(new GetById.Builder(DataType.COMPANY, 1).build(), self());
     }
 
     /**
