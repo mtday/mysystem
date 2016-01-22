@@ -1,5 +1,7 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -14,7 +16,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -102,7 +103,7 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
      */
     public static class Builder {
         private final SortedSet<Registration> registrations = new TreeSet<>();
-        private Optional<TokenizedUserInput> userInput = Optional.empty();
+        private Optional<TokenizedUserInput> userInput = Optional.absent();
 
         /**
          * Default constructor.
@@ -127,9 +128,9 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
             }
             for (final CommandPath path : lookup.getPaths()) {
                 boolean foundMatch = false;
-                for (final CommandPath registeredPath : registrationMap.keySet()) {
-                    if (registeredPath.isPrefix(path)) {
-                        add(registrationMap.get(registeredPath));
+                for (final Map.Entry<CommandPath, Registration> entry : registrationMap.entrySet()) {
+                    if (entry.getKey().isPrefix(path)) {
+                        add(entry.getValue());
                         foundMatch = true;
                     }
                 }
@@ -138,12 +139,12 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
                     Optional<CommandPath> commandPath = Optional.of(path);
                     while (commandPath.isPresent()) {
                         final Optional<Registration> match =
-                                Optional.ofNullable(registrationMap.get(commandPath.get()));
+                                Optional.fromNullable(registrationMap.get(commandPath.get()));
                         if (match.isPresent()) {
                             add(match.get());
 
                             // Now that we have found a match, do not process any more parents.
-                            commandPath = Optional.empty();
+                            commandPath = Optional.absent();
                         } else {
                             commandPath = commandPath.get().getParent();
                         }

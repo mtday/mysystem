@@ -114,27 +114,27 @@ public class HelpCommandTest {
                 helpCommand.tell(response, getRef());
 
                 ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional[  command  description]", output.getOutput().toString());
+                assertEquals("Optional.of(  command  description)", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional[    -h  --help  description]", output.getOutput().toString());
+                assertEquals("Optional.of(    -h  --help  description)", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional[    -s]", output.getOutput().toString());
+                assertEquals("Optional.of(    -s)", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
+                assertEquals("Optional.of(    -r  --required  (required)  required)", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.empty", output.getOutput().toString());
+                assertEquals("Optional.absent()", output.getOutput().toString());
                 assertFalse(output.hasMore());
                 assertFalse(output.isTerminate());
 
@@ -175,17 +175,17 @@ public class HelpCommandTest {
                 helpCommand.tell(response, getRef());
 
                 ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional[  command1]", output.getOutput().toString());
+                assertEquals("Optional.of(  command1)", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional[  command2]", output.getOutput().toString());
+                assertEquals("Optional.of(  command2)", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.empty", output.getOutput().toString());
+                assertEquals("Optional.absent()", output.getOutput().toString());
                 assertFalse(output.hasMore());
                 assertFalse(output.isTerminate());
 
@@ -241,7 +241,7 @@ public class HelpCommandTest {
 
                 final RegistrationLookup lookup = expectMsgClass(duration("500 ms"), RegistrationLookup.class);
                 assertEquals("[command]", lookup.getPaths().toString());
-                assertEquals("Optional.empty", lookup.getUserInput().toString());
+                assertEquals("Optional.absent()", lookup.getUserInput().toString());
 
                 expectNoMsg(duration("100 ms"));
             } finally {
@@ -303,7 +303,7 @@ public class HelpCommandTest {
         assertTrue(iter.hasNext());
 
         ConsoleOutput output = iter.next();
-        assertEquals("Optional[  help]", output.getOutput().toString());
+        assertEquals("Optional.of(  help)", output.getOutput().toString());
         assertTrue(output.hasMore());
         assertFalse(iter.hasNext());
 
@@ -312,19 +312,19 @@ public class HelpCommandTest {
         assertTrue(iter.hasNext());
 
         output = iter.next();
-        assertEquals("Optional[  help]", output.getOutput().toString());
+        assertEquals("Optional.of(  help)", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional[    -h  --help  description]", output.getOutput().toString());
+        assertEquals("Optional.of(    -h  --help  description)", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional[    -s]", output.getOutput().toString());
+        assertEquals("Optional.of(    -s)", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
+        assertEquals("Optional.of(    -r  --required  (required)  required)", output.getOutput().toString());
         assertTrue(output.hasMore());
         assertFalse(iter.hasNext());
     }
@@ -361,15 +361,15 @@ public class HelpCommandTest {
         assertTrue(iter.hasNext());
 
         ConsoleOutput output = iter.next();
-        assertEquals("Optional[    -h  --help  description]", output.getOutput().toString());
+        assertEquals("Optional.of(    -h  --help  description)", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional[    -s]", output.getOutput().toString());
+        assertEquals("Optional.of(    -s)", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
+        assertEquals("Optional.of(    -r  --required  (required)  required)", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         assertFalse(iter.hasNext());

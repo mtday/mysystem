@@ -68,16 +68,16 @@ public class RegistrationLookupTest {
         final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
         final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
 
-        assertEquals(54999, a.hashCode());
-        assertEquals(55074, b.hashCode());
-        assertEquals(55149, c.hashCode());
+        assertEquals(1502531571, a.hashCode());
+        assertEquals(1502531646, b.hashCode());
+        assertEquals(1502531721, c.hashCode());
     }
 
     @Test
     public void testToString() throws ParseException {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
-        assertEquals("RegistrationLookup[paths=[a],userInput=Optional[a]]", lookup.toString());
+        assertEquals("RegistrationLookup[paths=[a],userInput=Optional.of(a)]", lookup.toString());
     }
 
     @Test(expected = IllegalStateException.class)

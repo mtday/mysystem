@@ -1,5 +1,6 @@
 package mysystem.db.actor;
 
+import com.google.common.base.Optional;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValueType;
@@ -19,7 +20,6 @@ import mysystem.db.model.HasDataType;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -62,7 +62,7 @@ public class DatabaseManager extends UntypedActor {
     }
 
     protected Optional<ActorRef> getActor(final DataType dataType) {
-        return Optional.ofNullable(this.actors.get(Objects.requireNonNull(dataType)));
+        return Optional.fromNullable(this.actors.get(Objects.requireNonNull(dataType)));
     }
 
     protected void createDatabaseActors(

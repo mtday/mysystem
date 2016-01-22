@@ -88,10 +88,10 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals(1604616716, a.hashCode());
-        assertEquals(1605481443, b.hashCode());
-        assertEquals(1605481517, c.hashCode());
-        assertEquals(1604618085, d.hashCode());
+        assertEquals(-656530472, a.hashCode());
+        assertEquals(1378154363, b.hashCode());
+        assertEquals(1378154437, c.hashCode());
+        assertEquals(1205710369, d.hashCode());
     }
 
     @Test
@@ -106,12 +106,12 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]", a.toString());
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true], "
-                + "Company[id=Optional.empty,name=b,active=true]]]", b.toString());
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=b,active=true], "
-                + "Company[id=Optional.empty,name=c,active=true]]]", c.toString());
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional[1],name=a,active=true]]]", d.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=a,active=true]]]", a.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=a,active=true], "
+                + "Company[id=Optional.absent(),name=b,active=true]]]", b.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=b,active=true], "
+                + "Company[id=Optional.absent(),name=c,active=true]]]", c.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.of(1),name=a,active=true]]]", d.toString());
     }
 
     @Test
@@ -119,7 +119,7 @@ public class AddTest {
         final Company company = new Company.Builder().setName("a").build();
         final Add<Company> add = new Add.Builder<Company>(DataType.COMPANY).add(company).build();
 
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]", add.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=a,active=true]]]", add.toString());
     }
 
     @Test(expected = IllegalStateException.class)

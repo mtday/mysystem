@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.base.Optional;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
@@ -40,7 +41,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
@@ -82,8 +82,8 @@ public class ConsoleManagerTest {
 
     @Test
     public void testPreStart() throws Exception {
-        testPreStartWithSystemNameAndVersion(Optional.of("system-name"), Optional.empty());
-        testPreStartWithSystemNameAndVersion(Optional.empty(), Optional.of("version"));
+        testPreStartWithSystemNameAndVersion(Optional.of("system-name"), Optional.absent());
+        testPreStartWithSystemNameAndVersion(Optional.absent(), Optional.of("version"));
         testPreStartWithSystemNameAndVersion(Optional.of("system-name"), Optional.of("version"));
     }
 

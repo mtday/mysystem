@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.base.Optional;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
@@ -30,7 +31,6 @@ import mysystem.shell.model.TokenizedUserInput;
 
 import java.util.AbstractMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -202,7 +202,7 @@ public class ConfigCommandTest {
         final ConfigValue value = ConfigValueFactory.fromAnyRef("my configuration value");
         Map.Entry<String, ConfigValue> entry = new AbstractMap.SimpleEntry<>("akka.whatever.key", value);
 
-        final Optional<Pattern> empty = Optional.empty();
+        final Optional<Pattern> empty = Optional.absent();
         final Optional<Pattern> keyRegex = Optional.of(Pattern.compile("^akka.*"));
         final Optional<Pattern> valueMatch = Optional.of(Pattern.compile("my configuration value"));
         final Optional<Pattern> noMatch = Optional.of(Pattern.compile("non-existent"));

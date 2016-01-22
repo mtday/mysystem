@@ -1,5 +1,7 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -12,7 +14,6 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -98,7 +99,7 @@ public class RegistrationLookup implements Comparable<RegistrationLookup>, Seria
      */
     public static class Builder {
         private final Set<CommandPath> paths = new TreeSet<>();
-        private Optional<TokenizedUserInput> userInput = Optional.empty();
+        private Optional<TokenizedUserInput> userInput = Optional.absent();
 
         /**
          * Default constructor.

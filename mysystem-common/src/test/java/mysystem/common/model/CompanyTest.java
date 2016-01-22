@@ -69,10 +69,10 @@ public class CompanyTest {
         final Company c = new Company.Builder().setId(2).setName("b").build();
         final Company d = new Company.Builder().setName("b").build();
 
-        assertEquals(866059, a.hashCode());
-        assertEquals(866060, b.hashCode());
-        assertEquals(867465, c.hashCode());
-        assertEquals(864727, d.hashCode());
+        assertEquals(-398041657, a.hashCode());
+        assertEquals(-398041656, b.hashCode());
+        assertEquals(-398040251, c.hashCode());
+        assertEquals(2034684835, d.hashCode());
     }
 
     @Test
@@ -82,10 +82,10 @@ public class CompanyTest {
         final Company c = new Company.Builder().setId(2).setName("b").build();
         final Company d = new Company.Builder().setName("b").build();
 
-        assertEquals("Company[id=Optional[1],name=a,active=true]", a.toString());
-        assertEquals("Company[id=Optional[1],name=a,active=false]", b.toString());
-        assertEquals("Company[id=Optional[2],name=b,active=true]", c.toString());
-        assertEquals("Company[id=Optional.empty,name=b,active=true]", d.toString());
+        assertEquals("Company[id=Optional.of(1),name=a,active=true]", a.toString());
+        assertEquals("Company[id=Optional.of(1),name=a,active=false]", b.toString());
+        assertEquals("Company[id=Optional.of(2),name=b,active=true]", c.toString());
+        assertEquals("Company[id=Optional.absent(),name=b,active=true]", d.toString());
     }
 
     @Test(expected = IllegalArgumentException.class)

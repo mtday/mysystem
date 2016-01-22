@@ -1,6 +1,6 @@
 package mysystem.common.model;
 
-import java.util.Optional;
+import com.google.common.base.Optional;
 
 /**
  * Defines the interface required for objects that optionally have unique identifiers.

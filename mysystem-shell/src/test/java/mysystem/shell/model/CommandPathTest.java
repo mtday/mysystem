@@ -4,11 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.common.base.Optional;
+
 import org.junit.Test;
 
 import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * Perform testing of the {@link CommandPath} class and builder.

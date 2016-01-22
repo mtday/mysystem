@@ -1,22 +1,26 @@
 package mysystem.common.util;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * Perform comparisons between two {@link Optional} objects.
  */
-public class OptionalComparator<T> implements Comparator<Optional<T>> {
+public class OptionalComparator<T> implements Comparator<Optional<T>>, Serializable {
+    private final static long serialVersionUID = 1L;
+
     private final Optional<Comparator<T>> comparator;
 
     /**
      * Default constructor, uses natural ordering of the elements in the collections.
      */
     public OptionalComparator() {
-        this.comparator = Optional.empty();
+        this.comparator = Optional.absent();
     }
 
     /**

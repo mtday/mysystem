@@ -71,10 +71,10 @@ public class GetByIdTest {
         final GetById c = new GetById.Builder(DataType.COMPANY, Arrays.asList(2, 3)).build();
         final GetById d = new GetById.Builder(DataType.COMPANY, 1).setActive(true).build();
 
-        assertEquals(-790717145, a.hashCode());
-        assertEquals(-790717071, b.hashCode());
-        assertEquals(-790716997, c.hashCode());
-        assertEquals(-790715914, d.hashCode());
+        assertEquals(1250015187, a.hashCode());
+        assertEquals(1250015261, b.hashCode());
+        assertEquals(1250015335, c.hashCode());
+        assertEquals(711760658, d.hashCode());
     }
 
     @Test
@@ -84,17 +84,17 @@ public class GetByIdTest {
         final GetById c = new GetById.Builder(DataType.COMPANY, Arrays.asList(2, 3)).build();
         final GetById d = new GetById.Builder(DataType.COMPANY, 1).setActive(true).build();
 
-        assertEquals("GetById[dataType=COMPANY,ids=[1],active=Optional.empty]", a.toString());
-        assertEquals("GetById[dataType=COMPANY,ids=[1, 2],active=Optional.empty]", b.toString());
-        assertEquals("GetById[dataType=COMPANY,ids=[2, 3],active=Optional.empty]", c.toString());
-        assertEquals("GetById[dataType=COMPANY,ids=[1],active=Optional[true]]", d.toString());
+        assertEquals("GetById[dataType=COMPANY,ids=[1],active=Optional.absent()]", a.toString());
+        assertEquals("GetById[dataType=COMPANY,ids=[1, 2],active=Optional.absent()]", b.toString());
+        assertEquals("GetById[dataType=COMPANY,ids=[2, 3],active=Optional.absent()]", c.toString());
+        assertEquals("GetById[dataType=COMPANY,ids=[1],active=Optional.of(true)]", d.toString());
     }
 
     @Test
     public void testBuilderAdd() {
         final GetById company =
                 new GetById.Builder(DataType.COMPANY).add(1).add(Arrays.asList(2, 3)).setActive(true).build();
-        assertEquals("GetById[dataType=COMPANY,ids=[1, 2, 3],active=Optional[true]]", company.toString());
+        assertEquals("GetById[dataType=COMPANY,ids=[1, 2, 3],active=Optional.of(true)]", company.toString());
     }
 
     @Test(expected = IllegalStateException.class)

@@ -1,5 +1,7 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -9,7 +11,6 @@ import mysystem.common.util.OptionalComparator;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An immutable representation of output to be sent to the shell display.
@@ -112,7 +113,7 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
          * Default constructor, output will be a blank string.
          */
         public Builder() {
-            this.output = Optional.empty();
+            this.output = Optional.absent();
         }
 
         /**

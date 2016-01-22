@@ -1,5 +1,6 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.cli.CommandLine;
@@ -12,7 +13,6 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * The immutable parsed command to be executed.
@@ -23,21 +23,17 @@ public class Command implements Comparable<Command>, Serializable {
     private final CommandPath commandPath;
     private final Registration registration;
     private final TokenizedUserInput userInput;
-    private final Optional<CommandLine> commandLine;
 
     /**
      * @param commandPath the {@link CommandPath} representing the user-specified command
      * @param registration the {@link Registration} associated with the command being invoked
      * @param userInput the {@link TokenizedUserInput} entered in the shell to be executed
-     * @param commandLine the parsed {@link CommandLine} parameters for this command
      */
     public Command(
-            final CommandPath commandPath, final Registration registration, final TokenizedUserInput userInput,
-            final Optional<CommandLine> commandLine) {
+            final CommandPath commandPath, final Registration registration, final TokenizedUserInput userInput) {
         this.commandPath = commandPath;
         this.registration = registration;
         this.userInput = userInput;
-        this.commandLine = commandLine;
     }
 
     /**
@@ -62,10 +58,17 @@ public class Command implements Comparable<Command>, Serializable {
     }
 
     /**
-     * @return the parsed {@link CommandLine} parameters for this command
+     * @return the parsed {@link CommandLine} parameters for this command based on the user input and registration
+     * options
      */
     public Optional<CommandLine> getCommandLine() {
-        return this.commandLine;
+        try {
+            return parseCommandLine(getRegistration(), getUserInput());
+        } catch (final ParseException parseException) {
+            // During the Builder process, this command was guaranteed to have a valid command line, so we can
+            // safely suppress this exception here.
+            return Optional.absent();
+        }
     }
 
     /**
@@ -112,6 +115,17 @@ public class Command implements Comparable<Command>, Serializable {
         return getRegistration().hashCode();
     }
 
+    private static Optional<CommandLine> parseCommandLine(
+            final Registration registration, final TokenizedUserInput userInput) throws ParseException {
+        if (registration.getOptions().isPresent()) {
+            final List<String> tokens = userInput.getTokens();
+            final String[] array = tokens.toArray(new String[tokens.size()]);
+            return Optional.of(new DefaultParser().parse(registration.getOptions().get(), array));
+        } else {
+            return Optional.absent();
+        }
+    }
+
     /**
      * Used to build {@link Command} instances.
      */
@@ -119,7 +133,6 @@ public class Command implements Comparable<Command>, Serializable {
         private final CommandPath commandPath;
         private final Registration registration;
         private final TokenizedUserInput userInput;
-        private final Optional<CommandLine> commandLine;
 
         /**
          * @param response the {@link RegistrationResponse} providing the command registration and the user input
@@ -132,19 +145,11 @@ public class Command implements Comparable<Command>, Serializable {
 
             this.registration = response.getRegistrations().iterator().next();
             this.userInput = response.getUserInput().get();
-            this.commandLine = getCommandLine(this.registration, this.userInput);
             this.commandPath = new CommandPath.Builder(this.userInput).build();
-        }
 
-        private Optional<CommandLine> getCommandLine(
-                final Registration registration, final TokenizedUserInput userInput) throws ParseException {
-            if (registration.getOptions().isPresent()) {
-                final List<String> tokens = userInput.getTokens();
-                final String[] array = tokens.toArray(new String[tokens.size()]);
-                return Optional.of(new DefaultParser().parse(registration.getOptions().get(), array));
-            } else {
-                return Optional.empty();
-            }
+            // Used to verify that the command line parameters are valid before the command is created.
+            // This guarantees that the command, once built, will be able to create the command line without issue.
+            parseCommandLine(this.registration, this.userInput);
         }
 
         /**
@@ -156,14 +161,13 @@ public class Command implements Comparable<Command>, Serializable {
             this.commandPath = command.getCommandPath();
             this.registration = command.getRegistration();
             this.userInput = command.getUserInput();
-            this.commandLine = command.getCommandLine();
         }
 
         /**
          * @return the {@link Command} represented by this builder
          */
         public Command build() {
-            return new Command(this.commandPath, this.registration, this.userInput, this.commandLine);
+            return new Command(this.commandPath, this.registration, this.userInput);
         }
     }
 }

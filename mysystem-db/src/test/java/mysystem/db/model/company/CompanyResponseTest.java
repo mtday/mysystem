@@ -68,9 +68,9 @@ public class CompanyResponseTest {
         final CompanyResponse b = new CompanyResponse.Builder(companyA, companyB).build();
         final CompanyResponse c = new CompanyResponse.Builder(companyC).build();
 
-        assertEquals(864690, a.hashCode());
-        assertEquals(1729417, b.hashCode());
-        assertEquals(864764, c.hashCode());
+        assertEquals(2034684798, a.hashCode());
+        assertEquals(-225597663, b.hashCode());
+        assertEquals(2034684872, c.hashCode());
     }
 
     @Test
@@ -83,10 +83,10 @@ public class CompanyResponseTest {
         final CompanyResponse b = new CompanyResponse.Builder(companyA, companyB).build();
         final CompanyResponse c = new CompanyResponse.Builder(companyC).build();
 
-        assertEquals("CompanyResponse[companies=[Company[id=Optional.empty,name=a,active=true]]]", a.toString());
-        assertEquals("CompanyResponse[companies=[Company[id=Optional.empty,name=a,active=true], " +
-                "Company[id=Optional.empty,name=b,active=true]]]", b.toString());
-        assertEquals("CompanyResponse[companies=[Company[id=Optional.empty,name=c,active=true]]]", c.toString());
+        assertEquals("CompanyResponse[companies=[Company[id=Optional.absent(),name=a,active=true]]]", a.toString());
+        assertEquals("CompanyResponse[companies=[Company[id=Optional.absent(),name=a,active=true], " +
+                "Company[id=Optional.absent(),name=b,active=true]]]", b.toString());
+        assertEquals("CompanyResponse[companies=[Company[id=Optional.absent(),name=c,active=true]]]", c.toString());
     }
 
     @Test

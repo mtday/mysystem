@@ -1,5 +1,6 @@
 package mysystem.shell.command;
 
+import com.google.common.base.Optional;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueType;
@@ -18,7 +19,6 @@ import mysystem.shell.model.RegistrationRequest;
 import mysystem.shell.model.RegistrationResponse;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.Supplier;
@@ -91,7 +91,7 @@ public class ConfigCommand extends UntypedActor {
         if (commandLine.isPresent() && commandLine.get().hasOption('f')) {
             final String regex = commandLine.get().getOptionValue('f');
             if (StringUtils.isEmpty(regex)) {
-                return Optional.empty();
+                return Optional.absent();
             } else if (StringUtils.containsAny(regex, '*', '+', '^', '$', '[')) {
                 // If the command specifies a filter pattern that has regex characters, assume the user knows what
                 // they are doing and provided a valid regex.
@@ -102,7 +102,7 @@ public class ConfigCommand extends UntypedActor {
                 return Optional.of(Pattern.compile(".*" + regex + ".*", Pattern.CASE_INSENSITIVE));
             }
         }
-        return Optional.empty();
+        return Optional.absent();
     }
 
     protected boolean accept(final Map.Entry<String, ConfigValue> entry, final Optional<Pattern> pattern) {

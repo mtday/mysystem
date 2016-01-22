@@ -1,5 +1,7 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -10,7 +12,6 @@ import mysystem.common.util.OptionalComparator;
 import java.io.Serializable;
 import java.text.ParseException;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An immutable object used to represent invalid input provided by the user.
@@ -120,7 +121,7 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
             if (parseException.getErrorOffset() >= 0) {
                 this.location = Optional.of(parseException.getErrorOffset());
             } else {
-                this.location = Optional.empty();
+                this.location = Optional.absent();
             }
         }
 
@@ -131,7 +132,7 @@ public class InvalidInput implements Comparable<InvalidInput>, Serializable {
         public Builder(final TokenizedUserInput userInput, final org.apache.commons.cli.ParseException parseException) {
             this.userInput = Objects.requireNonNull(userInput).getUserInput();
             this.error = Objects.requireNonNull(parseException).getMessage();
-            this.location = Optional.empty();
+            this.location = Optional.absent();
         }
 
         /**

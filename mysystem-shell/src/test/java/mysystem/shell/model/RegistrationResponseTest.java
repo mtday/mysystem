@@ -103,13 +103,13 @@ public class RegistrationResponseTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(23273, new RegistrationResponse.Builder().build().hashCode());
+        assertEquals(2040755605, new RegistrationResponse.Builder().build().hashCode());
     }
 
     @Test
     public void testToString() {
         assertEquals(
-                "RegistrationResponse[registrations=[],userInput=Optional.empty]",
+                "RegistrationResponse[registrations=[],userInput=Optional.absent()]",
                 new RegistrationResponse.Builder().build().toString());
     }
 

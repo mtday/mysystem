@@ -1,5 +1,7 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
@@ -14,7 +16,6 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An immutable representation of the fully qualified path to a shell command.
@@ -91,7 +92,7 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
      */
     public Optional<CommandPath> getParent() {
         if (getPath().size() == 1) {
-            return Optional.empty();
+            return Optional.absent();
         }
 
         final List<String> parentPath = new ArrayList<>(getPath());
@@ -117,7 +118,7 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
      */
     public Optional<CommandPath> getChild() {
         if (getPath().size() == 1) {
-            return Optional.empty();
+            return Optional.absent();
         }
 
         final List<String> childPath = new LinkedList<>(getPath());

@@ -57,16 +57,16 @@ public class InvalidInputTest {
         final InvalidInput b = new InvalidInput.Builder(new UserInput.Builder("b").build(), ex).build();
         final InvalidInput c = new InvalidInput.Builder(new UserInput.Builder("c").build(), ex).build();
 
-        assertEquals(-1858855213, a.hashCode());
-        assertEquals(-1858853844, b.hashCode());
-        assertEquals(-1858852475, c.hashCode());
+        assertEquals(-356378641, a.hashCode());
+        assertEquals(-356377272, b.hashCode());
+        assertEquals(-356375903, c.hashCode());
     }
 
     @Test
     public void testToString() {
         final ParseException ex = new ParseException("Message", 10);
         final InvalidInput a = new InvalidInput.Builder(new UserInput.Builder("a").build(), ex).build();
-        assertEquals("InvalidInput[userInput=a,error=Message,location=Optional[10]]", a.toString());
+        assertEquals("InvalidInput[userInput=a,error=Message,location=Optional.of(10)]", a.toString());
     }
 
     @Test

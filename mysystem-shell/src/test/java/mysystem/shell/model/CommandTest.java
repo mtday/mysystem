@@ -98,7 +98,7 @@ public class CommandTest {
         final Command command = new Command.Builder(rr).build();
 
         assertEquals              (
-                "Command[commandPath=a,registration=Registration[path=a b,description=Optional.empty],userInput=a]",
+                "Command[commandPath=a,registration=Registration[path=a b,description=Optional.absent()],userInput=a]",
                 command.toString());
     }
 

@@ -1,5 +1,7 @@
 package mysystem.db.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -13,7 +15,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -117,7 +118,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
     public static class Builder {
         private final DataType dataType;
         private final SortedSet<Integer> ids = new TreeSet<>();
-        private Optional<Boolean> active = Optional.empty();
+        private Optional<Boolean> active = Optional.absent();
 
         /**
          * @param dataType the {@link DataType} describing the type of data for which this database request applies

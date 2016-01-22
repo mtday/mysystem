@@ -39,8 +39,8 @@ public class GetAllTest {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
         final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
-        assertEquals(1603752026, a.hashCode());
-        assertEquals(1603753257, b.hashCode());
+        assertEquals(-650482938, a.hashCode());
+        assertEquals(-1188737467, b.hashCode());
     }
 
     @Test
@@ -48,7 +48,7 @@ public class GetAllTest {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
         final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
-        assertEquals("GetAll[dataType=COMPANY,active=Optional.empty]", a.toString());
-        assertEquals("GetAll[dataType=COMPANY,active=Optional[true]]", b.toString());
+        assertEquals("GetAll[dataType=COMPANY,active=Optional.absent()]", a.toString());
+        assertEquals("GetAll[dataType=COMPANY,active=Optional.of(true)]", b.toString());
     }
 }

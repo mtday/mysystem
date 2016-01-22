@@ -1,5 +1,6 @@
 package mysystem.common.model;
 
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +13,6 @@ import mysystem.common.util.OptionalComparator;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An immutable representation of a company.
@@ -110,7 +110,7 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
      * Used to create {@link Company} instances.
      */
     public static class Builder {
-        private Optional<Integer> id = Optional.empty();
+        private Optional<Integer> id = Optional.absent();
         private String name;
         private boolean active = true;
 

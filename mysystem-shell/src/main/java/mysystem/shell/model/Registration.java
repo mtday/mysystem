@@ -1,5 +1,7 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Optional;
+
 import org.apache.commons.cli.Options;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
@@ -8,7 +10,6 @@ import akka.actor.ActorRef;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * An immutable representation of a command registration available for use within the shell.
@@ -108,8 +109,8 @@ public class Registration implements Comparable<Registration>, Serializable {
     public static class Builder {
         private final ActorRef actor;
         private final CommandPath path;
-        private Optional<Options> options = Optional.empty();
-        private Optional<String> description = Optional.empty();
+        private Optional<Options> options = Optional.absent();
+        private Optional<String> description = Optional.absent();
 
         /**
          * @param actor a reference to the actor that implements the command
