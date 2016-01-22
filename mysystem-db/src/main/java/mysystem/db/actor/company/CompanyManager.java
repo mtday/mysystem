@@ -1,12 +1,12 @@
 package mysystem.db.actor.company;
 
-import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import akka.actor.Props;
 import akka.actor.UntypedActor;
+import akka.event.Logging;
+import akka.event.LoggingAdapter;
+import akka.pattern.CircuitBreaker;
+import mysystem.db.model.GetAll;
 import mysystem.db.model.GetById;
-
-import java.util.Objects;
 
 import javax.sql.DataSource;
 
@@ -15,23 +15,16 @@ import javax.sql.DataSource;
  * objects in the configured data source.
  */
 public class CompanyManager extends UntypedActor {
+    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
+
     private final ActorRef companyGet;
 
     /**
-     * @param actorContext the {@link ActorContext} that will host the actor
      * @param dataSource the {@link DataSource} used to manage database connections
-     * @return an {@link ActorRef} for the created actor
+     * @param circuitBreaker the {@link CircuitBreaker} used to manage push-back when the database gets overloaded
      */
-    public static ActorRef create(final ActorContext actorContext, final DataSource dataSource) {
-        final Props props = Props.create(CompanyManager.class, dataSource);
-        return Objects.requireNonNull(actorContext).actorOf(props, CompanyManager.class.getSimpleName());
-    }
-
-    /**
-     * @param dataSource the {@link DataSource} used to manage database connections
-     */
-    public CompanyManager(final DataSource dataSource) {
-        this.companyGet = GetActor.create(context(), dataSource);
+    public CompanyManager(final DataSource dataSource, final CircuitBreaker circuitBreaker) {
+        this.companyGet = GetActor.create(context(), dataSource, circuitBreaker);
     }
 
     /**
@@ -39,7 +32,8 @@ public class CompanyManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        if (message instanceof GetById) {
+        log.info("Received: {}", message);
+        if (message instanceof GetById || message instanceof GetAll) {
             this.companyGet.forward(message, context());
         } else {
             unhandled(message);

@@ -16,7 +16,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * An immutable class that represents the information needed to fetch company objects from the database.
+ * An immutable class that represents the information needed to fetch objects with specific unique ids from a table
+ * in the database.
  */
 public class GetById implements HasDataType, Comparable<GetById>, Serializable {
     private final static long serialVersionUID = 1L;
@@ -26,7 +27,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
 
     /**
      * @param dataType the type of data that should be retrieved using the request object
-     * @param ids the unique identifiers of the company objects to fetch
+     * @param ids the unique identifiers of the objects to fetch
      */
     private GetById(final DataType dataType, final SortedSet<Integer> ids) {
         this.dataType = dataType;
@@ -42,7 +43,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
     }
 
     /**
-     * @return an unmodifiable set containing the unique identifiers of the company objects to fetch
+     * @return an unmodifiable set containing the unique identifiers of the objects to fetch
      */
     public SortedSet<Integer> getIds() {
         return Collections.unmodifiableSortedSet(this.ids);
@@ -109,7 +110,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
 
         /**
          * @param dataType the {@link DataType} describing the type of data for which this database request applies
-         * @param ids the unique identifiers of the company objects to fetch
+         * @param ids the unique identifiers of the objects to fetch
          */
         public Builder(final DataType dataType, final Integer... ids) {
             this(dataType, Arrays.asList(Objects.requireNonNull(ids)));
@@ -117,7 +118,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
 
         /**
          * @param dataType the {@link DataType} describing the type of data for which this database request applies
-         * @param ids the unique identifiers of the company objects to fetch
+         * @param ids the unique identifiers of the objects to fetch
          */
         public Builder(final DataType dataType, final Collection<Integer> ids) {
             this.dataType = Objects.requireNonNull(dataType);
@@ -125,7 +126,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
         }
 
         /**
-         * @param ids the unique identifiers of the company objects to fetch
+         * @param ids the unique identifiers of the objects to fetch
          * @return {@code this} for fluent-style usage
          */
         public Builder add(final Integer... ids) {
@@ -133,7 +134,7 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
         }
 
         /**
-         * @param ids the unique identifiers of the company objects to fetch
+         * @param ids the unique identifiers of the objects to fetch
          * @return {@code this} for fluent-style usage
          */
         public Builder add(final Collection<Integer> ids) {

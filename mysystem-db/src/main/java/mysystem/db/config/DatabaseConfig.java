@@ -8,6 +8,11 @@ import mysystem.common.config.ConfigKey;
  */
 public enum DatabaseConfig implements ConfigKey {
     /**
+     * The top-level configuration element where the database actors are defined.
+     */
+    DATABASE_ACTORS,
+
+    /**
      * The configuration specifying the JDBC driver class.
      */
     DATABASE_DRIVER_CLASS,

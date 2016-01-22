@@ -4,8 +4,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-import java.util.Arrays;
-
 /**
  * Perform testing of the {@link DataType} enumeration.
  */
@@ -14,6 +12,6 @@ public class DataTypeTest {
     public void test() {
         // Only here for 100% coverage.
         assertEquals(DataType.COMPANY, DataType.valueOf("COMPANY"));
-        assertEquals("[COMPANY]", Arrays.asList(DataType.values()).toString());
+        assertEquals(2, DataType.values().length);
     }
 }

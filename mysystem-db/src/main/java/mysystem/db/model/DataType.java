@@ -10,5 +10,10 @@ public enum DataType {
      */
     COMPANY,
 
+    /**
+     * Represents user objects stored in the database.
+     */
+    USER,
+
     ;
 }
