@@ -13,7 +13,7 @@ public class GetAllTest {
     @Test
     public void testCompareTo() {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
-        final GetAll b = new GetAll.Builder(DataType.USER).build();
+        final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
         assertEquals(1, a.compareTo(null));
         assertEquals(0, a.compareTo(a));
@@ -25,7 +25,7 @@ public class GetAllTest {
     @Test
     public void testEquals() {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
-        final GetAll b = new GetAll.Builder(DataType.USER).build();
+        final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
         assertFalse(a.equals(null));
         assertTrue(a.equals(a));
@@ -37,18 +37,18 @@ public class GetAllTest {
     @Test
     public void testHashCode() {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
-        final GetAll b = new GetAll.Builder(DataType.USER).build();
+        final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
-        assertEquals(1668466781, a.hashCode());
-        assertEquals(2614219, b.hashCode());
+        assertEquals(1603752026, a.hashCode());
+        assertEquals(1603753257, b.hashCode());
     }
 
     @Test
     public void testToString() {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
-        final GetAll b = new GetAll.Builder(DataType.USER).build();
+        final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
-        assertEquals("GetAll[dataType=COMPANY]", a.toString());
-        assertEquals("GetAll[dataType=USER]", b.toString());
+        assertEquals("GetAll[dataType=COMPANY,active=Optional.empty]", a.toString());
+        assertEquals("GetAll[dataType=COMPANY,active=Optional[true]]", b.toString());
     }
 }

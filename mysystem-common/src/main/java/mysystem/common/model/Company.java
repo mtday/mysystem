@@ -17,7 +17,7 @@ import java.util.Optional;
 /**
  * An immutable representation of a company.
  */
-public class Company implements Comparable<Company>, Serializable {
+public class Company implements Model, HasOptionalId, HasActive, Comparable<Company>, Serializable {
     private final static long serialVersionUID = 1L;
 
     private final Optional<Integer> id;
@@ -36,8 +36,9 @@ public class Company implements Comparable<Company>, Serializable {
     }
 
     /**
-     * @return the unique identifier of the company, possibly empty
+     * {@inheritDoc}
      */
+    @Override
     public Optional<Integer> getId() {
         return this.id;
     }
@@ -52,6 +53,7 @@ public class Company implements Comparable<Company>, Serializable {
     /**
      * @return whether the company is active
      */
+    @Override
     public boolean isActive() {
         return this.active;
     }

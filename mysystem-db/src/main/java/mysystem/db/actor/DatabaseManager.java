@@ -11,8 +11,6 @@ import akka.actor.ActorRef;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
-import akka.event.Logging;
-import akka.event.LoggingAdapter;
 import akka.pattern.CircuitBreaker;
 import mysystem.db.config.DatabaseConfig;
 import mysystem.db.model.DataType;
@@ -33,8 +31,6 @@ import javax.sql.DataSource;
  * This actor delegates the work to the next level of actors.
  */
 public class DatabaseManager extends UntypedActor {
-    private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
-
     private final Map<DataType, ActorRef> actors = new TreeMap<>();
 
     /**
@@ -101,16 +97,12 @@ public class DatabaseManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        log.info("Received: {}", message);
         if (message instanceof HasDataType) {
             final DataType dataType = ((HasDataType) message).getDataType();
-            log.info("  Data Type is: {}", dataType);
             final Optional<ActorRef> actorRef = getActor(dataType);
             if (actorRef.isPresent()) {
-                log.info("  Forwarding to: {}", actorRef.get());
                 actorRef.get().forward(message, context());
             } else {
-                log.info("  Unhandled since no actor ref is present");
                 unhandled(message);
             }
         } else {

@@ -5,6 +5,7 @@ import akka.actor.UntypedActor;
 import akka.event.Logging;
 import akka.event.LoggingAdapter;
 import akka.pattern.CircuitBreaker;
+import mysystem.db.model.Add;
 import mysystem.db.model.GetAll;
 import mysystem.db.model.GetById;
 
@@ -18,6 +19,7 @@ public class CompanyManager extends UntypedActor {
     private final LoggingAdapter log = Logging.getLogger(getContext().system(), this);
 
     private final ActorRef companyGet;
+    private final ActorRef companyAdd;
 
     /**
      * @param dataSource the {@link DataSource} used to manage database connections
@@ -25,6 +27,7 @@ public class CompanyManager extends UntypedActor {
      */
     public CompanyManager(final DataSource dataSource, final CircuitBreaker circuitBreaker) {
         this.companyGet = GetActor.create(context(), dataSource, circuitBreaker);
+        this.companyAdd = AddActor.create(context(), dataSource, circuitBreaker);
     }
 
     /**
@@ -35,6 +38,8 @@ public class CompanyManager extends UntypedActor {
         log.info("Received: {}", message);
         if (message instanceof GetById || message instanceof GetAll) {
             this.companyGet.forward(message, context());
+        } else if (message instanceof Add) {
+            this.companyAdd.forward(message, context());
         } else {
             unhandled(message);
         }

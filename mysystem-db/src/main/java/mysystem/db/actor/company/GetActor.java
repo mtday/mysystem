@@ -16,6 +16,9 @@ import scala.concurrent.Future;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 
@@ -68,32 +71,73 @@ public class GetActor extends UntypedActor {
             final Future<CompanyResponse> future = getCircuitBreaker().callWithCircuitBreaker(callable);
             Patterns.pipe(future, context().dispatcher()).to(sender());
         } else if (message instanceof GetAll) {
-            final Future<CompanyResponse> future = getCircuitBreaker().callWithCircuitBreaker(handleGetAll());
+            final Callable<Future<CompanyResponse>> callable = handleGetAll((GetAll) message);
+            final Future<CompanyResponse> future = getCircuitBreaker().callWithCircuitBreaker(callable);
             Patterns.pipe(future, context().dispatcher()).to(sender());
         } else {
             unhandled(message);
         }
     }
 
-    protected Callable<Future<CompanyResponse>> handleGetById(final GetById getById) {
-        final String sql = "SELECT id, name, active FROM companies WHERE id = ?";
+    protected String getSql(final GetById getById) {
+        final List<String> parts = new LinkedList<>();
+        parts.add("SELECT id, name, active FROM companies WHERE");
+        parts.add("id = ?");
+        if (getById.getActive().isPresent()) {
+            parts.add("AND active = ?");
+        }
+        return String.join(" ", parts);
+    }
 
+    protected String getSql(final GetAll getAll) {
+        final List<String> parts = new LinkedList<>();
+        parts.add("SELECT id, name, active FROM companies");
+        if (getAll.getActive().isPresent()) {
+            parts.add("WHERE active = ?");
+        }
+        return String.join(" ", parts);
+    }
+
+    protected void setStatementParameters(final PreparedStatement ps, final GetById getById, final Integer id)
+            throws SQLException {
+        ps.setInt(1, id);
+        if (getById.getActive().isPresent()) {
+            ps.setBoolean(2, getById.getActive().get());
+        }
+    }
+
+    protected void setStatementParameters(final PreparedStatement ps, final GetAll getAll) throws SQLException {
+        if (getAll.getActive().isPresent()) {
+            ps.setBoolean(1, getAll.getActive().get());
+        }
+    }
+
+    protected Company getCompany(final ResultSet resultSet) throws SQLException {
+        final Company.Builder companyBuilder = new Company.Builder();
+        companyBuilder.setId(resultSet.getInt("id"));
+        companyBuilder.setName(resultSet.getString("name"));
+        companyBuilder.setActive(resultSet.getBoolean("active"));
+        return companyBuilder.build();
+    }
+
+    protected void populateCompanyResponse(final CompanyResponse.Builder builder, final ResultSet resultSet)
+            throws SQLException {
+        while (resultSet.next()) {
+            builder.add(getCompany(resultSet));
+        }
+    }
+
+    protected Callable<Future<CompanyResponse>> handleGetById(final GetById getById) {
         return () -> Futures.future(() -> {
             final CompanyResponse.Builder builder = new CompanyResponse.Builder();
 
             try (final Connection conn = getDataSource().getConnection();
-                 final PreparedStatement ps = conn.prepareStatement(sql)) {
+                 final PreparedStatement ps = conn.prepareStatement(getSql(getById))) {
                 for (final Integer id : getById.getIds()) {
-                    ps.setInt(1, id);
+                    setStatementParameters(ps, getById, id);
 
                     try (final ResultSet rs = ps.executeQuery()) {
-                        while (rs.next()) {
-                            final Company.Builder companyBuilder = new Company.Builder();
-                            companyBuilder.setId(rs.getInt("id"));
-                            companyBuilder.setName(rs.getString("name"));
-                            companyBuilder.setActive(rs.getBoolean("active"));
-                            builder.add(companyBuilder.build());
-                        }
+                        populateCompanyResponse(builder, rs);
                     }
                 }
             }
@@ -102,21 +146,15 @@ public class GetActor extends UntypedActor {
         }, context().dispatcher());
     }
 
-    protected Callable<Future<CompanyResponse>> handleGetAll() {
-        final String sql = "SELECT id, name, active FROM companies";
-
+    protected Callable<Future<CompanyResponse>> handleGetAll(final GetAll getAll) {
         return () -> Futures.future(() -> {
             final CompanyResponse.Builder builder = new CompanyResponse.Builder();
 
             try (final Connection conn = getDataSource().getConnection();
-                 final PreparedStatement ps = conn.prepareStatement(sql);
-                 final ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    final Company.Builder companyBuilder = new Company.Builder();
-                    companyBuilder.setId(rs.getInt("id"));
-                    companyBuilder.setName(rs.getString("name"));
-                    companyBuilder.setActive(rs.getBoolean("active"));
-                    builder.add(companyBuilder.build());
+                 final PreparedStatement ps = conn.prepareStatement(getSql(getAll))) {
+                setStatementParameters(ps, getAll);
+                try (final ResultSet rs = ps.executeQuery()) {
+                    populateCompanyResponse(builder, rs);
                 }
             }
 
