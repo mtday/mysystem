@@ -70,7 +70,7 @@ public class RegistrationFinderTest {
 
                 regfinder.tell(input, getRef());
 
-                final RegistrationLookup lookup = expectMsgClass(RegistrationLookup.class);
+                final RegistrationLookup lookup = expectMsgClass(duration("500 ms"), RegistrationLookup.class);
                 assertTrue(lookup.getUserInput().isPresent());
                 assertEquals(input, lookup.getUserInput().get());
                 assertEquals(1, lookup.getPaths().size());
@@ -96,7 +96,7 @@ public class RegistrationFinderTest {
 
                 regfinder.tell(response, getRef());
 
-                final UnrecognizedCommand output = expectMsgClass(UnrecognizedCommand.class);
+                final UnrecognizedCommand output = expectMsgClass(duration("500 ms"), UnrecognizedCommand.class);
                 assertEquals(tokenized, output.getUserInput());
             } finally {
                 regfinder.tell(PoisonPill.getInstance(), getRef());
@@ -126,7 +126,7 @@ public class RegistrationFinderTest {
 
                 regfinder.tell(response, getRef());
 
-                final UserInput output = expectMsgClass(UserInput.class);
+                final UserInput output = expectMsgClass(duration("500 ms"), UserInput.class);
                 assertEquals("help input", output.getInput());
             } finally {
                 regfinder.tell(PoisonPill.getInstance(), getRef());
@@ -152,7 +152,7 @@ public class RegistrationFinderTest {
 
                 regfinder.tell(response, getRef());
 
-                final Command command = expectMsgClass(Command.class);
+                final Command command = expectMsgClass(duration("500 ms"), Command.class);
                 assertEquals(exitPath, command.getCommandPath());
                 assertEquals(exit, command.getRegistration());
                 assertEquals(tokenized, command.getUserInput());
@@ -186,7 +186,7 @@ public class RegistrationFinderTest {
 
                 regfinder.tell(response, getRef());
 
-                final InvalidInput command = expectMsgClass(InvalidInput.class);
+                final InvalidInput command = expectMsgClass(duration("500 ms"), InvalidInput.class);
                 assertEquals("Missing required option: r", command.getError());
                 assertEquals(userInput, command.getUserInput());
                 assertFalse(command.getLocation().isPresent());
@@ -205,7 +205,7 @@ public class RegistrationFinderTest {
             try {
                 regfinder.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 regfinder.tell(PoisonPill.getInstance(), getRef());
             }

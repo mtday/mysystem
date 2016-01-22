@@ -61,7 +61,7 @@ public class ExitCommandTest {
             try {
                 exitCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final RegistrationResponse response = expectMsgClass(duration("500 ms"), RegistrationResponse.class);
                 final Set<Registration> registrations = response.getRegistrations();
                 assertEquals(2, registrations.size());
 
@@ -78,7 +78,7 @@ public class ExitCommandTest {
                 assertEquals(new CommandPath.Builder("quit").build(), quit.getPath());
                 assertFalse(quit.getOptions().isPresent());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 exitCommand.tell(PoisonPill.getInstance(), getRef());
             }
@@ -100,14 +100,14 @@ public class ExitCommandTest {
             try {
                 exitCommand.tell(command, getRef());
 
-                final ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                final ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
                 assertEquals("Disconnecting", output.getOutput().get());
                 assertFalse(output.hasMore());
                 assertTrue(output.isTerminate());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 exitCommand.tell(PoisonPill.getInstance(), getRef());
             }
@@ -123,7 +123,7 @@ public class ExitCommandTest {
             try {
                 exitCommand.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 exitCommand.tell(PoisonPill.getInstance(), getRef());
             }

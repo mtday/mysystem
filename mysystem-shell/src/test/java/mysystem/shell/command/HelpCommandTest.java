@@ -72,7 +72,7 @@ public class HelpCommandTest {
             try {
                 helpCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final RegistrationResponse response = expectMsgClass(duration("500 ms"), RegistrationResponse.class);
                 final Set<Registration> registrations = response.getRegistrations();
                 assertEquals(1, registrations.size());
 
@@ -82,7 +82,7 @@ public class HelpCommandTest {
                 assertEquals(new CommandPath.Builder("help").build(), registration.getPath());
                 assertFalse(registration.getOptions().isPresent());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 helpCommand.tell(PoisonPill.getInstance(), getRef());
             }
@@ -113,32 +113,32 @@ public class HelpCommandTest {
             try {
                 helpCommand.tell(response, getRef());
 
-                ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional[  command  description]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional[    -h  --help  description]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional[    -s]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional.empty", output.getOutput().toString());
                 assertFalse(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 helpCommand.tell(PoisonPill.getInstance(), getRef());
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
@@ -174,22 +174,22 @@ public class HelpCommandTest {
             try {
                 helpCommand.tell(response, getRef());
 
-                ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional[  command1]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional[  command2]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertEquals("Optional.empty", output.getOutput().toString());
                 assertFalse(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 helpCommand.tell(PoisonPill.getInstance(), getRef());
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
@@ -213,9 +213,9 @@ public class HelpCommandTest {
             try {
                 helpCommand.tell(command, getRef());
 
-                assertNotNull(expectMsgClass(RegistrationRequest.class));
+                assertNotNull(expectMsgClass(duration("500 ms"), RegistrationRequest.class));
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 helpCommand.tell(PoisonPill.getInstance(), getRef());
                 registrationManager.tell(PoisonPill.getInstance(), getRef());
@@ -239,11 +239,11 @@ public class HelpCommandTest {
             try {
                 helpCommand.tell(command, getRef());
 
-                final RegistrationLookup lookup = expectMsgClass(RegistrationLookup.class);
+                final RegistrationLookup lookup = expectMsgClass(duration("500 ms"), RegistrationLookup.class);
                 assertEquals("[command]", lookup.getPaths().toString());
                 assertEquals("Optional.empty", lookup.getUserInput().toString());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 helpCommand.tell(PoisonPill.getInstance(), getRef());
                 registrationManager.tell(PoisonPill.getInstance(), getRef());
@@ -277,7 +277,7 @@ public class HelpCommandTest {
             try {
                 helpCommand.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 helpCommand.tell(PoisonPill.getInstance(), getRef());
             }

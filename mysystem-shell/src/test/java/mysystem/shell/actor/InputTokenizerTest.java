@@ -56,7 +56,7 @@ public class InputTokenizerTest {
                 inputTokenizer.tell(userInput, getRef());
 
                 final TokenizedUserInput expected = new TokenizedUserInput.Builder(userInput).build();
-                final TokenizedUserInput response = expectMsgClass(TokenizedUserInput.class);
+                final TokenizedUserInput response = expectMsgClass(duration("500 ms"), TokenizedUserInput.class);
                 assertEquals(expected, response);
             } finally {
                 inputTokenizer.tell(PoisonPill.getInstance(), getRef());
@@ -76,7 +76,7 @@ public class InputTokenizerTest {
                 final UserInput userInput = new UserInput.Builder("invalid '").build();
                 inputTokenizer.tell(userInput, getRef());
 
-                expectMsgClass(InvalidInput.class);
+                expectMsgClass(duration("500 ms"), InvalidInput.class);
             } finally {
                 inputTokenizer.tell(PoisonPill.getInstance(), getRef());
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
@@ -92,7 +92,7 @@ public class InputTokenizerTest {
             try {
                 inputTokenizer.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 inputTokenizer.tell(PoisonPill.getInstance(), getRef());
             }

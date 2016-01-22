@@ -77,7 +77,8 @@ public class RegistrationManagerTest {
                 final RegistrationRequest request = new RegistrationRequest.Builder().build();
                 regmgr.tell(request, getRef());
 
-                final Set<Registration> registrations = expectMsgClass(RegistrationResponse.class).getRegistrations();
+                final Set<Registration> registrations =
+                        expectMsgClass(duration("500 ms"), RegistrationResponse.class).getRegistrations();
 
                 assertEquals(1, registrations.size());
                 assertTrue(registrations.contains(reg));
@@ -105,14 +106,16 @@ public class RegistrationManagerTest {
                 regmgr.tell(response, getRef());
 
                 regmgr.tell(new RegistrationLookup.Builder(exitPath).build(), getRef());
-                final Set<Registration> exitRegs = expectMsgClass(RegistrationResponse.class).getRegistrations();
+                final Set<Registration> exitRegs =
+                        expectMsgClass(duration("500 ms"), RegistrationResponse.class).getRegistrations();
                 assertEquals(1, exitRegs.size());
                 assertTrue(exitRegs.contains(exit));
 
                 final CommandPath whatever = new CommandPath.Builder("whatever").build();
                 regmgr.tell(new RegistrationLookup.Builder(whatever).build(), getRef());
 
-                final Set<Registration> whateverRegs = expectMsgClass(RegistrationResponse.class).getRegistrations();
+                final Set<Registration> whateverRegs =
+                        expectMsgClass(duration("500 ms"), RegistrationResponse.class).getRegistrations();
                 assertTrue(whateverRegs.isEmpty());
             } finally {
                 regmgr.tell(PoisonPill.getInstance(), getRef());
@@ -128,7 +131,7 @@ public class RegistrationManagerTest {
             try {
                 regmgr.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 regmgr.tell(PoisonPill.getInstance(), getRef());
             }

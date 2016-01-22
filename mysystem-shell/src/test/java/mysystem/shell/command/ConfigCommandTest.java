@@ -72,7 +72,7 @@ public class ConfigCommandTest {
             try {
                 configCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final RegistrationResponse response = expectMsgClass(duration("500 ms"), RegistrationResponse.class);
                 final Set<Registration> registrations = response.getRegistrations();
                 assertEquals(1, registrations.size());
 
@@ -83,7 +83,7 @@ public class ConfigCommandTest {
                 assertEquals(new CommandPath.Builder("config").build(), registration.getPath());
                 assertTrue(registration.getOptions().isPresent());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 configCommand.tell(PoisonPill.getInstance(), getRef());
             }
@@ -105,7 +105,7 @@ public class ConfigCommandTest {
             try {
                 configCommand.tell(command, getRef());
 
-                final ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                final ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
                 assertEquals("  akka.actor.creation-timeout => 20s", output.getOutput().get());
@@ -128,7 +128,7 @@ public class ConfigCommandTest {
             try {
                 configCommand.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 configCommand.tell(PoisonPill.getInstance(), getRef());
             }

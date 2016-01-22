@@ -54,7 +54,7 @@ public class InputFilterTest {
                 final UserInput userInput = new UserInput.Builder("input").build();
                 inputFilter.tell(userInput, getRef());
 
-                final UserInput response = expectMsgClass(UserInput.class);
+                final UserInput response = expectMsgClass(duration("500 ms"), UserInput.class);
                 assertEquals(userInput, response);
             } finally {
                 inputFilter.tell(PoisonPill.getInstance(), getRef());
@@ -74,7 +74,7 @@ public class InputFilterTest {
                 final UserInput userInput = new UserInput.Builder(" ").build();
                 inputFilter.tell(userInput, getRef());
 
-                expectMsgClass(AcceptInput.class);
+                expectMsgClass(duration("500 ms"), AcceptInput.class);
             } finally {
                 inputFilter.tell(PoisonPill.getInstance(), getRef());
                 tokenizer.tell(PoisonPill.getInstance(), getRef());
@@ -93,7 +93,7 @@ public class InputFilterTest {
                 final UserInput userInput = new UserInput.Builder("# comment ").build();
                 inputFilter.tell(userInput, getRef());
 
-                expectMsgClass(AcceptInput.class);
+                expectMsgClass(duration("500 ms"), AcceptInput.class);
             } finally {
                 inputFilter.tell(PoisonPill.getInstance(), getRef());
                 tokenizer.tell(PoisonPill.getInstance(), getRef());
@@ -109,7 +109,7 @@ public class InputFilterTest {
             try {
                 inputFilter.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 inputFilter.tell(PoisonPill.getInstance(), getRef());
             }

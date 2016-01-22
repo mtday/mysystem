@@ -24,7 +24,6 @@ import akka.cluster.Member;
 import akka.cluster.MemberStatus;
 import akka.cluster.UniqueAddress;
 import akka.testkit.JavaTestKit;
-import akka.testkit.TestActorRef;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
@@ -46,8 +45,6 @@ public class ClusterCommandTest {
     private static Cluster cluster = null;
     private static Cluster clusterWithNoState = null;
     private static ActorSystem system = null;
-    private static TestActorRef<ClusterCommand> actorRef = null;
-    private static ClusterCommand actor = null;
 
     /**
      * Initialize the test actor system.
@@ -57,8 +54,6 @@ public class ClusterCommandTest {
         cluster = Mockito.mock(Cluster.class);
         clusterWithNoState = Mockito.mock(Cluster.class);
         system = ActorSystem.create("test-actor-system", ConfigFactory.load("test-config"));
-        actorRef = TestActorRef.create(system, Props.create(ClusterCommand.class, cluster), "actor");
-        actor = actorRef.underlyingActor();
         mockClusterState();
     }
 
@@ -106,7 +101,7 @@ public class ClusterCommandTest {
             try {
                 clusterCommand.tell(new RegistrationRequest.Builder().build(), getRef());
 
-                final RegistrationResponse response = expectMsgClass(RegistrationResponse.class);
+                final RegistrationResponse response = expectMsgClass(duration("500 ms"), RegistrationResponse.class);
                 final Set<Registration> registrations = response.getRegistrations();
                 assertEquals(1, registrations.size());
 
@@ -117,7 +112,7 @@ public class ClusterCommandTest {
                 assertEquals(new CommandPath.Builder("cluster", "list").build(), registration.getPath());
                 assertFalse(registration.getOptions().isPresent());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 clusterCommand.tell(PoisonPill.getInstance(), getRef());
             }
@@ -139,14 +134,14 @@ public class ClusterCommandTest {
             try {
                 clusterCommand.tell(command, getRef());
 
-                ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
                 assertEquals("  Cluster Members: 2", output.getOutput().get());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
                 assertEquals("    akka.tcp://mysystem@127.0.0.1:2551  Up  leader  0.0.0-SNAPSHOT shell",
@@ -154,7 +149,7 @@ public class ClusterCommandTest {
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
                 assertEquals("    akka.tcp://mysystem@127.0.0.1:2552  Up          0.0.0-SNAPSHOT shell",
@@ -162,7 +157,7 @@ public class ClusterCommandTest {
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
-                output = expectMsgClass(ConsoleOutput.class);
+                output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertFalse(output.getOutput().isPresent());
                 assertFalse(output.hasMore());
@@ -188,7 +183,7 @@ public class ClusterCommandTest {
             try {
                 clusterCommand.tell(command, getRef());
 
-                ConsoleOutput output = expectMsgClass(ConsoleOutput.class);
+                ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertFalse(output.getOutput().isPresent());
                 assertFalse(output.hasMore());
@@ -208,7 +203,7 @@ public class ClusterCommandTest {
             try {
                 clusterCommand.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 clusterCommand.tell(PoisonPill.getInstance(), getRef());
             }

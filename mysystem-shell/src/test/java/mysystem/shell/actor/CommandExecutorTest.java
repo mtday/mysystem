@@ -60,7 +60,7 @@ public class CommandExecutorTest {
 
                 cmdExec.tell(command, getRef());
 
-                final Command message = expectMsgClass(Command.class);
+                final Command message = expectMsgClass(duration("500 ms"), Command.class);
                 assertEquals(command, message);
             } finally {
                 cmdExec.tell(PoisonPill.getInstance(), getRef());
@@ -78,7 +78,7 @@ public class CommandExecutorTest {
             try {
                 cmdExec.tell("unhandled", getRef());
 
-                final String message = expectMsgClass(String.class);
+                final String message = expectMsgClass(duration("500 ms"), String.class);
                 assertEquals("unhandled", message);
             } finally {
                 cmdExec.tell(PoisonPill.getInstance(), getRef());

@@ -107,7 +107,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new Terminate.Builder().build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 if (systemName.isPresent() && version.isPresent()) {
@@ -148,7 +148,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new ConsoleOutput.Builder("output").build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(4, outputLines.size());
@@ -181,7 +181,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new ConsoleOutput.Builder("output").setHasMore(true).build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(4, outputLines.size());
@@ -214,7 +214,7 @@ public class ConsoleManagerTest {
                 consoleManager.tell(new ConsoleOutput.Builder("a").setHasMore(true).build(), getRef());
                 consoleManager.tell(new ConsoleOutput.Builder("b").setTerminate(true).build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 assertTrue(consoleReader.isShutdown());
             } finally {
@@ -237,7 +237,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new ConsoleOutput.Builder().build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(3, outputLines.size());
@@ -271,7 +271,7 @@ public class ConsoleManagerTest {
                 final TokenizedUserInput tokenized = new TokenizedUserInput.Builder(userInput).build();
                 consoleManager.tell(new UnrecognizedCommand.Builder(tokenized).build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(5, outputLines.size());
@@ -307,7 +307,7 @@ public class ConsoleManagerTest {
                 final ParseException parseException = new ParseException("message", 10);
                 consoleManager.tell(new InvalidInput.Builder(userInput, parseException).build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(5, outputLines.size());
@@ -343,7 +343,7 @@ public class ConsoleManagerTest {
                 final ParseException parseException = new ParseException("message", -1);
                 consoleManager.tell(new InvalidInput.Builder(userInput, parseException).build(), getRef());
 
-                expectMsgAnyClassOf(getExpectedClasses());
+                expectMsgAnyClassOf(duration("500 ms"), getExpectedClasses());
 
                 final Set<String> outputLines = new TreeSet<>(consoleReader.getOutputLines());
                 assertEquals(4, outputLines.size());
@@ -373,7 +373,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell(new Terminate.Builder().build(), getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
 
                 assertTrue(consoleReader.isShutdown());
             } finally {
@@ -393,7 +393,7 @@ public class ConsoleManagerTest {
             try {
                 consoleManager.tell("unhandled", getRef());
 
-                expectNoMsg();
+                expectNoMsg(duration("100 ms"));
             } finally {
                 consoleManager.tell(PoisonPill.getInstance(), getRef());
                 system.terminate();
