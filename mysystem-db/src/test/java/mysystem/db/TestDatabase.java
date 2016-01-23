@@ -3,7 +3,9 @@ package mysystem.db;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import org.hamcrest.Matcher;
 import org.hsqldb.jdbc.JDBCDriver;
+import org.mockito.Matchers;
 import org.mockito.Mockito;
 
 import java.io.BufferedReader;
@@ -73,7 +75,7 @@ public class TestDatabase {
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString()))
                 .thenThrow(new SQLException("connection.prepareStatement failed"));
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Statement.RETURN_GENERATED_KEYS))
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Matchers.eq(Statement.RETURN_GENERATED_KEYS)))
                 .thenThrow(new SQLException("connection.prepareStatement failed"));
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(dataSource.getConnection()).thenReturn(connection);
@@ -89,7 +91,7 @@ public class TestDatabase {
         Mockito.when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Statement.RETURN_GENERATED_KEYS))
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Matchers.eq(Statement.RETURN_GENERATED_KEYS)))
                 .thenReturn(preparedStatement);
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(dataSource.getConnection()).thenReturn(connection);
@@ -105,7 +107,7 @@ public class TestDatabase {
         Mockito.when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Statement.RETURN_GENERATED_KEYS))
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Matchers.eq(Statement.RETURN_GENERATED_KEYS)))
                 .thenReturn(preparedStatement);
         Mockito.doThrow(new SQLException("connection.close failed")).when(connection).close();
         final DataSource dataSource = Mockito.mock(DataSource.class);
@@ -123,7 +125,7 @@ public class TestDatabase {
         Mockito.doThrow(new SQLException("preparedStatement.close failed")).when(preparedStatement).close();
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Statement.RETURN_GENERATED_KEYS))
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Matchers.eq(Statement.RETURN_GENERATED_KEYS)))
                 .thenReturn(preparedStatement);
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(dataSource.getConnection()).thenReturn(connection);
@@ -140,7 +142,7 @@ public class TestDatabase {
         Mockito.when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
-        Mockito.when(connection.prepareStatement(Mockito.anyString(), Statement.RETURN_GENERATED_KEYS))
+        Mockito.when(connection.prepareStatement(Mockito.anyString(), Matchers.eq(Statement.RETURN_GENERATED_KEYS)))
                 .thenReturn(preparedStatement);
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(dataSource.getConnection()).thenReturn(connection);
