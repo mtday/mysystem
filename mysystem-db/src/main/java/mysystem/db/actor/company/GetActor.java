@@ -1,7 +1,7 @@
 package mysystem.db.actor.company;
 
-import akka.actor.ActorContext;
 import akka.actor.ActorRef;
+import akka.actor.ActorRefFactory;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.dispatch.Futures;
@@ -10,7 +10,7 @@ import akka.pattern.Patterns;
 import mysystem.common.model.Company;
 import mysystem.db.model.GetAll;
 import mysystem.db.model.GetById;
-import mysystem.db.model.company.CompanyResponse;
+import mysystem.db.model.ModelCollection;
 import scala.concurrent.Future;
 
 import java.sql.Connection;
@@ -33,15 +33,15 @@ public class GetActor extends UntypedActor {
     private final CircuitBreaker circuitBreaker;
 
     /**
-     * @param actorContext the {@link ActorContext} that will host the actor
+     * @param actorRefFactory the {@link ActorRefFactory} that will be used to create actor references
      * @param dataSource the {@link DataSource} used to manage database connections
      * @param circuitBreaker the {@link CircuitBreaker} used to manage push-back when the database gets overloaded
      * @return an {@link ActorRef} for the created actor
      */
     public static ActorRef create(
-            final ActorContext actorContext, final DataSource dataSource, final CircuitBreaker circuitBreaker) {
+            final ActorRefFactory actorRefFactory, final DataSource dataSource, final CircuitBreaker circuitBreaker) {
         final Props props = Props.create(GetActor.class, dataSource, circuitBreaker);
-        return Objects.requireNonNull(actorContext).actorOf(props, GetActor.class.getSimpleName());
+        return Objects.requireNonNull(actorRefFactory).actorOf(props, GetActor.class.getSimpleName());
     }
 
     /**
@@ -67,12 +67,12 @@ public class GetActor extends UntypedActor {
     @Override
     public void onReceive(final Object message) {
         if (message instanceof GetById) {
-            final Callable<Future<CompanyResponse>> callable = handleGetById((GetById) message);
-            final Future<CompanyResponse> future = getCircuitBreaker().callWithCircuitBreaker(callable);
+            final Callable<Future<ModelCollection>> callable = handleGetById((GetById) message);
+            final Future<ModelCollection> future = getCircuitBreaker().callWithCircuitBreaker(callable);
             Patterns.pipe(future, context().dispatcher()).to(sender());
         } else if (message instanceof GetAll) {
-            final Callable<Future<CompanyResponse>> callable = handleGetAll((GetAll) message);
-            final Future<CompanyResponse> future = getCircuitBreaker().callWithCircuitBreaker(callable);
+            final Callable<Future<ModelCollection>> callable = handleGetAll((GetAll) message);
+            final Future<ModelCollection> future = getCircuitBreaker().callWithCircuitBreaker(callable);
             Patterns.pipe(future, context().dispatcher()).to(sender());
         } else {
             unhandled(message);
@@ -120,16 +120,16 @@ public class GetActor extends UntypedActor {
         return companyBuilder.build();
     }
 
-    protected void populateCompanyResponse(final CompanyResponse.Builder builder, final ResultSet resultSet)
+    protected void populateCompanyResponse(final ModelCollection.Builder<Company> builder, final ResultSet resultSet)
             throws SQLException {
         while (resultSet.next()) {
             builder.add(getCompany(resultSet));
         }
     }
 
-    protected Callable<Future<CompanyResponse>> handleGetById(final GetById getById) {
+    protected Callable<Future<ModelCollection>> handleGetById(final GetById getById) {
         return () -> Futures.future(() -> {
-            final CompanyResponse.Builder builder = new CompanyResponse.Builder();
+            final ModelCollection.Builder<Company> builder = new ModelCollection.Builder<>();
 
             try (final Connection conn = getDataSource().getConnection();
                  final PreparedStatement ps = conn.prepareStatement(getSql(getById))) {
@@ -146,9 +146,9 @@ public class GetActor extends UntypedActor {
         }, context().dispatcher());
     }
 
-    protected Callable<Future<CompanyResponse>> handleGetAll(final GetAll getAll) {
+    protected Callable<Future<ModelCollection>> handleGetAll(final GetAll getAll) {
         return () -> Futures.future(() -> {
-            final CompanyResponse.Builder builder = new CompanyResponse.Builder();
+            final ModelCollection.Builder<Company> builder = new ModelCollection.Builder<>();
 
             try (final Connection conn = getDataSource().getConnection();
                  final PreparedStatement ps = conn.prepareStatement(getSql(getAll))) {

@@ -1,4 +1,4 @@
-package mysystem.db.model.company;
+package mysystem.db.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -11,18 +11,18 @@ import mysystem.common.model.Company;
 import java.util.Arrays;
 
 /**
- * Perform testing on the {@link CompanyResponse} class.
+ * Perform testing on the {@link ModelCollection} class.
  */
-public class CompanyResponseTest {
+public class ModelCollectionTest {
     @Test
     public void testCompareTo() {
         final Company companyA = new Company.Builder().setName("a").build();
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final CompanyResponse a = new CompanyResponse.Builder(companyA).build();
-        final CompanyResponse b = new CompanyResponse.Builder(companyA, companyB).build();
-        final CompanyResponse c = new CompanyResponse.Builder(companyC).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
+        final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
         assertEquals(1, a.compareTo(null));
         assertEquals(0, a.compareTo(a));
@@ -42,9 +42,9 @@ public class CompanyResponseTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final CompanyResponse a = new CompanyResponse.Builder(companyA).build();
-        final CompanyResponse b = new CompanyResponse.Builder(companyA, companyB).build();
-        final CompanyResponse c = new CompanyResponse.Builder(companyC).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
+        final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
         assertFalse(a.equals(null));
         assertTrue(a.equals(a));
@@ -64,9 +64,9 @@ public class CompanyResponseTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final CompanyResponse a = new CompanyResponse.Builder(companyA).build();
-        final CompanyResponse b = new CompanyResponse.Builder(companyA, companyB).build();
-        final CompanyResponse c = new CompanyResponse.Builder(companyC).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
+        final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
         assertEquals(2034684798, a.hashCode());
         assertEquals(-225597663, b.hashCode());
@@ -79,14 +79,14 @@ public class CompanyResponseTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final CompanyResponse a = new CompanyResponse.Builder(companyA).build();
-        final CompanyResponse b = new CompanyResponse.Builder(companyA, companyB).build();
-        final CompanyResponse c = new CompanyResponse.Builder(companyC).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
+        final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
-        assertEquals("CompanyResponse[companies=[Company[id=Optional.absent(),name=a,active=true]]]", a.toString());
-        assertEquals("CompanyResponse[companies=[Company[id=Optional.absent(),name=a,active=true], " +
+        assertEquals("ModelCollection[models=[Company[id=Optional.absent(),name=a,active=true]]]", a.toString());
+        assertEquals("ModelCollection[models=[Company[id=Optional.absent(),name=a,active=true], " +
                 "Company[id=Optional.absent(),name=b,active=true]]]", b.toString());
-        assertEquals("CompanyResponse[companies=[Company[id=Optional.absent(),name=c,active=true]]]", c.toString());
+        assertEquals("ModelCollection[models=[Company[id=Optional.absent(),name=c,active=true]]]", c.toString());
     }
 
     @Test
@@ -95,17 +95,17 @@ public class CompanyResponseTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final CompanyResponse response =
-                new CompanyResponse.Builder().add(companyA).add(Arrays.asList(companyB, companyC)).build();
+        final ModelCollection<Company> response =
+                new ModelCollection.Builder<Company>().add(companyA).add(Arrays.asList(companyB, companyC)).build();
 
-        assertEquals(3, response.getCompanies().size());
-        assertTrue(response.getCompanies().contains(companyA));
-        assertTrue(response.getCompanies().contains(companyB));
-        assertTrue(response.getCompanies().contains(companyC));
+        assertEquals(3, response.getModels().size());
+        assertTrue(response.getModels().contains(companyA));
+        assertTrue(response.getModels().contains(companyB));
+        assertTrue(response.getModels().contains(companyC));
     }
 
     @Test
     public void testBuilderNoCompanies() {
-        assertEquals("CompanyResponse[companies=[]]", new CompanyResponse.Builder().build().toString());
+        assertEquals("ModelCollection[models=[]]", new ModelCollection.Builder().build().toString());
     }
 }

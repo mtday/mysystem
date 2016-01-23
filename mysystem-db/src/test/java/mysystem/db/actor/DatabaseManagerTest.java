@@ -28,7 +28,7 @@ import mysystem.db.model.DataType;
 import mysystem.db.model.DatabaseManagerConfig;
 import mysystem.db.model.GetById;
 import mysystem.db.model.HasDataType;
-import mysystem.db.model.company.CompanyResponse;
+import mysystem.db.model.ModelCollection;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -41,9 +41,8 @@ import java.util.Set;
  */
 public class DatabaseManagerTest {
     private static ActorSystem system = null;
-    private static TestActorRef<DatabaseManager> actorRef = null;
     private static DatabaseManager actor = null;
-    private static TestDatabase testDatabase = new TestDatabase();
+    private static TestDatabase testDatabase = new TestDatabase(DatabaseManagerTest.class.getSimpleName());
 
     /**
      * Initialize the test actor system.
@@ -54,7 +53,7 @@ public class DatabaseManagerTest {
         system = ActorSystem.create("test-actor-system", getConfig());
 
         final Props props = Props.create(DatabaseManager.class, testDatabase.getDataSource());
-        actorRef = TestActorRef.create(system, props, "actor");
+        final TestActorRef<DatabaseManager> actorRef = TestActorRef.create(system, props, "actor");
         actor = actorRef.underlyingActor();
     }
 
@@ -123,19 +122,18 @@ public class DatabaseManagerTest {
     }
 
     @Test
-    public void testReceiveHandled() {
+    public void testReceiveGetById() {
         final ActorSystem system = ActorSystem.create("test-create", getConfig());
         new JavaTestKit(system) {{
-            final ActorRef dbmgr = DatabaseManager.create(system);
+            final Props props = Props.create(DatabaseManager.class, testDatabase.getDataSource());
+            final ActorRef dbmgr = system.actorOf(props);
 
             try {
                 dbmgr.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
-                final CompanyResponse response = expectMsgClass(duration("500 ms"), CompanyResponse.class);
-                //final Object response = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                System.out.println("Response: " + response);
+                final ModelCollection response = expectMsgClass(duration("500 ms"), ModelCollection.class);
                 assertNotNull(response);
-                assertEquals(0, response.getCompanies().size());
+                assertEquals(0, response.getModels().size());
             } finally {
                 dbmgr.tell(PoisonPill.getInstance(), getRef());
                 system.shutdown();
