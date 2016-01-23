@@ -33,15 +33,15 @@ import javax.sql.DataSource;
  * Perform testing on the {@link AddActor} class.
  */
 public class AddActorTest {
-    private static TestDatabase testDatabase = new TestDatabase(AddActorTest.class.getSimpleName());
+    private static TestDatabase testdb = new TestDatabase(AddActorTest.class.getSimpleName());
 
     /**
      * Initialize the test actor system.
      */
     @BeforeClass
     public static void setup() throws IOException, SQLException {
-        testDatabase.load("hsqldb/tables.sql");
-        testDatabase.load("hsqldb/testdata.sql");
+        testdb.load("hsqldb/tables.sql");
+        testdb.load("hsqldb/testdata.sql");
     }
 
     private static CircuitBreaker getCircuitBreaker(final ActorSystem system) {
@@ -55,7 +55,7 @@ public class AddActorTest {
     public void testReceiveAdd() {
         final ActorSystem system = ActorSystem.create("test-add", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef addActor = AddActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef addActor = AddActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 final Company company = new Company.Builder().setName("New Company").build();
@@ -72,7 +72,7 @@ public class AddActorTest {
 
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -89,10 +89,10 @@ public class AddActorTest {
                 addActor.tell(new Add.Builder<Company>(DataType.COMPANY).add(company).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: dataSource.getConnection failed)", failure.toString());
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -109,10 +109,10 @@ public class AddActorTest {
                 addActor.tell(new Add.Builder<Company>(DataType.COMPANY).add(company).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: connection.close failed)", failure.toString());
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -129,10 +129,10 @@ public class AddActorTest {
                 addActor.tell(new Add.Builder<Company>(DataType.COMPANY).add(company).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: connection.prepareStatement failed)", failure.toString());
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -149,10 +149,10 @@ public class AddActorTest {
                 addActor.tell(new Add.Builder<Company>(DataType.COMPANY).add(company).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: preparedStatement.close failed)", failure.toString());
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -169,10 +169,10 @@ public class AddActorTest {
                 addActor.tell(new Add.Builder<Company>(DataType.COMPANY).add(company).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: resultSet.next failed)", failure.toString());
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -189,10 +189,10 @@ public class AddActorTest {
                 addActor.tell(new Add.Builder<Company>(DataType.COMPANY).add(company).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: resultSet.close failed)", failure.toString());
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -201,7 +201,7 @@ public class AddActorTest {
     public void testReceiveWithUnhandled() {
         final ActorSystem system = ActorSystem.create("test-unhandled", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef addActor = AddActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef addActor = AddActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 addActor.tell("unhandled", getRef());
@@ -209,7 +209,7 @@ public class AddActorTest {
                 expectNoMsg(duration("100 ms"));
             } finally {
                 addActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }

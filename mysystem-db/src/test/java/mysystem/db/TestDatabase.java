@@ -39,12 +39,20 @@ public class TestDatabase {
      * @return the {@link DataSource} used to communicate with the HSQLDB instance
      */
     private DataSource createDataSource(final String databaseName) {
-        final HikariConfig dbConfig = new HikariConfig();
+        final HikariConfig dbConfig = new HikariConfig() {
+            @Override
+            public void validate() {
+                // Suppressing the logging of the configuration.
+            }
+        };
+
+        dbConfig.setPoolName("hikari-testdb-connection-pool");
         dbConfig.setAutoCommit(true);
         dbConfig.setDriverClassName(JDBCDriver.class.getName());
         dbConfig.setJdbcUrl("jdbc:hsqldb:mem:" + databaseName);
         dbConfig.setUsername("SA");
         dbConfig.setPassword("");
+        dbConfig.setMaximumPoolSize(1); // since it is only used for testing
         return new HikariDataSource(dbConfig);
     }
 
@@ -57,15 +65,16 @@ public class TestDatabase {
 
     public static DataSource getMockDataSourceGetConnectionException() throws SQLException {
         final DataSource dataSource = Mockito.mock(DataSource.class);
-        Mockito.when(dataSource.getConnection()).thenThrow(new SQLException("sql-exception"));
+        Mockito.when(dataSource.getConnection()).thenThrow(new SQLException("dataSource.getConnection failed"));
         return dataSource;
     }
 
     public static DataSource getMockDataSourcePrepareStatementException() throws SQLException {
         final Connection connection = Mockito.mock(Connection.class);
-        Mockito.when(connection.prepareStatement(Mockito.anyString())).thenThrow(new SQLException("sql-exception"));
+        Mockito.when(connection.prepareStatement(Mockito.anyString()))
+                .thenThrow(new SQLException("connection.prepareStatement failed"));
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt()))
-                .thenThrow(new SQLException("sql-exception"));
+                .thenThrow(new SQLException("connection.prepareStatement failed"));
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(dataSource.getConnection()).thenReturn(connection);
         return dataSource;
@@ -73,7 +82,7 @@ public class TestDatabase {
 
     public static DataSource getMockDataSourceResultSetException() throws SQLException {
         final ResultSet resultSet = Mockito.mock(ResultSet.class);
-        Mockito.when(resultSet.next()).thenThrow(new SQLException("sql-exception"));
+        Mockito.when(resultSet.next()).thenThrow(new SQLException("resultSet.next failed"));
         final PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
         Mockito.when(preparedStatement.executeQuery()).thenReturn(resultSet);
         Mockito.when(preparedStatement.executeUpdate()).thenReturn(1);
@@ -96,7 +105,7 @@ public class TestDatabase {
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt())).thenReturn(preparedStatement);
-        Mockito.doThrow(new SQLException("sql-exception")).when(connection).close();
+        Mockito.doThrow(new SQLException("connection.close failed")).when(connection).close();
         final DataSource dataSource = Mockito.mock(DataSource.class);
         Mockito.when(dataSource.getConnection()).thenReturn(connection);
         return dataSource;
@@ -109,7 +118,7 @@ public class TestDatabase {
         Mockito.when(preparedStatement.executeQuery()).thenReturn(resultSet);
         Mockito.when(preparedStatement.executeUpdate()).thenReturn(1);
         Mockito.when(preparedStatement.getGeneratedKeys()).thenReturn(resultSet);
-        Mockito.doThrow(new SQLException("sql-exception")).when(preparedStatement).close();
+        Mockito.doThrow(new SQLException("preparedStatement.close failed")).when(preparedStatement).close();
         final Connection connection = Mockito.mock(Connection.class);
         Mockito.when(connection.prepareStatement(Mockito.anyString())).thenReturn(preparedStatement);
         Mockito.when(connection.prepareStatement(Mockito.anyString(), Mockito.anyInt())).thenReturn(preparedStatement);
@@ -121,7 +130,7 @@ public class TestDatabase {
     public static DataSource getMockDataSourceResultSetCloseException() throws SQLException {
         final ResultSet resultSet = Mockito.mock(ResultSet.class);
         Mockito.when(resultSet.next()).thenReturn(false);
-        Mockito.doThrow(new SQLException("sql-exception")).when(resultSet).close();
+        Mockito.doThrow(new SQLException("resultSet.close failed")).when(resultSet).close();
         final PreparedStatement preparedStatement = Mockito.mock(PreparedStatement.class);
         Mockito.when(preparedStatement.executeQuery()).thenReturn(resultSet);
         Mockito.when(preparedStatement.executeUpdate()).thenReturn(1);

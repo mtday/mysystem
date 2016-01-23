@@ -25,8 +25,7 @@ import java.util.concurrent.Callable;
 import javax.sql.DataSource;
 
 /**
- * This actor is responsible for retrieving {@link mysystem.common.model.Company} objects from the configured data
- * source.
+ * This actor is responsible for retrieving {@link Company} objects from the configured data source.
  */
 public class GetActor extends UntypedActor {
     private final DataSource dataSource;

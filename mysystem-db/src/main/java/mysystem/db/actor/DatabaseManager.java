@@ -57,6 +57,7 @@ public class DatabaseManager extends UntypedActor {
         Objects.requireNonNull(config);
 
         final HikariConfig dbConfig = new HikariConfig();
+        dbConfig.setPoolName("hikari-connection-pool");
         dbConfig.setAutoCommit(true);
         dbConfig.setDriverClassName(config.getString(DatabaseConfig.DATABASE_DRIVER_CLASS.getKey()));
         dbConfig.setUsername(config.getString(DatabaseConfig.DATABASE_USERNAME.getKey()));

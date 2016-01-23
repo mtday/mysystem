@@ -10,7 +10,6 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
 
-import org.hsqldb.jdbc.JDBCDriver;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -42,17 +41,17 @@ import java.util.Set;
 public class DatabaseManagerTest {
     private static ActorSystem system = null;
     private static DatabaseManager actor = null;
-    private static TestDatabase testDatabase = new TestDatabase(DatabaseManagerTest.class.getSimpleName());
+    private static TestDatabase testdb = new TestDatabase(DatabaseManagerTest.class.getSimpleName());
 
     /**
      * Initialize the test actor system.
      */
     @BeforeClass
     public static void setup() throws IOException, SQLException {
-        testDatabase.load("hsqldb/tables.sql");
+        testdb.load("hsqldb/tables.sql");
         system = ActorSystem.create("test-actor-system", getConfig());
 
-        final Props props = Props.create(DatabaseManager.class, testDatabase.getDataSource());
+        final Props props = Props.create(DatabaseManager.class, testdb.getDataSource());
         final TestActorRef<DatabaseManager> actorRef = TestActorRef.create(system, props, "actor");
         actor = actorRef.underlyingActor();
     }
@@ -69,10 +68,6 @@ public class DatabaseManagerTest {
     }
 
     private static Config getConfig() {
-        return getActorConfig().withFallback(getDatabaseConfig()).withFallback(ConfigFactory.load("test-config"));
-    }
-
-    private static Config getActorConfig() {
         final Map<String, ConfigValue> map = new HashMap<>();
         map.put(DatabaseConfig.DATABASE_ACTORS.getKey() + ".name.data-type",
                 ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
@@ -84,17 +79,7 @@ public class DatabaseManagerTest {
         map.put(DatabaseConfig.DATABASE_ACTORS.getKey() + ".name.actors.get-by-id.message-class",
                 ConfigValueFactory.fromAnyRef(GetById.class.getName()));
         map.put(DatabaseConfig.DATABASE_ACTORS.getKey() + ".invalid", ConfigValueFactory.fromAnyRef("a"));
-        return ConfigFactory.parseMap(map);
-    }
-
-    private static Config getDatabaseConfig() {
-        final Map<String, ConfigValue> map = new HashMap<>();
-        map.put(DatabaseConfig.DATABASE_DRIVER_CLASS.getKey(),
-                ConfigValueFactory.fromAnyRef(JDBCDriver.class.getName()));
-        map.put(DatabaseConfig.DATABASE_JDBC_URL.getKey(), ConfigValueFactory.fromAnyRef("jdbc:hsqldb:mem:testdb"));
-        map.put(DatabaseConfig.DATABASE_USERNAME.getKey(), ConfigValueFactory.fromAnyRef("SA"));
-        map.put(DatabaseConfig.DATABASE_PASSWORD.getKey(), ConfigValueFactory.fromAnyRef(""));
-        return ConfigFactory.parseMap(map);
+        return ConfigFactory.parseMap(map).withFallback(ConfigFactory.load("test-config"));
     }
 
     @Test
@@ -106,7 +91,7 @@ public class DatabaseManagerTest {
 
     @Test
     public void testGetDatabaseActorConfigsWithActors() {
-        final Set<DatabaseManagerConfig> configs = actor.getDatabaseActorConfigs(getActorConfig());
+        final Set<DatabaseManagerConfig> configs = actor.getDatabaseActorConfigs(getConfig());
         assertEquals(1, configs.size());
         final DatabaseManagerConfig actorConfig = configs.iterator().next();
         assertEquals("name", actorConfig.getActorName());
@@ -125,8 +110,7 @@ public class DatabaseManagerTest {
     public void testReceiveGetById() {
         final ActorSystem system = ActorSystem.create("test-create", getConfig());
         new JavaTestKit(system) {{
-            final Props props = Props.create(DatabaseManager.class, testDatabase.getDataSource());
-            final ActorRef dbmgr = system.actorOf(props);
+            final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
             try {
                 dbmgr.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
@@ -136,7 +120,7 @@ public class DatabaseManagerTest {
                 assertEquals(0, response.getModels().size());
             } finally {
                 dbmgr.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -145,7 +129,7 @@ public class DatabaseManagerTest {
     public void testReceiveWithUnhandled() {
         final ActorSystem system = ActorSystem.create("test-create", getConfig());
         new JavaTestKit(system) {{
-            final ActorRef dbmgr = DatabaseManager.create(system);
+            final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
             try {
                 dbmgr.tell("unhandled", getRef());
@@ -153,16 +137,16 @@ public class DatabaseManagerTest {
                 expectNoMsg(duration("100 ms"));
             } finally {
                 dbmgr.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
 
     @Test
     public void testReceiveWithUnrecognizedDataType() {
-        final ActorSystem system = ActorSystem.create("test-create", getDatabaseConfig());
+        final ActorSystem system = ActorSystem.create("test-create", getConfig());
         new JavaTestKit(system) {{
-            final ActorRef dbmgr = DatabaseManager.create(system);
+            final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
             try {
                 final HasDataType msg = () -> DataType.COMPANY;
@@ -172,7 +156,7 @@ public class DatabaseManagerTest {
                 expectNoMsg(duration("100 ms"));
             } finally {
                 dbmgr.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }

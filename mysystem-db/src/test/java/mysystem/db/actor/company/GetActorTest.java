@@ -34,15 +34,15 @@ import javax.sql.DataSource;
  * Perform testing on the {@link GetActor} class.
  */
 public class GetActorTest {
-    private static TestDatabase testDatabase = new TestDatabase(GetActorTest.class.getSimpleName());
+    private static TestDatabase testdb = new TestDatabase(GetActorTest.class.getSimpleName());
 
     /**
      * Initialize the test actor system.
      */
     @BeforeClass
     public static void setup() throws IOException, SQLException {
-        testDatabase.load("hsqldb/tables.sql");
-        testDatabase.load("hsqldb/testdata.sql");
+        testdb.load("hsqldb/tables.sql");
+        testdb.load("hsqldb/testdata.sql");
     }
 
     private static CircuitBreaker getCircuitBreaker(final ActorSystem system) {
@@ -56,7 +56,7 @@ public class GetActorTest {
     public void testReceiveGetById() {
         final ActorSystem system = ActorSystem.create("test-get-by-id", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef getActor = GetActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef getActor = GetActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
@@ -69,7 +69,7 @@ public class GetActorTest {
                 assertTrue(response.getModels().contains(a));
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -78,7 +78,7 @@ public class GetActorTest {
     public void testReceiveGetByIdWithActive() {
         final ActorSystem system = ActorSystem.create("test-get-by-id-with-active", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef getActor = GetActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef getActor = GetActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).setActive(true).build(), getRef());
@@ -91,7 +91,7 @@ public class GetActorTest {
                 assertTrue(response.getModels().contains(a));
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -107,10 +107,10 @@ public class GetActorTest {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: dataSource.getConnection failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -126,10 +126,10 @@ public class GetActorTest {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: connection.close failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -145,10 +145,10 @@ public class GetActorTest {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: connection.prepareStatement failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -164,10 +164,10 @@ public class GetActorTest {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: preparedStatement.close failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -183,10 +183,10 @@ public class GetActorTest {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: resultSet.next failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -202,10 +202,10 @@ public class GetActorTest {
                 getActor.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: resultSet.close failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -214,7 +214,7 @@ public class GetActorTest {
     public void testReceiveGetAll() {
         final ActorSystem system = ActorSystem.create("test-get-all", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef getActor = GetActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef getActor = GetActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
@@ -230,7 +230,7 @@ public class GetActorTest {
 
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -239,7 +239,7 @@ public class GetActorTest {
     public void testReceiveGetAllWithActive() {
         final ActorSystem system = ActorSystem.create("test-get-all-with-active", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef getActor = GetActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef getActor = GetActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).setActive(true).build(), getRef());
@@ -252,7 +252,7 @@ public class GetActorTest {
                 assertTrue(response.getModels().contains(a));
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -268,10 +268,10 @@ public class GetActorTest {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: dataSource.getConnection failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -287,10 +287,10 @@ public class GetActorTest {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: connection.close failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -306,10 +306,10 @@ public class GetActorTest {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: connection.prepareStatement failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -325,10 +325,10 @@ public class GetActorTest {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: preparedStatement.close failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -344,10 +344,10 @@ public class GetActorTest {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: resultSet.next failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -363,10 +363,10 @@ public class GetActorTest {
                 getActor.tell(new GetAll.Builder(DataType.COMPANY).build(), getRef());
 
                 final Status.Failure failure = expectMsgClass(duration("500 ms"), Status.Failure.class);
-                assertEquals("Failure(java.sql.SQLException: sql-exception)", failure.toString());
+                assertEquals("Failure(java.sql.SQLException: resultSet.close failed)", failure.toString());
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
@@ -375,7 +375,7 @@ public class GetActorTest {
     public void testReceiveWithUnhandled() {
         final ActorSystem system = ActorSystem.create("test-unhandled", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
-            final ActorRef getActor = GetActor.create(system, testDatabase.getDataSource(), getCircuitBreaker(system));
+            final ActorRef getActor = GetActor.create(system, testdb.getDataSource(), getCircuitBreaker(system));
 
             try {
                 getActor.tell("unhandled", getRef());
@@ -383,7 +383,7 @@ public class GetActorTest {
                 expectNoMsg(duration("100 ms"));
             } finally {
                 getActor.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }

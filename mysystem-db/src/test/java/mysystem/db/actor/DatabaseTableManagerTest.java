@@ -81,7 +81,7 @@ public class DatabaseTableManagerTest {
                 expectNoMsg(duration("100 ms"));
             } finally {
                 cmpmgr.tell(PoisonPill.getInstance(), getRef());
-                system.shutdown();
+                system.terminate();
             }
         }};
     }
