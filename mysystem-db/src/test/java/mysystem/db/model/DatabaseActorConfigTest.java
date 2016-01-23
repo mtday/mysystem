@@ -2,7 +2,6 @@ package mysystem.db.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import com.typesafe.config.Config;
@@ -11,14 +10,8 @@ import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
 
 import org.junit.Test;
-import org.mockito.Mockito;
 
-import akka.actor.ActorContext;
-import akka.actor.ActorSystem;
-import akka.actor.Scheduler;
-import akka.pattern.CircuitBreaker;
-import mysystem.db.actor.company.CompanyManager;
-import scala.concurrent.ExecutionContextExecutor;
+import mysystem.db.actor.company.GetActor;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,65 +22,34 @@ import java.util.Map;
 public class DatabaseActorConfigTest {
     private Config getConfig() {
         final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("class", ConfigValueFactory.fromAnyRef(CompanyManager.class.getName()));
-        map.put("data-type", ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
-        map.put("max-failures", ConfigValueFactory.fromAnyRef(5));
-        map.put("call-timeout", ConfigValueFactory.fromAnyRef("10 s"));
-        map.put("reset-timeout", ConfigValueFactory.fromAnyRef("1 m"));
+        map.put("actor-class", ConfigValueFactory.fromAnyRef(GetActor.class.getName()));
+        map.put("message-class", ConfigValueFactory.fromAnyRef(GetAll.class.getName()));
         return ConfigFactory.parseMap(map);
     }
 
-    private Config getConfigNoClass() {
+    private Config getConfigNoActorClass() {
         final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("data-type", ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
-        map.put("max-failures", ConfigValueFactory.fromAnyRef(5));
-        map.put("call-timeout", ConfigValueFactory.fromAnyRef("10 s"));
-        map.put("reset-timeout", ConfigValueFactory.fromAnyRef("1 m"));
+        map.put("message-class", ConfigValueFactory.fromAnyRef(GetAll.class.getName()));
         return ConfigFactory.parseMap(map);
     }
 
-    private Config getConfigMissingClass() {
+    private Config getConfigMissingActorClass() {
         final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("class", ConfigValueFactory.fromAnyRef("missing"));
-        map.put("data-type", ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
-        map.put("max-failures", ConfigValueFactory.fromAnyRef(5));
-        map.put("call-timeout", ConfigValueFactory.fromAnyRef("10 s"));
-        map.put("reset-timeout", ConfigValueFactory.fromAnyRef("1 m"));
+        map.put("actor-class", ConfigValueFactory.fromAnyRef("missing"));
+        map.put("message-class", ConfigValueFactory.fromAnyRef(GetAll.class.getName()));
         return ConfigFactory.parseMap(map);
     }
 
-    private Config getConfigNoDataType() {
+    private Config getConfigNoMessageClass() {
         final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("class", ConfigValueFactory.fromAnyRef(CompanyManager.class.getName()));
-        map.put("call-timeout", ConfigValueFactory.fromAnyRef("10 s"));
-        map.put("reset-timeout", ConfigValueFactory.fromAnyRef("1 m"));
+        map.put("actor-class", ConfigValueFactory.fromAnyRef(GetActor.class.getName()));
         return ConfigFactory.parseMap(map);
     }
 
-    private Config getConfigNoMaxFailures() {
+    private Config getConfigMissingMessageClass() {
         final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("class", ConfigValueFactory.fromAnyRef(CompanyManager.class.getName()));
-        map.put("data-type", ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
-        map.put("call-timeout", ConfigValueFactory.fromAnyRef("10 s"));
-        map.put("reset-timeout", ConfigValueFactory.fromAnyRef("1 m"));
-        return ConfigFactory.parseMap(map);
-    }
-
-    private Config getConfigNoCallTimeout() {
-        final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("class", ConfigValueFactory.fromAnyRef(CompanyManager.class.getName()));
-        map.put("data-type", ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
-        map.put("max-failures", ConfigValueFactory.fromAnyRef(5));
-        map.put("reset-timeout", ConfigValueFactory.fromAnyRef("1 m"));
-        return ConfigFactory.parseMap(map);
-    }
-
-    private Config getConfigNoResetTimeout() {
-        final Map<String, ConfigValue> map = new HashMap<>();
-        map.put("class", ConfigValueFactory.fromAnyRef(CompanyManager.class.getName()));
-        map.put("data-type", ConfigValueFactory.fromAnyRef(DataType.COMPANY.name()));
-        map.put("max-failures", ConfigValueFactory.fromAnyRef(5));
-        map.put("call-timeout", ConfigValueFactory.fromAnyRef("10 s"));
+        map.put("actor-class", ConfigValueFactory.fromAnyRef(GetActor.class.getName()));
+        map.put("message-class", ConfigValueFactory.fromAnyRef("missing"));
         return ConfigFactory.parseMap(map);
     }
 
@@ -133,9 +95,9 @@ public class DatabaseActorConfigTest {
         final DatabaseActorConfig b = new DatabaseActorConfig.Builder("b", getConfig()).build();
         final DatabaseActorConfig c = new DatabaseActorConfig.Builder("c", getConfig()).build();
 
-        assertEquals(-1429830597, a.hashCode());
-        assertEquals(-1360486640, b.hashCode());
-        assertEquals(-1291142683, c.hashCode());
+        assertEquals(-198566735, a.hashCode());
+        assertEquals(-198565366, b.hashCode());
+        assertEquals(-198563997, c.hashCode());
     }
 
     @Test
@@ -143,59 +105,30 @@ public class DatabaseActorConfigTest {
         final DatabaseActorConfig config = new DatabaseActorConfig.Builder("a", getConfig()).build();
 
         final StringBuilder expected = new StringBuilder();
-        expected.append("DatabaseActorConfig[actorName=a,actorClass=mysystem.db.actor.company.CompanyManager,");
-        expected.append("dataType=COMPANY,maxFailures=5,callTimeout=10000 milliseconds,");
-        expected.append("resetTimeout=60000 milliseconds]");
+        expected.append("DatabaseActorConfig[actorName=a,actorClass=mysystem.db.actor.company.GetActor,");
+        expected.append("messageClass=mysystem.db.model.GetAll]");
 
         assertEquals(expected.toString(), config.toString());
     }
 
-    @Test
-    public void testGetCircuitBreaker() {
-        final Scheduler scheduler = Mockito.mock(Scheduler.class);
-
-        final ActorSystem actorSystem = Mockito.mock(ActorSystem.class);
-        Mockito.when(actorSystem.scheduler()).thenReturn(scheduler);
-
-        final ExecutionContextExecutor dispatcher = Mockito.mock(ExecutionContextExecutor.class);
-
-        final ActorContext actorContext = Mockito.mock(ActorContext.class);
-        Mockito.when(actorContext.dispatcher()).thenReturn(dispatcher);
-        Mockito.when(actorContext.system()).thenReturn(actorSystem);
-
-        final CircuitBreaker circuitBreaker =
-                new DatabaseActorConfig.Builder("a", getConfig()).build().getCircuitBreaker(actorContext);
-        assertNotNull(circuitBreaker);
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuilderNoActorClass() {
+        new DatabaseActorConfig.Builder("a", getConfigNoActorClass()).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testBuilderNoClass() {
-        new DatabaseActorConfig.Builder("a", getConfigNoClass()).build();
+    public void testBuilderMissingActorClass() {
+        new DatabaseActorConfig.Builder("a", getConfigMissingActorClass()).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testBuilderMissingClass() {
-        new DatabaseActorConfig.Builder("a", getConfigMissingClass()).build();
+    public void testBuilderNoMessageClass() {
+        new DatabaseActorConfig.Builder("a", getConfigNoMessageClass()).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void testBuilderNoDataType() {
-        new DatabaseActorConfig.Builder("a", getConfigNoDataType()).build();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBuilderNoMaxFailures() {
-        new DatabaseActorConfig.Builder("a", getConfigNoMaxFailures()).build();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBuilderNoCallTimeout() {
-        new DatabaseActorConfig.Builder("a", getConfigNoCallTimeout()).build();
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testBuilderNoResetTimeout() {
-        new DatabaseActorConfig.Builder("a", getConfigNoResetTimeout()).build();
+    public void testBuilderMissingMessageClass() {
+        new DatabaseActorConfig.Builder("a", getConfigMissingMessageClass()).build();
     }
 
     @Test

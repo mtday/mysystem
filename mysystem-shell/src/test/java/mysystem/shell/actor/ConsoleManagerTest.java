@@ -119,12 +119,8 @@ public class ConsoleManagerTest {
                     assertEquals("system-name version", iter.next());
                     assertFalse(iter.hasNext());
                 } else {
-                    assertEquals(3, outputLines.size());
-
-                    final Iterator<String> iter = outputLines.iterator();
-                    assertEquals("\n", iter.next());
-                    assertEquals("Type 'help' to list the available commands", iter.next());
-                    // Ignoring the changing system name and version.
+                    assertEquals(1, outputLines.size());
+                    assertTrue(outputLines.contains("\n"));
                 }
 
                 assertTrue(consoleReader.isShutdown());

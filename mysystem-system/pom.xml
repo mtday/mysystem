@@ -54,6 +54,16 @@
             <artifactId>guava</artifactId>
         </dependency>
 
+        <!-- Logging implementation, used by dependency libraries. -->
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+        </dependency>
+
         <!-- Unit Testing -->
         <dependency>
             <groupId>junit</groupId>

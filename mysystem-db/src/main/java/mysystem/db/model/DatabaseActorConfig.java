@@ -7,48 +7,31 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import akka.actor.ActorContext;
 import akka.actor.UntypedActor;
-import akka.pattern.CircuitBreaker;
-import scala.concurrent.duration.FiniteDuration;
 
 import java.io.Serializable;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 /**
- * An immutable object representing the configuration for the actor that manages operations on an individual database
- * table.
+ * An immutable object representing the configuration for the actor that manages a database operation.
  */
 public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Serializable {
     private final static long serialVersionUID = 1L;
 
     private final String actorName;
     private final Class<? extends UntypedActor> actorClass;
-    private final DataType dataType;
-
-    // The circuit breaker configuration for the database actor.
-    private final int maxFailures;
-    private final FiniteDuration callTimeout;
-    private final FiniteDuration resetTimeout;
+    private final Class<?> messageClass;
 
     /**
      * @param actorName the name of the actor as defined in the configuration
      * @param actorClass the class that implements the database actor
-     * @param dataType the type of data processed by the actor
-     * @param maxFailures the maximum number of failures from the actor before opening the circuit breaker
-     * @param callTimeout the amount of time to allow the actor to respond before the call is treated as an error
-     * @param resetTimeout the amount of time to leave the circuit breaker open during failure situations
+     * @param messageClass the class representing the message type to be processed by the database actor
      */
     private DatabaseActorConfig(
-            final String actorName, final Class<? extends UntypedActor> actorClass, final DataType dataType,
-            final int maxFailures, final FiniteDuration callTimeout, final FiniteDuration resetTimeout) {
+            final String actorName, final Class<? extends UntypedActor> actorClass, final Class<?> messageClass) {
         this.actorName = actorName;
         this.actorClass = actorClass;
-        this.dataType = dataType;
-        this.maxFailures = maxFailures;
-        this.callTimeout = callTimeout;
-        this.resetTimeout = resetTimeout;
+        this.messageClass = messageClass;
     }
 
     /**
@@ -66,40 +49,10 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
     }
 
     /**
-     * @return the type of data processed by the actor
+     * @return the class that implements the database actor
      */
-    public DataType getDataType() {
-        return this.dataType;
-    }
-
-    /**
-     * @return the maximum number of failures from the actor before opening the circuit breaker
-     */
-    public int getMaxFailures() {
-        return this.maxFailures;
-    }
-
-    /**
-     * @return the amount of time to allow the actor to respond before the call is treated as an error
-     */
-    public FiniteDuration getCallTimeout() {
-        return this.callTimeout;
-    }
-
-    /**
-     * @return the amount of time to leave the circuit breaker open during failure situations
-     */
-    public FiniteDuration getResetTimeout() {
-        return this.resetTimeout;
-    }
-
-    /**
-     * @param context the {@link ActorContext} used to create the circuit breaker
-     * @return a {@link CircuitBreaker} based on the configuration for the database actor
-     */
-    public CircuitBreaker getCircuitBreaker(final ActorContext context) {
-        return new CircuitBreaker(context.dispatcher(), context.system().scheduler(), getMaxFailures(),
-                getCallTimeout(), getResetTimeout());
+    public Class<?> getMessageClass() {
+        return this.messageClass;
     }
 
     /**
@@ -110,10 +63,7 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
         final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
         str.append("actorName", getActorName());
         str.append("actorClass", getActorClass().getName());
-        str.append("dataType", getDataType());
-        str.append("maxFailures", getMaxFailures());
-        str.append("callTimeout", getCallTimeout());
-        str.append("resetTimeout", getResetTimeout());
+        str.append("messageClass", getMessageClass().getName());
         return str.toString();
     }
 
@@ -129,10 +79,7 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
         final CompareToBuilder cmp = new CompareToBuilder();
         cmp.append(getActorName(), other.getActorName());
         cmp.append(getActorClass().getName(), other.getActorClass().getName());
-        cmp.append(getDataType(), other.getDataType());
-        cmp.append(getMaxFailures(), other.getMaxFailures());
-        cmp.append(getCallTimeout(), other.getCallTimeout());
-        cmp.append(getResetTimeout(), other.getResetTimeout());
+        cmp.append(getMessageClass().getName(), other.getMessageClass().getName());
         return cmp.toComparison();
     }
 
@@ -152,10 +99,7 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
         final HashCodeBuilder hash = new HashCodeBuilder();
         hash.append(getActorName());
         hash.append(getActorClass().getName());
-        hash.append(getDataType().name());
-        hash.append(getMaxFailures());
-        hash.append(getCallTimeout());
-        hash.append(getResetTimeout());
+        hash.append(getMessageClass().getName());
         return hash.toHashCode();
     }
 
@@ -165,12 +109,7 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
     public static class Builder {
         private final String actorName;
         private final Class<? extends UntypedActor> actorClass;
-        private final DataType dataType;
-
-        // The circuit breaker configuration for the database actor.
-        private final int maxFailures;
-        private final FiniteDuration callTimeout;
-        private final FiniteDuration resetTimeout;
+        private final Class<?> messageClass;
 
         /**
          * @param other the {@link DatabaseActorConfig} to duplicate
@@ -179,10 +118,7 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
             Objects.requireNonNull(other);
             this.actorName = other.getActorName();
             this.actorClass = other.getActorClass();
-            this.dataType = other.getDataType();
-            this.maxFailures = other.getMaxFailures();
-            this.callTimeout = other.getCallTimeout();
-            this.resetTimeout = other.getResetTimeout();
+            this.messageClass = other.getMessageClass();
         }
 
         /**
@@ -192,41 +128,26 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
         public Builder(final String actorName, final Config actorConfig) {
             this.actorName = Objects.requireNonNull(actorName);
 
-            if (Objects.requireNonNull(actorConfig).hasPath("class")) {
-                final String className = actorConfig.getString("class");
+            if (Objects.requireNonNull(actorConfig).hasPath("actor-class")) {
+                final String className = actorConfig.getString("actor-class");
                 try {
                     this.actorClass = Class.forName(className).asSubclass(UntypedActor.class);
                 } catch (final ClassNotFoundException notFound) {
                     throw new IllegalArgumentException("Database actor class not found: " + className);
                 }
             } else {
-                throw new IllegalArgumentException("Database actor config must specify a class: " + actorName);
+                throw new IllegalArgumentException("Database actor config must specify an actor class: " + actorName);
             }
 
-            if (actorConfig.hasPath("data-type")) {
-                this.dataType = DataType.valueOf(actorConfig.getString("data-type"));
+            if (Objects.requireNonNull(actorConfig).hasPath("message-class")) {
+                final String className = actorConfig.getString("message-class");
+                try {
+                    this.messageClass = Class.forName(className);
+                } catch (final ClassNotFoundException notFound) {
+                    throw new IllegalArgumentException("Database actor message class not found: " + className);
+                }
             } else {
-                throw new IllegalArgumentException("Database actor config must specify the data-type config");
-            }
-
-            if (actorConfig.hasPath("max-failures")) {
-                this.maxFailures = actorConfig.getInt("max-failures");
-            } else {
-                throw new IllegalArgumentException("Database actor config must specify the max-failures config");
-            }
-
-            if (actorConfig.hasPath("call-timeout")) {
-                final long millis = actorConfig.getDuration("call-timeout").toMillis();
-                this.callTimeout = FiniteDuration.create(millis, TimeUnit.MILLISECONDS);
-            } else {
-                throw new IllegalArgumentException("Database actor config must specify the call-timeout config");
-            }
-
-            if (actorConfig.hasPath("reset-timeout")) {
-                final long millis = actorConfig.getDuration("reset-timeout").toMillis();
-                this.resetTimeout = FiniteDuration.create(millis, TimeUnit.MILLISECONDS);
-            } else {
-                throw new IllegalArgumentException("Database actor config must specify the reset-timeout config");
+                throw new IllegalArgumentException("Database actor config must specify a message class: " + actorName);
             }
         }
 
@@ -234,9 +155,7 @@ public class DatabaseActorConfig implements Comparable<DatabaseActorConfig>, Ser
          * @return the {@link DatabaseActorConfig} object
          */
         public DatabaseActorConfig build() {
-            return new DatabaseActorConfig(
-                    this.actorName, this.actorClass, this.dataType, this.maxFailures, this.callTimeout,
-                    this.resetTimeout);
+            return new DatabaseActorConfig(this.actorName, this.actorClass, this.messageClass);
         }
     }
 }

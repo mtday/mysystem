@@ -15,7 +15,7 @@ import akka.actor.UntypedActor;
 import akka.pattern.CircuitBreaker;
 import mysystem.db.config.DatabaseConfig;
 import mysystem.db.model.DataType;
-import mysystem.db.model.DatabaseActorConfig;
+import mysystem.db.model.DatabaseManagerConfig;
 import mysystem.db.model.HasDataType;
 
 import java.util.Map;
@@ -40,6 +40,11 @@ public class DatabaseManager extends UntypedActor {
     public static ActorRef create(final ActorSystem actorSystem) {
         final Props props = Props.create(DatabaseManager.class);
         return Objects.requireNonNull(actorSystem).actorOf(props, DatabaseManager.class.getSimpleName());
+    }
+
+    public DatabaseManager(final DataSource dataSource) {
+        final Config config = context().system().settings().config();
+        createDatabaseActors(config, dataSource, this.actors);
     }
 
     public DatabaseManager() {
@@ -67,26 +72,26 @@ public class DatabaseManager extends UntypedActor {
 
     protected void createDatabaseActors(
             final Config config, final DataSource dataSource, final Map<DataType, ActorRef> actorMap) {
-        for (final DatabaseActorConfig actorConfig : getDatabaseActorConfigs(config)) {
-            actorMap.put(actorConfig.getDataType(), actor(context(), actorConfig, dataSource));
+        for (final DatabaseManagerConfig managerConfig : getDatabaseActorConfigs(config)) {
+            actorMap.put(managerConfig.getDataType(), actor(context(), managerConfig, dataSource));
         }
     }
 
     protected ActorRef actor(
-            final ActorContext context, final DatabaseActorConfig actorConfig, final DataSource dataSource) {
-        final CircuitBreaker circuitBreaker = actorConfig.getCircuitBreaker(context());
-        final Props props = Props.create(actorConfig.getActorClass(), dataSource, circuitBreaker);
-        return context.actorOf(props, actorConfig.getActorName());
+            final ActorContext context, final DatabaseManagerConfig managerConfig, final DataSource dataSource) {
+        final CircuitBreaker circuitBreaker = managerConfig.getCircuitBreaker(context());
+        final Props props = Props.create(DatabaseTableManager.class, managerConfig, dataSource, circuitBreaker);
+        return context.actorOf(props, managerConfig.getActorName());
     }
 
-    protected Set<DatabaseActorConfig> getDatabaseActorConfigs(final Config config) {
-        final Set<DatabaseActorConfig> actors = new TreeSet<>();
+    protected Set<DatabaseManagerConfig> getDatabaseActorConfigs(final Config config) {
+        final Set<DatabaseManagerConfig> actors = new TreeSet<>();
         if (config.hasPath(DatabaseConfig.DATABASE_ACTORS.getKey())) {
             config.getObject(DatabaseConfig.DATABASE_ACTORS.getKey());
             final ConfigObject obj = config.getConfig(DatabaseConfig.DATABASE_ACTORS.getKey()).root();
             obj.entrySet().stream().filter(e -> e.getValue().valueType() == ConfigValueType.OBJECT).forEach(entry -> {
-                final Config actorConfig = ((ConfigObject) entry.getValue()).toConfig();
-                actors.add(new DatabaseActorConfig.Builder(entry.getKey(), actorConfig).build());
+                final Config managerConfig = ((ConfigObject) entry.getValue()).toConfig();
+                actors.add(new DatabaseManagerConfig.Builder(entry.getKey(), managerConfig).build());
             });
         }
         return actors;
