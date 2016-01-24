@@ -67,7 +67,8 @@ public class ClusterCommand extends UntypedActor {
     protected void handleRegistrationRequest() {
         final String description = "provides information about the system cluster and its members";
         final CommandPath cluster = new CommandPath.Builder("cluster", "list").build();
-        final Registration reg = new Registration.Builder(self(), cluster).setDescription(description).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath(self()).setPath(cluster).setDescription(description).build();
         sender().tell(new RegistrationResponse.Builder().add(reg).build(), self());
     }
 
@@ -85,7 +86,7 @@ public class ClusterCommand extends UntypedActor {
         }
 
         final Set<Member> members = new LinkedHashSet<>();
-        state.getMembers().forEach(m -> members.add(m));
+        state.getMembers().forEach(members::add);
 
         output.add(String.format("  Cluster Members: %d", members.size()));
 

@@ -6,10 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.typesafe.config.ConfigFactory;
 
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import akka.actor.ActorRef;
@@ -17,11 +13,12 @@ import akka.actor.ActorSystem;
 import akka.actor.PoisonPill;
 import akka.actor.Props;
 import akka.testkit.JavaTestKit;
-import akka.testkit.TestActorRef;
 import mysystem.shell.Forwarder;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.InvalidInput;
+import mysystem.shell.model.Option;
+import mysystem.shell.model.Options;
 import mysystem.shell.model.Registration;
 import mysystem.shell.model.RegistrationLookup;
 import mysystem.shell.model.RegistrationResponse;
@@ -33,33 +30,9 @@ import mysystem.shell.model.UserInput;
  * Perform testing of the {@link RegistrationFinder} class.
  */
 public class RegistrationFinderTest {
-    private static ActorSystem system = null;
-    private static TestActorRef<RegistrationFinder> actorRef = null;
-    private static RegistrationFinder actor = null;
-
-    /**
-     * Initialize the test actor system.
-     */
-    @BeforeClass
-    public static void setup() {
-        system = ActorSystem.create("test-actor-system", ConfigFactory.load("test-config"));
-        actorRef = TestActorRef.create(system, Props.create(RegistrationFinder.class), "actor");
-        actor = actorRef.underlyingActor();
-    }
-
-    /**
-     * Shutdown the test actor system.
-     */
-    @AfterClass
-    public static void teardown() {
-        if (system != null) {
-            JavaTestKit.shutdownActorSystem(system);
-            system = null;
-        }
-    }
-
     @Test
     public void testReceiveWithTokenizedUserInput() throws Exception {
+        final ActorSystem system = ActorSystem.create("tokenized", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
             final ActorRef registrationManager =
                     system.actorOf(Props.create(Forwarder.class, getRef()), RegistrationManager.class.getSimpleName());
@@ -84,6 +57,7 @@ public class RegistrationFinderTest {
 
     @Test
     public void testReceiveWithRegistrationResponseNoRegistrations() throws Exception {
+        final ActorSystem system = ActorSystem.create("empty", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
             final ActorRef consoleManager =
                     system.actorOf(Props.create(Forwarder.class, getRef()), ConsoleManager.class.getSimpleName());
@@ -92,7 +66,8 @@ public class RegistrationFinderTest {
             try {
                 final UserInput userInput = new UserInput.Builder("input").build();
                 final TokenizedUserInput tokenized = new TokenizedUserInput.Builder(userInput).build();
-                final RegistrationResponse response = new RegistrationResponse.Builder().setUserInput(tokenized).build();
+                final RegistrationResponse response =
+                        new RegistrationResponse.Builder().setUserInput(tokenized).build();
 
                 regfinder.tell(response, getRef());
 
@@ -107,6 +82,7 @@ public class RegistrationFinderTest {
 
     @Test
     public void testReceiveWithRegistrationResponseMultipleRegistrations() throws Exception {
+        final ActorSystem system = ActorSystem.create("multiple", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
             final ActorRef inputTokenizer =
                     system.actorOf(Props.create(Forwarder.class, getRef()), InputTokenizer.class.getSimpleName());
@@ -114,15 +90,16 @@ public class RegistrationFinderTest {
 
             try {
                 final CommandPath exitPath = new CommandPath.Builder("exit").build();
-                final Registration exit = new Registration.Builder(getRef(), exitPath).build();
+                final Registration exit = new Registration.Builder().setActorPath(getRef()).setPath(exitPath).build();
                 final CommandPath quitPath = new CommandPath.Builder("quit").build();
-                final Registration quit = new Registration.Builder(getRef(), quitPath).build();
+                final Registration quit = new Registration.Builder().setActorPath(getRef()).setPath(quitPath).build();
                 final CommandPath helpPath = new CommandPath.Builder("help").build();
-                final Registration help = new Registration.Builder(getRef(), helpPath).build();
+                final Registration help = new Registration.Builder().setActorPath(getRef()).setPath(helpPath).build();
 
                 final UserInput userInput = new UserInput.Builder("input").build();
                 final TokenizedUserInput tokenized = new TokenizedUserInput.Builder(userInput).build();
-                final RegistrationResponse response = new RegistrationResponse.Builder(exit, quit, help).setUserInput(tokenized).build();
+                final RegistrationResponse response =
+                        new RegistrationResponse.Builder(exit, quit, help).setUserInput(tokenized).build();
 
                 regfinder.tell(response, getRef());
 
@@ -137,6 +114,7 @@ public class RegistrationFinderTest {
 
     @Test
     public void testReceiveWithRegistrationResponseSingleRegistration() throws Exception {
+        final ActorSystem system = ActorSystem.create("single", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
             final ActorRef executor =
                     system.actorOf(Props.create(Forwarder.class, getRef()), CommandExecutor.class.getSimpleName());
@@ -144,11 +122,12 @@ public class RegistrationFinderTest {
 
             try {
                 final CommandPath exitPath = new CommandPath.Builder("exit").build();
-                final Registration exit = new Registration.Builder(getRef(), exitPath).build();
+                final Registration exit = new Registration.Builder().setActorPath(getRef()).setPath(exitPath).build();
 
                 final UserInput userInput = new UserInput.Builder("exit").build();
                 final TokenizedUserInput tokenized = new TokenizedUserInput.Builder(userInput).build();
-                final RegistrationResponse response = new RegistrationResponse.Builder(exit).setUserInput(tokenized).build();
+                final RegistrationResponse response =
+                        new RegistrationResponse.Builder(exit).setUserInput(tokenized).build();
 
                 regfinder.tell(response, getRef());
 
@@ -166,23 +145,25 @@ public class RegistrationFinderTest {
 
     @Test
     public void testReceiveWithRegistrationResponseSingleRegistrationInvalidParams() throws Exception {
+        final ActorSystem system = ActorSystem.create("invalid", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
             final ActorRef consoleManager =
                     system.actorOf(Props.create(Forwarder.class, getRef()), ConsoleManager.class.getSimpleName());
             final ActorRef regfinder = RegistrationFinder.create(system);
 
             try {
-                final Options options = new Options();
-                final Option option = new Option("r", "required", false, "required field");
-                option.setRequired(true);
-                options.addOption(option);
+                final Option option =
+                        new Option.Builder().setDescription("required").setShortOption("r").setRequired(true).build();
+                final Options options = new Options.Builder(option).build();
 
                 final CommandPath exitPath = new CommandPath.Builder("exit").build();
-                final Registration exit = new Registration.Builder(getRef(), exitPath, options).build();
+                final Registration exit =
+                        new Registration.Builder().setActorPath(getRef()).setPath(exitPath).setOptions(options).build();
 
                 final UserInput userInput = new UserInput.Builder("exit").build();
                 final TokenizedUserInput tokenized = new TokenizedUserInput.Builder(userInput).build();
-                final RegistrationResponse response = new RegistrationResponse.Builder(exit).setUserInput(tokenized).build();
+                final RegistrationResponse response =
+                        new RegistrationResponse.Builder(exit).setUserInput(tokenized).build();
 
                 regfinder.tell(response, getRef());
 
@@ -199,6 +180,7 @@ public class RegistrationFinderTest {
 
     @Test
     public void testReceiveUnhandled() {
+        final ActorSystem system = ActorSystem.create("unhandled", ConfigFactory.load("test-config"));
         new JavaTestKit(system) {{
             final ActorRef regfinder = RegistrationFinder.create(system);
 

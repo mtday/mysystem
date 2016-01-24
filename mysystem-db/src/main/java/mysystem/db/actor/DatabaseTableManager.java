@@ -1,7 +1,5 @@
 package mysystem.db.actor;
 
-import com.google.common.base.Optional;
-
 import akka.actor.ActorRef;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
@@ -10,6 +8,7 @@ import mysystem.db.model.DatabaseManagerConfig;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import javax.sql.DataSource;
 
@@ -51,7 +50,7 @@ public class DatabaseTableManager extends UntypedActor {
      */
     @Override
     public void onReceive(final Object message) {
-        final Optional<ActorRef> handler = Optional.fromNullable(this.actorMap.get(message.getClass()));
+        final Optional<ActorRef> handler = Optional.ofNullable(this.actorMap.get(message.getClass()));
         if (handler.isPresent()) {
             handler.get().forward(message, context());
         } else {

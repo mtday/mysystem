@@ -32,8 +32,10 @@ public class ExitCommand extends UntypedActor {
         final CommandPath exit = new CommandPath.Builder("exit").build();
         final CommandPath quit = new CommandPath.Builder("quit").build();
 
-        final Registration exitReg = new Registration.Builder(self(), exit).setDescription(description).build();
-        final Registration quitReg = new Registration.Builder(self(), quit).setDescription(description).build();
+        final Registration exitReg =
+                new Registration.Builder().setActorPath(self()).setPath(exit).setDescription(description).build();
+        final Registration quitReg =
+                new Registration.Builder().setActorPath(self()).setPath(quit).setDescription(description).build();
 
         sender().tell(new RegistrationResponse.Builder().add(exitReg, quitReg).build(), self());
     }

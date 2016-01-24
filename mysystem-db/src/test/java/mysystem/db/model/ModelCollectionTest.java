@@ -20,18 +20,18 @@ public class ModelCollectionTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<Company>().build();
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
         assertEquals(1, a.compareTo(null));
         assertEquals(0, a.compareTo(a));
         assertEquals(-1, a.compareTo(b));
-        assertEquals(-2, a.compareTo(c));
+        assertEquals(-1, a.compareTo(c));
         assertEquals(1, b.compareTo(a));
         assertEquals(0, b.compareTo(b));
         assertEquals(-2, b.compareTo(c));
-        assertEquals(2, c.compareTo(a));
+        assertEquals(1, c.compareTo(a));
         assertEquals(2, c.compareTo(b));
         assertEquals(0, c.compareTo(c));
     }
@@ -42,7 +42,7 @@ public class ModelCollectionTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<Company>().build();
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
@@ -64,13 +64,29 @@ public class ModelCollectionTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<Company>().build();
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
-        assertEquals(2034684798, a.hashCode());
-        assertEquals(-225597663, b.hashCode());
-        assertEquals(2034684872, c.hashCode());
+        assertEquals(23273, a.hashCode());
+        assertEquals(-2022412317, b.hashCode());
+        assertEquals(-2023276970, c.hashCode());
+    }
+
+    @Test
+    public void testToJson() {
+        final Company companyA = new Company.Builder().setName("a").build();
+        final Company companyB = new Company.Builder().setName("b").build();
+        final Company companyC = new Company.Builder().setName("c").build();
+
+        final ModelCollection<Company> a = new ModelCollection.Builder<Company>().build();
+        final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
+        final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
+
+        assertEquals("{\"models\":[]}", a.toJson().toString());
+        assertEquals("{\"models\":[{\"name\":\"a\",\"active\":true},{\"name\":\"b\",\"active\":true}],"
+                + "\"manifest\":\"Company\"}", b.toJson().toString());
+        assertEquals("{\"models\":[{\"name\":\"c\",\"active\":true}],\"manifest\":\"Company\"}", c.toJson().toString());
     }
 
     @Test
@@ -79,14 +95,17 @@ public class ModelCollectionTest {
         final Company companyB = new Company.Builder().setName("b").build();
         final Company companyC = new Company.Builder().setName("c").build();
 
-        final ModelCollection<Company> a = new ModelCollection.Builder<>(companyA).build();
+        final ModelCollection<Company> a = new ModelCollection.Builder<Company>().build();
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
-        assertEquals("ModelCollection[models=[Company[id=Optional.absent(),name=a,active=true]]]", a.toString());
-        assertEquals("ModelCollection[models=[Company[id=Optional.absent(),name=a,active=true], " +
-                "Company[id=Optional.absent(),name=b,active=true]]]", b.toString());
-        assertEquals("ModelCollection[models=[Company[id=Optional.absent(),name=c,active=true]]]", c.toString());
+        assertEquals("ModelCollection[manifest=Optional.empty,models=[]]", a.toString());
+        assertEquals(
+                "ModelCollection[manifest=Optional[Company],models=[Company[id=Optional.empty,name=a,active=true], "
+                        + "Company[id=Optional.empty,name=b,active=true]]]", b.toString());
+        assertEquals(
+                "ModelCollection[manifest=Optional[Company],models=[Company[id=Optional.empty,name=c,active=true]]]",
+                c.toString());
     }
 
     @Test
@@ -106,6 +125,7 @@ public class ModelCollectionTest {
 
     @Test
     public void testBuilderNoCompanies() {
-        assertEquals("ModelCollection[models=[]]", new ModelCollection.Builder().build().toString());
+        assertEquals(
+                "ModelCollection[manifest=Optional.empty,models=[]]", new ModelCollection.Builder().build().toString());
     }
 }

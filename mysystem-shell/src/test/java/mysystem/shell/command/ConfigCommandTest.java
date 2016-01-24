@@ -5,12 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.base.Optional;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
 
-import org.apache.commons.cli.Options;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -24,6 +22,8 @@ import akka.testkit.TestActorRef;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
+import mysystem.shell.model.Option;
+import mysystem.shell.model.Options;
 import mysystem.shell.model.Registration;
 import mysystem.shell.model.RegistrationRequest;
 import mysystem.shell.model.RegistrationResponse;
@@ -31,6 +31,7 @@ import mysystem.shell.model.TokenizedUserInput;
 
 import java.util.AbstractMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -95,7 +96,7 @@ public class ConfigCommandTest {
         new JavaTestKit(system) {{
             final TokenizedUserInput userInput = new TokenizedUserInput.Builder("config").build();
             final CommandPath path = new CommandPath.Builder("config").build();
-            final Registration reg = new Registration.Builder(getRef(), path).build();
+            final Registration reg = new Registration.Builder().setActorPath(getRef()).setPath(path).build();
             final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
             final Command command = new Command.Builder(response).build();
 
@@ -137,12 +138,14 @@ public class ConfigCommandTest {
 
     @Test
     public void testGetFilterPatternWithRegex() throws Exception {
-        final Options options = new Options();
-        options.addOption("f", "filter", true, "filter");
+        final Option option = new Option.Builder().setDescription("filter").setShortOption("f").setLongOption("filter")
+                .setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
 
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("config -f 'abc.*'").build();
         final CommandPath path = new CommandPath.Builder("config").build();
-        final Registration reg = new Registration.Builder(actorRef, path, options).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath(actorRef).setPath(path).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
         final Command command = new Command.Builder(response).build();
 
@@ -153,12 +156,14 @@ public class ConfigCommandTest {
 
     @Test
     public void testGetFilterPatternWithNonRegex() throws Exception {
-        final Options options = new Options();
-        options.addOption("f", "filter", true, "filter");
+        final Option option = new Option.Builder().setDescription("filter").setShortOption("f").setLongOption("filter")
+                .setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
 
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("config -f 'abc'").build();
         final CommandPath path = new CommandPath.Builder("config").build();
-        final Registration reg = new Registration.Builder(actorRef, path, options).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath(actorRef).setPath(path).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
         final Command command = new Command.Builder(response).build();
 
@@ -169,12 +174,14 @@ public class ConfigCommandTest {
 
     @Test
     public void testGetFilterPatternWithEmptyRegex() throws Exception {
-        final Options options = new Options();
-        options.addOption("f", "filter", true, "filter");
+        final Option option = new Option.Builder().setDescription("filter").setShortOption("f").setLongOption("filter")
+                .setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
 
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("config -f ''").build();
         final CommandPath path = new CommandPath.Builder("config").build();
-        final Registration reg = new Registration.Builder(actorRef, path, options).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath(actorRef).setPath(path).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
         final Command command = new Command.Builder(response).build();
 
@@ -184,12 +191,14 @@ public class ConfigCommandTest {
 
     @Test
     public void testGetFilterPatternWithNoOption() throws Exception {
-        final Options options = new Options();
-        options.addOption("f", "filter", true, "filter");
+        final Option option = new Option.Builder().setDescription("filter").setShortOption("f").setLongOption("filter")
+                .setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
 
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("config").build();
         final CommandPath path = new CommandPath.Builder("config").build();
-        final Registration reg = new Registration.Builder(actorRef, path, options).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath(actorRef).setPath(path).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
         final Command command = new Command.Builder(response).build();
 
@@ -202,7 +211,7 @@ public class ConfigCommandTest {
         final ConfigValue value = ConfigValueFactory.fromAnyRef("my configuration value");
         Map.Entry<String, ConfigValue> entry = new AbstractMap.SimpleEntry<>("akka.whatever.key", value);
 
-        final Optional<Pattern> empty = Optional.absent();
+        final Optional<Pattern> empty = Optional.empty();
         final Optional<Pattern> keyRegex = Optional.of(Pattern.compile("^akka.*"));
         final Optional<Pattern> valueMatch = Optional.of(Pattern.compile("my configuration value"));
         final Optional<Pattern> noMatch = Optional.of(Pattern.compile("non-existent"));

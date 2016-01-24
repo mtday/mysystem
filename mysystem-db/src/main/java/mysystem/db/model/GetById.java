@@ -1,20 +1,23 @@
 package mysystem.db.model;
 
-import com.google.common.base.Optional;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 import mysystem.common.util.CollectionComparator;
 import mysystem.common.util.OptionalComparator;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -22,9 +25,7 @@ import java.util.TreeSet;
  * An immutable class that represents the information needed to fetch objects with specific unique ids from a table
  * in the database.
  */
-public class GetById implements HasDataType, Comparable<GetById>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class GetById implements Model, HasDataType, Comparable<GetById> {
     private final DataType dataType;
     private final SortedSet<Integer> ids;
     private final Optional<Boolean> active;
@@ -62,6 +63,23 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
      */
     public Optional<Boolean> getActive() {
         return this.active;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonArray idsArr = new JsonArray();
+        getIds().forEach(idsArr::add);
+
+        final JsonObject json = new JsonObject();
+        json.addProperty("dataType", getDataType().name());
+        if (getActive().isPresent()) {
+            json.addProperty("active", getActive().get());
+        }
+        json.add("ids", idsArr);
+        return json;
     }
 
     /**
@@ -115,16 +133,22 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
     /**
      * Used to create {@link GetById} instances.
      */
-    public static class Builder {
-        private final DataType dataType;
+    public static class Builder implements ModelBuilder<GetById> {
+        private Optional<DataType> dataType = Optional.empty();
+        private Optional<Boolean> active = Optional.empty();
         private final SortedSet<Integer> ids = new TreeSet<>();
-        private Optional<Boolean> active = Optional.absent();
+
+        /**
+         * Default constructor.
+         */
+        public Builder() {
+        }
 
         /**
          * @param dataType the {@link DataType} describing the type of data for which this database request applies
          */
         public Builder(final DataType dataType) {
-            this.dataType = Objects.requireNonNull(dataType);
+            setDataType(dataType);
         }
 
         /**
@@ -140,8 +164,17 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
          * @param ids the unique identifiers of the objects to fetch
          */
         public Builder(final DataType dataType, final Collection<Integer> ids) {
-            this.dataType = Objects.requireNonNull(dataType);
-            this.ids.addAll(Objects.requireNonNull(ids));
+            setDataType(dataType);
+            add(ids);
+        }
+
+        /**
+         * @param dataType the {@link DataType} describing the type of data for which this delete request applies
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setDataType(final DataType dataType) {
+            this.dataType = Optional.of(Objects.requireNonNull(dataType));
+            return this;
         }
 
         /**
@@ -180,14 +213,36 @@ public class GetById implements HasDataType, Comparable<GetById>, Serializable {
         }
 
         /**
-         * @return the {@link GetById} represented by this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+            if (json.has("dataType")) {
+                setDataType(DataType.valueOf(json.getAsJsonPrimitive("dataType").getAsString()));
+            }
+            if (json.has("active")) {
+                setActive(json.getAsJsonPrimitive("active").getAsBoolean());
+            }
+            if (json.has("ids")) {
+                json.getAsJsonArray("ids").forEach(e -> add(e.getAsInt()));
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public GetById build() {
+            if (!this.dataType.isPresent()) {
+                throw new IllegalStateException("Data type is required");
+            }
             if (this.ids.isEmpty()) {
                 throw new IllegalStateException("At least one id is required");
             }
 
-            return new GetById(this.dataType, this.ids, this.active);
+            return new GetById(this.dataType.get(), this.ids, this.active);
         }
     }
 }

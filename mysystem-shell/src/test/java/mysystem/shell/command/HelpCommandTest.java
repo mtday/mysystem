@@ -7,8 +7,6 @@ import static org.junit.Assert.assertTrue;
 
 import com.typesafe.config.ConfigFactory;
 
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,6 +23,8 @@ import mysystem.shell.actor.RegistrationManager;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
+import mysystem.shell.model.Option;
+import mysystem.shell.model.Options;
 import mysystem.shell.model.Registration;
 import mysystem.shell.model.RegistrationLookup;
 import mysystem.shell.model.RegistrationRequest;
@@ -78,7 +78,8 @@ public class HelpCommandTest {
 
                 final Registration registration = registrations.iterator().next();
                 assertTrue(registration.getDescription().isPresent());
-                assertEquals("display usage information for available shell commands", registration.getDescription().get());
+                assertEquals(
+                        "display usage information for available shell commands", registration.getDescription().get());
                 assertEquals(new CommandPath.Builder("help").build(), registration.getPath());
                 assertFalse(registration.getOptions().isPresent());
 
@@ -91,18 +92,17 @@ public class HelpCommandTest {
 
     @Test
     public void testReceiveWithRegistrationResponse() {
-        final Option h = new Option("h", "help", true, "description");
-        final Option s = new Option("s", null);
-        final Option r = new Option("r", "required", false, "required");
-        r.setRequired(true);
-
-        final Options options = new Options();
-        options.addOption(h);
-        options.addOption(s);
-        options.addOption(r);
+        final Option h =
+                new Option.Builder().setDescription("desc").setShortOption("h").setLongOption("help").setArguments(1)
+                        .build();
+        final Option s = new Option.Builder().setDescription("desc").setShortOption("s").build();
+        final Option r = new Option.Builder().setDescription("required").setShortOption("r").setLongOption("required")
+                .setRequired(true).build();
+        final Options options = new Options.Builder(h, s, r).build();
 
         final CommandPath path = new CommandPath.Builder("command").build();
-        final Registration reg = new Registration.Builder(actorRef, path, options, "description").build();
+        final Registration reg = new Registration.Builder().setActorPath(actorRef).setPath(path).setOptions(options)
+                .setDescription("description").build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).build();
 
         new JavaTestKit(system) {{
@@ -114,27 +114,27 @@ public class HelpCommandTest {
                 helpCommand.tell(response, getRef());
 
                 ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.of(  command  description)", output.getOutput().toString());
+                assertEquals("Optional[  command  description]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.of(    -h  --help  description)", output.getOutput().toString());
+                assertEquals("Optional[    -h  --help  desc]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.of(    -s)", output.getOutput().toString());
+                assertEquals("Optional[    -s  desc]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.of(    -r  --required  (required)  required)", output.getOutput().toString());
+                assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.absent()", output.getOutput().toString());
+                assertEquals("Optional.empty", output.getOutput().toString());
                 assertFalse(output.hasMore());
                 assertFalse(output.isTerminate());
 
@@ -148,21 +148,20 @@ public class HelpCommandTest {
 
     @Test
     public void testReceiveWithRegistrationResponseMultipleRegistrations() {
-        final Option h = new Option("h", "help", true, "description");
-        final Option s = new Option("s", null);
-        final Option r = new Option("r", "required", false, "required");
-        r.setRequired(true);
-
-        final Options options = new Options();
-        options.addOption(h);
-        options.addOption(s);
-        options.addOption(r);
+        final Option h =
+                new Option.Builder().setDescription("desc").setShortOption("h").setLongOption("help").setArguments(1)
+                        .build();
+        final Option s = new Option.Builder().setDescription("desc").setShortOption("s").build();
+        final Option r =
+                new Option.Builder().setDescription("required").setShortOption("r").setLongOption("required").build();
+        final Options options = new Options.Builder(h, s, r).build();
 
         final CommandPath pathA = new CommandPath.Builder("command1").build();
         final CommandPath pathB = new CommandPath.Builder("command2").build();
 
-        final Registration withoutOptions = new Registration.Builder(actorRef, pathA).build();
-        final Registration withOptions = new Registration.Builder(actorRef, pathB, options).build();
+        final Registration withoutOptions = new Registration.Builder().setActorPath(actorRef).setPath(pathA).build();
+        final Registration withOptions =
+                new Registration.Builder().setActorPath(actorRef).setPath(pathB).setOptions(options).build();
 
         final RegistrationResponse response = new RegistrationResponse.Builder(withOptions, withoutOptions).build();
 
@@ -175,17 +174,17 @@ public class HelpCommandTest {
                 helpCommand.tell(response, getRef());
 
                 ConsoleOutput output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.of(  command1)", output.getOutput().toString());
+                assertEquals("Optional[  command1]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.of(  command2)", output.getOutput().toString());
+                assertEquals("Optional[  command2]", output.getOutput().toString());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
 
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
-                assertEquals("Optional.absent()", output.getOutput().toString());
+                assertEquals("Optional.empty", output.getOutput().toString());
                 assertFalse(output.hasMore());
                 assertFalse(output.isTerminate());
 
@@ -201,7 +200,7 @@ public class HelpCommandTest {
     public void testReceiveWithCommand() throws Exception {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("help").build();
         final CommandPath path = new CommandPath.Builder("help").build();
-        final Registration reg = new Registration.Builder(actorRef, path).build();
+        final Registration reg = new Registration.Builder().setActorPath(actorRef).setPath(path).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
         final Command command = new Command.Builder(response).build();
 
@@ -227,7 +226,7 @@ public class HelpCommandTest {
     public void testReceiveWithCommandAndSubCommand() throws Exception {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("help command").build();
         final CommandPath path = new CommandPath.Builder("help", "command").build();
-        final Registration reg = new Registration.Builder(actorRef, path).build();
+        final Registration reg = new Registration.Builder().setActorPath(actorRef).setPath(path).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
         final Command command = new Command.Builder(response).build();
 
@@ -241,7 +240,7 @@ public class HelpCommandTest {
 
                 final RegistrationLookup lookup = expectMsgClass(duration("500 ms"), RegistrationLookup.class);
                 assertEquals("[command]", lookup.getPaths().toString());
-                assertEquals("Optional.absent()", lookup.getUserInput().toString());
+                assertEquals("Optional.empty", lookup.getUserInput().toString());
 
                 expectNoMsg(duration("100 ms"));
             } finally {
@@ -253,24 +252,6 @@ public class HelpCommandTest {
 
     @Test
     public void testReceiveWithUnhandled() {
-        final Option h = new Option("h", "help", true, "description");
-        final Option s = new Option("s", null);
-        final Option r = new Option("r", "required", false, "required");
-        r.setRequired(true);
-
-        final Options options = new Options();
-        options.addOption(h);
-        options.addOption(s);
-        options.addOption(r);
-
-        final CommandPath pathA = new CommandPath.Builder("command1").build();
-        final CommandPath pathB = new CommandPath.Builder("command2").build();
-
-        final Registration withoutOptions = new Registration.Builder(actorRef, pathA).build();
-        final Registration withOptions = new Registration.Builder(actorRef, pathB, options).build();
-
-        final RegistrationResponse response = new RegistrationResponse.Builder(withOptions, withoutOptions).build();
-
         new JavaTestKit(system) {{
             final ActorRef helpCommand = system.actorOf(Props.create(HelpCommand.class), HelpCommand.class.getName());
 
@@ -286,45 +267,45 @@ public class HelpCommandTest {
 
     @Test
     public void testGetOutput() {
-        final Option h = new Option("h", "help", true, "description");
-        final Option s = new Option("s", null);
-        final Option r = new Option("r", "required", false, "required");
-        r.setRequired(true);
-
-        final Options options = new Options();
-        options.addOption(h);
-        options.addOption(s);
-        options.addOption(r);
+        final Option h =
+                new Option.Builder().setDescription("desc").setShortOption("h").setLongOption("help").setArguments(1)
+                        .build();
+        final Option s = new Option.Builder().setDescription("desc").setShortOption("s").build();
+        final Option r = new Option.Builder().setDescription("required").setShortOption("r").setLongOption("required")
+                .setRequired(true).build();
+        final Options options = new Options.Builder(h, s, r).build();
 
         final CommandPath commandPath = new CommandPath.Builder("help").build();
 
-        final Registration withoutOptions = new Registration.Builder(actorRef, commandPath).build();
+        final Registration withoutOptions =
+                new Registration.Builder().setActorPath(actorRef).setPath(commandPath).build();
         Iterator<ConsoleOutput> iter = actor.getOutput(withoutOptions, false, OptionalInt.of(6)).iterator();
         assertTrue(iter.hasNext());
 
         ConsoleOutput output = iter.next();
-        assertEquals("Optional.of(  help)", output.getOutput().toString());
+        assertEquals("Optional[  help]", output.getOutput().toString());
         assertTrue(output.hasMore());
         assertFalse(iter.hasNext());
 
-        final Registration withOptions = new Registration.Builder(actorRef, commandPath, options).build();
+        final Registration withOptions =
+                new Registration.Builder().setActorPath(actorRef).setPath(commandPath).setOptions(options).build();
         iter = actor.getOutput(withOptions, true, OptionalInt.of(6)).iterator();
         assertTrue(iter.hasNext());
 
         output = iter.next();
-        assertEquals("Optional.of(  help)", output.getOutput().toString());
+        assertEquals("Optional[  help]", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional.of(    -h  --help  description)", output.getOutput().toString());
+        assertEquals("Optional[    -h  --help  desc]", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional.of(    -s)", output.getOutput().toString());
+        assertEquals("Optional[    -s  desc]", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional.of(    -r  --required  (required)  required)", output.getOutput().toString());
+        assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
         assertTrue(output.hasMore());
         assertFalse(iter.hasNext());
     }
@@ -332,8 +313,9 @@ public class HelpCommandTest {
     @Test
     public void testGetDescription() {
         final CommandPath commandPath = new CommandPath.Builder("help").build();
-        final Registration without = new Registration.Builder(actorRef, commandPath).build();
-        final Registration with = new Registration.Builder(actorRef, commandPath).setDescription("desc").build();
+        final Registration without = new Registration.Builder().setActorPath(actorRef).setPath(commandPath).build();
+        final Registration with =
+                new Registration.Builder().setActorPath(actorRef).setPath(commandPath).setDescription("desc").build();
 
         assertEquals("  help", actor.getDescription(without, OptionalInt.of(6)));
         assertEquals("  help    desc", actor.getDescription(with, OptionalInt.of(6)));
@@ -341,35 +323,35 @@ public class HelpCommandTest {
 
     @Test
     public void testGetOptions() {
-        final Option h = new Option("h", "help", true, "description");
-        final Option s = new Option("s", null);
-        final Option r = new Option("r", "required", false, "required");
-        r.setRequired(true);
-
-        final Options options = new Options();
-        options.addOption(h);
-        options.addOption(s);
-        options.addOption(r);
+        final Option h =
+                new Option.Builder().setDescription("desc").setShortOption("h").setLongOption("help").setArguments(1)
+                        .build();
+        final Option s = new Option.Builder().setDescription("desc").setShortOption("s").build();
+        final Option r = new Option.Builder().setDescription("required").setShortOption("r").setLongOption("required")
+                .setRequired(true).build();
+        final Options options = new Options.Builder(h, s, r).build();
 
         final CommandPath commandPath = new CommandPath.Builder("help").build();
 
-        final Registration withoutOptions = new Registration.Builder(actorRef, commandPath).build();
+        final Registration withoutOptions =
+                new Registration.Builder().setActorPath(actorRef).setPath(commandPath).build();
         assertTrue(actor.getOptions(withoutOptions).isEmpty());
 
-        final Registration withOptions = new Registration.Builder(actorRef, commandPath, options).build();
+        final Registration withOptions =
+                new Registration.Builder().setActorPath(actorRef).setPath(commandPath).setOptions(options).build();
         final Iterator<ConsoleOutput> iter = actor.getOptions(withOptions).iterator();
         assertTrue(iter.hasNext());
 
         ConsoleOutput output = iter.next();
-        assertEquals("Optional.of(    -h  --help  description)", output.getOutput().toString());
+        assertEquals("Optional[    -h  --help  desc]", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional.of(    -s)", output.getOutput().toString());
+        assertEquals("Optional[    -s  desc]", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         output = iter.next();
-        assertEquals("Optional.of(    -r  --required  (required)  required)", output.getOutput().toString());
+        assertEquals("Optional[    -r  --required  (required)  required]", output.getOutput().toString());
         assertTrue(output.hasMore());
 
         assertFalse(iter.hasNext());

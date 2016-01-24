@@ -6,9 +6,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
-import org.mockito.Mockito;
-
-import akka.actor.ActorRef;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -21,10 +18,15 @@ import java.util.Map;
 public class RegistrationResponseTest {
     @Test
     public void testCompareTo() {
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("b", "c").build()).build();
-        final Registration rC = new Registration.Builder(ref, new CommandPath.Builder("a", "b", "c").build()).build();
+        final Registration rA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final Registration rB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("b", "c").build())
+                        .build();
+        final Registration rC =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b", "c").build())
+                        .build();
 
         final RegistrationResponse a = new RegistrationResponse.Builder(rA).build();
         final RegistrationResponse b = new RegistrationResponse.Builder(rB).build();
@@ -62,10 +64,15 @@ public class RegistrationResponseTest {
 
     @Test
     public void testEquals() {
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("b", "c").build()).build();
-        final Registration rC = new Registration.Builder(ref, new CommandPath.Builder("a", "b", "c").build()).build();
+        final Registration rA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final Registration rB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("b", "c").build())
+                        .build();
+        final Registration rC =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b", "c").build())
+                        .build();
 
         final RegistrationResponse a = new RegistrationResponse.Builder(rA).build();
         final RegistrationResponse b = new RegistrationResponse.Builder(rB).build();
@@ -103,21 +110,28 @@ public class RegistrationResponseTest {
 
     @Test
     public void testHashCode() {
-        assertEquals(2040755605, new RegistrationResponse.Builder().build().hashCode());
+        assertEquals(23273, new RegistrationResponse.Builder().build().hashCode());
+    }
+
+    @Test
+    public void testToJson() {
+        assertEquals("{\"registrations\":[]}", new RegistrationResponse.Builder().build().toJson().toString());
     }
 
     @Test
     public void testToString() {
-        assertEquals(
-                "RegistrationResponse[registrations=[],userInput=Optional.absent()]",
+        assertEquals("RegistrationResponse[registrations=[],userInput=Optional.empty]",
                 new RegistrationResponse.Builder().build().toString());
     }
 
     @Test
     public void testBuilderCopy() {
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
+        final Registration rA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final Registration rB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
 
         final RegistrationResponse a = new RegistrationResponse.Builder(Arrays.asList(rA, rB)).build();
         final RegistrationResponse b = new RegistrationResponse.Builder(a).build();
@@ -127,10 +141,9 @@ public class RegistrationResponseTest {
 
     @Test
     public void testBuilderWithUserInput() throws ParseException {
-        final ActorRef ref = Mockito.mock(ActorRef.class);
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("input").build();
         final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
-        final Registration registration = new Registration.Builder(ref, commandPath).build();
+        final Registration registration = new Registration.Builder().setActorPath("path").setPath(commandPath).build();
         final RegistrationResponse a = new RegistrationResponse.Builder(registration).setUserInput(userInput).build();
 
         assertNotNull(a.getUserInput());
@@ -140,9 +153,11 @@ public class RegistrationResponseTest {
 
     @Test
     public void testBuilderWithLookup() throws ParseException {
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration regA = new Registration.Builder(ref, new CommandPath.Builder("a").build()).build();
-        final Registration regB = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
+        final Registration regA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a").build()).build();
+        final Registration regB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
 
         final Map<CommandPath, Registration> map = new HashMap<>();
         map.put(regA.getPath(), regA);

@@ -124,7 +124,7 @@ public class ClusterCommandTest {
         new JavaTestKit(system) {{
             final TokenizedUserInput userInput = new TokenizedUserInput.Builder("cluster list").build();
             final CommandPath path = new CommandPath.Builder("cluster", "list").build();
-            final Registration reg = new Registration.Builder(getRef(), path).build();
+            final Registration reg = new Registration.Builder().setActorPath(getRef()).setPath(path).build();
             final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
             final Command command = new Command.Builder(response).build();
 
@@ -173,7 +173,7 @@ public class ClusterCommandTest {
         new JavaTestKit(system) {{
             final TokenizedUserInput userInput = new TokenizedUserInput.Builder("cluster list").build();
             final CommandPath path = new CommandPath.Builder("cluster", "list").build();
-            final Registration reg = new Registration.Builder(getRef(), path).build();
+            final Registration reg = new Registration.Builder().setActorPath(getRef()).setPath(path).build();
             final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
             final Command command = new Command.Builder(response).build();
 

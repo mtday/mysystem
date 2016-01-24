@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
 
 /**
@@ -69,10 +72,23 @@ public class CompanyTest {
         final Company c = new Company.Builder().setId(2).setName("b").build();
         final Company d = new Company.Builder().setName("b").build();
 
-        assertEquals(-398041657, a.hashCode());
-        assertEquals(-398041656, b.hashCode());
-        assertEquals(-398040251, c.hashCode());
-        assertEquals(2034684835, d.hashCode());
+        assertEquals(866059, a.hashCode());
+        assertEquals(866060, b.hashCode());
+        assertEquals(867465, c.hashCode());
+        assertEquals(864727, d.hashCode());
+    }
+
+    @Test
+    public void testToJson() {
+        final Company a = new Company.Builder().setId(1).setName("a").build();
+        final Company b = new Company.Builder().setId(1).setName("a").setActive(false).build();
+        final Company c = new Company.Builder().setId(2).setName("b").build();
+        final Company d = new Company.Builder().setName("b").build();
+
+        assertEquals("{\"id\":1,\"name\":\"a\",\"active\":true}", a.toJson().toString());
+        assertEquals("{\"id\":1,\"name\":\"a\",\"active\":false}", b.toJson().toString());
+        assertEquals("{\"id\":2,\"name\":\"b\",\"active\":true}", c.toJson().toString());
+        assertEquals("{\"name\":\"b\",\"active\":true}", d.toJson().toString());
     }
 
     @Test
@@ -82,10 +98,15 @@ public class CompanyTest {
         final Company c = new Company.Builder().setId(2).setName("b").build();
         final Company d = new Company.Builder().setName("b").build();
 
-        assertEquals("Company[id=Optional.of(1),name=a,active=true]", a.toString());
-        assertEquals("Company[id=Optional.of(1),name=a,active=false]", b.toString());
-        assertEquals("Company[id=Optional.of(2),name=b,active=true]", c.toString());
-        assertEquals("Company[id=Optional.absent(),name=b,active=true]", d.toString());
+        assertEquals("Company[id=Optional[1],name=a,active=true]", a.toString());
+        assertEquals("Company[id=Optional[1],name=a,active=false]", b.toString());
+        assertEquals("Company[id=Optional[2],name=b,active=true]", c.toString());
+        assertEquals("Company[id=Optional.empty,name=b,active=true]", d.toString());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderWithNoName() {
+        new Company.Builder().build();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -96,6 +117,30 @@ public class CompanyTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBuilderWithBlankName() {
         new Company.Builder().setName("   ").build();
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final JsonParser jsonParser = new JsonParser();
+        final JsonObject ja = jsonParser.parse("{\"id\":1,\"name\":\"a\",\"active\":true}").getAsJsonObject();
+        final JsonObject jb = jsonParser.parse("{\"id\":1,\"name\":\"a\",\"active\":false}").getAsJsonObject();
+        final JsonObject jc = jsonParser.parse("{\"id\":2,\"name\":\"b\",\"active\":true}").getAsJsonObject();
+        final JsonObject jd = jsonParser.parse("{\"name\":\"b\"}").getAsJsonObject();
+
+        final Company ca = new Company.Builder().setId(1).setName("a").build();
+        final Company cb = new Company.Builder().setId(1).setName("a").setActive(false).build();
+        final Company cc = new Company.Builder().setId(2).setName("b").build();
+        final Company cd = new Company.Builder().setName("b").build();
+
+        assertEquals(ca, new Company.Builder().fromJson(ja).build());
+        assertEquals(cb, new Company.Builder().fromJson(jb).build());
+        assertEquals(cc, new Company.Builder().fromJson(jc).build());
+        assertEquals(cd, new Company.Builder().fromJson(jd).build());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoName() {
+        new Company.Builder().fromJson(new JsonParser().parse("{\"active\":true}").getAsJsonObject()).build();
     }
 
     @Test

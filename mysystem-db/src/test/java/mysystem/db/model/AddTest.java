@@ -88,10 +88,39 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals(-656530472, a.hashCode());
-        assertEquals(1378154363, b.hashCode());
-        assertEquals(1378154437, c.hashCode());
-        assertEquals(1205710369, d.hashCode());
+        assertEquals(-274206683, a.hashCode());
+        assertEquals(-273341956, b.hashCode());
+        assertEquals(-273341882, c.hashCode());
+        assertEquals(-274205314, d.hashCode());
+    }
+
+    @Test
+    public void testToJson() {
+        final Company ca = new Company.Builder().setName("a").build();
+        final Company cb = new Company.Builder().setName("b").build();
+        final Company cc = new Company.Builder().setName("c").build();
+        final Company cd = new Company.Builder().setId(1).setName("a").build();
+
+        final Add<Company> a = new Add.Builder<>(DataType.COMPANY, ca).build();
+        final Add<Company> b = new Add.Builder<>(DataType.COMPANY, ca, cb).build();
+        final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
+        final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
+
+        assertEquals(
+                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true}]}",
+                a.toJson().toString());
+        assertEquals(
+                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true},"
+                        + "{\"name\":\"b\",\"active\":true}]}",
+                b.toJson().toString());
+        assertEquals(
+                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"b\",\"active\":true},"
+                        + "{\"name\":\"c\",\"active\":true}]}",
+                c.toJson().toString());
+        assertEquals(
+                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"id\":1,\"name\":\"a\","
+                        + "\"active\":true}]}",
+                d.toJson().toString());
     }
 
     @Test
@@ -106,12 +135,20 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=a,active=true]]]", a.toString());
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=a,active=true], "
-                + "Company[id=Optional.absent(),name=b,active=true]]]", b.toString());
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=b,active=true], "
-                + "Company[id=Optional.absent(),name=c,active=true]]]", c.toString());
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.of(1),name=a,active=true]]]", d.toString());
+        assertEquals(
+                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]",
+                a.toString());
+        assertEquals(
+                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true], "
+                        + "Company[id=Optional.empty,name=b,active=true]]]",
+                b.toString());
+        assertEquals(
+                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=b,active=true], "
+                        + "Company[id=Optional.empty,name=c,active=true]]]",
+                c.toString());
+        assertEquals(
+                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional[1],name=a,active=true]]]",
+                d.toString());
     }
 
     @Test
@@ -119,7 +156,8 @@ public class AddTest {
         final Company company = new Company.Builder().setName("a").build();
         final Add<Company> add = new Add.Builder<Company>(DataType.COMPANY).add(company).build();
 
-        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.absent(),name=a,active=true]]]", add.toString());
+        assertEquals("Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]",
+                add.toString());
     }
 
     @Test(expected = IllegalStateException.class)

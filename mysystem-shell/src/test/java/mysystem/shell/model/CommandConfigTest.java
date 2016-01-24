@@ -80,6 +80,20 @@ public class CommandConfigTest {
         assertEquals(-1198032503, c.hashCode());
     }
 
+    @Test
+    public void testToJson() {
+        assertEquals(
+                "{\"commandName\":\"a\",\"commandClass\":\"mysystem.shell.command.ExitCommand\"}",
+                new CommandConfig.Builder("a", getConfig(ExitCommand.class)).build().toJson().toString());
+    }
+
+    @Test
+    public void testToString() {
+        assertEquals(
+                "CommandConfig[commandName=a,commandClass=mysystem.shell.command.ExitCommand]",
+                new CommandConfig.Builder("a", getConfig(ExitCommand.class)).build().toString());
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void testBuilderNoClass() {
         new CommandConfig.Builder("a", getConfig()).build();
@@ -96,12 +110,5 @@ public class CommandConfigTest {
         final CommandConfig b = new CommandConfig.Builder(a).build();
 
         assertEquals(a, b);
-    }
-
-    @Test
-    public void testToString() {
-        assertEquals(
-                "CommandConfig[commandName=a,commandClass=mysystem.shell.command.ExitCommand]",
-                new CommandConfig.Builder("a", getConfig(ExitCommand.class)).build().toString());
     }
 }

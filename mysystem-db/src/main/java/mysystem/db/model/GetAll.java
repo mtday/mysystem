@@ -1,23 +1,23 @@
 package mysystem.db.model;
 
-import com.google.common.base.Optional;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 import mysystem.common.util.OptionalComparator;
 
-import java.io.Serializable;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable class that represents the information needed to fetch all objects from a table in the database.
  */
-public class GetAll implements HasDataType, Comparable<GetAll>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class GetAll implements Model, HasDataType, Comparable<GetAll> {
     private final DataType dataType;
     private final Optional<Boolean> active;
 
@@ -45,6 +45,19 @@ public class GetAll implements HasDataType, Comparable<GetAll>, Serializable {
      */
     public Optional<Boolean> getActive() {
         return this.active;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonObject json = new JsonObject();
+        json.addProperty("dataType", getDataType().name());
+        if (getActive().isPresent()) {
+            json.addProperty("active", getActive().get());
+        }
+        return json;
     }
 
     /**
@@ -95,15 +108,30 @@ public class GetAll implements HasDataType, Comparable<GetAll>, Serializable {
     /**
      * Used to create {@link GetAll} instances.
      */
-    public static class Builder {
-        private final DataType dataType;
-        private Optional<Boolean> active = Optional.absent();
+    public static class Builder implements ModelBuilder<GetAll> {
+        private Optional<DataType> dataType = Optional.empty();
+        private Optional<Boolean> active = Optional.empty();
+
+        /**
+         * Default constructor.
+         */
+        public Builder() {
+        }
 
         /**
          * @param dataType the {@link DataType} describing the type of data for which this database request applies
          */
         public Builder(final DataType dataType) {
-            this.dataType = Objects.requireNonNull(dataType);
+            setDataType(dataType);
+        }
+
+        /**
+         * @param dataType the {@link DataType} describing the type of data for which this database request applies
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setDataType(final DataType dataType) {
+            this.dataType = Optional.of(Objects.requireNonNull(dataType));
+            return this;
         }
 
         /**
@@ -125,10 +153,30 @@ public class GetAll implements HasDataType, Comparable<GetAll>, Serializable {
         }
 
         /**
-         * @return the {@link GetAll} represented by this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+            if (json.has("dataType")) {
+                setDataType(DataType.valueOf(json.getAsJsonPrimitive("dataType").getAsString()));
+            }
+            if (json.has("active")) {
+                setActive(json.getAsJsonPrimitive("active").getAsBoolean());
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public GetAll build() {
-            return new GetAll(this.dataType, this.active);
+            if (!this.dataType.isPresent()) {
+                throw new IllegalStateException("Data type is required");
+            }
+
+            return new GetAll(this.dataType.get(), this.active);
         }
     }
 }

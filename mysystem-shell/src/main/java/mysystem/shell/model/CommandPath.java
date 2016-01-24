@@ -1,13 +1,15 @@
 package mysystem.shell.model;
 
-import com.google.common.base.Optional;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 import mysystem.common.util.CollectionComparator;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -16,12 +18,12 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable representation of the fully qualified path to a shell command.
  */
-public class CommandPath implements Comparable<CommandPath>, Serializable {
-    private final static long serialVersionUID = 1L;
+public class CommandPath implements Model, Comparable<CommandPath> {
     private final List<String> path;
 
     /**
@@ -68,12 +70,8 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
             }
         }
 
-        if (iterB.hasNext()) {
-            // The other path is longer than this path.
-            return false;
-        }
-
-        return true;
+        // If iterB.hasNext() == true, then the other path is longer than this path and is a prefix.
+        return !iterB.hasNext();
     }
 
     /**
@@ -92,7 +90,7 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
      */
     public Optional<CommandPath> getParent() {
         if (getPath().size() == 1) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         final List<String> parentPath = new ArrayList<>(getPath());
@@ -118,7 +116,7 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
      */
     public Optional<CommandPath> getChild() {
         if (getPath().size() == 1) {
-            return Optional.absent();
+            return Optional.empty();
         }
 
         final List<String> childPath = new LinkedList<>(getPath());
@@ -131,6 +129,19 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
      */
     public int getSize() {
         return getPath().size();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonArray pathArr = new JsonArray();
+        getPath().forEach(pathArr::add);
+
+        final JsonObject json = new JsonObject();
+        json.add("path", pathArr);
+        return json;
     }
 
     /**
@@ -174,7 +185,7 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
     /**
      * Used to create {@link CommandPath} instances.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<CommandPath> {
         private List<String> path = new ArrayList<>();
 
         /**
@@ -242,8 +253,20 @@ public class CommandPath implements Comparable<CommandPath>, Serializable {
         }
 
         /**
-         * @return the {@link CommandPath} defined in this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            if (Objects.requireNonNull(json).has("path")) {
+                json.getAsJsonArray("path").forEach(e -> add(e.getAsJsonPrimitive().getAsString()));
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public CommandPath build() {
             if (this.path.isEmpty()) {
                 throw new IllegalStateException("Unable to create empty command path");

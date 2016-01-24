@@ -1,7 +1,7 @@
 package mysystem.common.model;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -11,15 +11,13 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.util.OptionalComparator;
 
-import java.io.Serializable;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable representation of a company.
  */
-public class Company implements Model, HasOptionalId, HasActive, Comparable<Company>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class Company implements Model, HasOptionalId, HasActive, Comparable<Company> {
     private final Optional<Integer> id;
     private final String name;
     private final boolean active;
@@ -62,6 +60,32 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
      * {@inheritDoc}
      */
     @Override
+    public JsonObject toJson() {
+        final JsonObject json = new JsonObject();
+        if (getId().isPresent()) {
+            json.addProperty("id", getId().get());
+        }
+        json.addProperty("name", getName());
+        json.addProperty("active", isActive());
+        return json;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
+        str.append("id", getId());
+        str.append("name", getName());
+        str.append("active", isActive());
+        return str.build();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public int compareTo(final Company other) {
         if (other == null) {
             return 1;
@@ -95,23 +119,11 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
     }
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    public String toString() {
-        final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
-        str.append("id", getId());
-        str.append("name", getName());
-        str.append("active", isActive());
-        return str.build();
-    }
-
-    /**
      * Used to create {@link Company} instances.
      */
-    public static class Builder {
-        private Optional<Integer> id = Optional.absent();
-        private String name;
+    public static class Builder implements ModelBuilder<Company> {
+        private Optional<Integer> id = Optional.empty();
+        private Optional<String> name = Optional.empty();
         private boolean active = true;
 
         /**
@@ -153,7 +165,7 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
         public Builder setName(final String name) {
             Objects.requireNonNull(name);
             Preconditions.checkArgument(!StringUtils.isBlank(name), "Company name cannot be blank");
-            this.name = name;
+            this.name = Optional.of(name);
             return this;
         }
 
@@ -167,10 +179,33 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
         }
 
         /**
-         * @return the {@link Company} represented by this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            if (json.has("id")) {
+                setId(json.getAsJsonPrimitive("id").getAsInt());
+            }
+            if (json.has("name")) {
+                setName(json.getAsJsonPrimitive("name").getAsString());
+            }
+            if (json.has("active")) {
+                setActive(json.getAsJsonPrimitive("active").getAsBoolean());
+            }
+
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public Company build() {
-            return new Company(this.id, this.name, this.active);
+            if (!this.name.isPresent()) {
+                throw new IllegalStateException("A name is required for company objects");
+            }
+
+            return new Company(this.id, this.name.get(), this.active);
         }
     }
 }

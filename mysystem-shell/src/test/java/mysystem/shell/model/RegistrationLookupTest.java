@@ -68,16 +68,26 @@ public class RegistrationLookupTest {
         final RegistrationLookup b = new RegistrationLookup.Builder(uB).build();
         final RegistrationLookup c = new RegistrationLookup.Builder(uC).build();
 
-        assertEquals(1502531571, a.hashCode());
-        assertEquals(1502531646, b.hashCode());
-        assertEquals(1502531721, c.hashCode());
+        assertEquals(54999, a.hashCode());
+        assertEquals(55074, b.hashCode());
+        assertEquals(55149, c.hashCode());
+    }
+
+    @Test
+    public void testToJson() throws ParseException {
+        final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
+        final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
+        assertEquals(
+                "{\"paths\":[{\"path\":[\"a\"]}],\"userInput\":{\"userInput\":{\"input\":\"a\"},\"tokens\":[\"a\"]}}",
+                lookup.toJson().toString());
     }
 
     @Test
     public void testToString() throws ParseException {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
-        assertEquals("RegistrationLookup[paths=[a],userInput=Optional.of(a)]", lookup.toString());
+        assertEquals("RegistrationLookup[paths=[a],userInput=Optional[TokenizedUserInput[userInput=a,tokens=[a]]]]",
+                lookup.toString());
     }
 
     @Test(expected = IllegalStateException.class)

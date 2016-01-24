@@ -44,6 +44,12 @@ public class UserInputTest {
     }
 
     @Test
+    public void testToJson() {
+        final UserInput input = new UserInput.Builder("input").build();
+        assertEquals("{\"input\":\"input\"}", input.toJson().toString());
+    }
+
+    @Test
     public void testToString() {
         final UserInput a = new UserInput.Builder("input").build();
         final UserInput b = new UserInput.Builder("more input").build();

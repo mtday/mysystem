@@ -1,5 +1,6 @@
 package mysystem.shell.model;
 
+import com.google.gson.JsonObject;
 import com.typesafe.config.Config;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
@@ -8,16 +9,16 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
 import akka.actor.UntypedActor;
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 
-import java.io.Serializable;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable object representing a command configuration to be made available in the shell.
  */
-public class CommandConfig implements Comparable<CommandConfig>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class CommandConfig implements Model, Comparable<CommandConfig> {
     private final String commandName;
     private final Class<? extends UntypedActor> commandClass;
 
@@ -42,6 +43,17 @@ public class CommandConfig implements Comparable<CommandConfig>, Serializable {
      */
     public Class<? extends UntypedActor> getCommandClass() {
         return this.commandClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonObject json = new JsonObject();
+        json.addProperty("commandName", getCommandName());
+        json.addProperty("commandClass", getCommandClass().getName());
+        return json;
     }
 
     /**
@@ -92,17 +104,23 @@ public class CommandConfig implements Comparable<CommandConfig>, Serializable {
     /**
      * Used to create {@link CommandConfig} objects.
      */
-    public static class Builder {
-        private final String commandName;
-        private final Class<? extends UntypedActor> commandClass;
+    public static class Builder implements ModelBuilder<CommandConfig> {
+        private Optional<String> commandName;
+        private Optional<Class<? extends UntypedActor>> commandClass;
+
+        /**
+         * Default constructor.
+         */
+        public Builder() {
+        }
 
         /**
          * @param other the {@link CommandConfig} to duplicate
          */
         public Builder(final CommandConfig other) {
             Objects.requireNonNull(other);
-            this.commandName = other.getCommandName();
-            this.commandClass = other.getCommandClass();
+            this.commandName = Optional.of(other.getCommandName());
+            this.commandClass = Optional.of(other.getCommandClass());
         }
 
         /**
@@ -110,12 +128,12 @@ public class CommandConfig implements Comparable<CommandConfig>, Serializable {
          * @param commandConfig the configuration defined for the command
          */
         public Builder(final String commandName, final Config commandConfig) {
-            this.commandName = Objects.requireNonNull(commandName);
+            this.commandName = Optional.of(Objects.requireNonNull(commandName));
 
             if (Objects.requireNonNull(commandConfig).hasPath("class")) {
                 final String className = commandConfig.getString("class");
                 try {
-                    this.commandClass = Class.forName(className).asSubclass(UntypedActor.class);
+                    this.commandClass = Optional.of(Class.forName(className).asSubclass(UntypedActor.class));
                 } catch (final ClassNotFoundException notFound) {
                     throw new IllegalArgumentException("Shell command class not found: " + className);
                 }
@@ -125,10 +143,35 @@ public class CommandConfig implements Comparable<CommandConfig>, Serializable {
         }
 
         /**
-         * @return the {@link CommandConfig} object
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+            this.commandName = Optional.of(json.getAsJsonPrimitive("commandName").getAsString());
+
+            final String className = json.getAsJsonPrimitive("commandClass").getAsString();
+            try {
+                this.commandClass = Optional.of(Class.forName(className).asSubclass(UntypedActor.class));
+            } catch (final ClassNotFoundException notFound) {
+                throw new IllegalArgumentException("Shell command class not found: " + className);
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public CommandConfig build() {
-            return new CommandConfig(this.commandName, this.commandClass);
+            if (!this.commandName.isPresent()) {
+                throw new IllegalStateException("The command name is required when building a command config");
+            }
+            if (!this.commandClass.isPresent()) {
+                throw new IllegalStateException("The command class is required when building a command config");
+            }
+
+            return new CommandConfig(this.commandName.get(), this.commandClass.get());
         }
     }
 }

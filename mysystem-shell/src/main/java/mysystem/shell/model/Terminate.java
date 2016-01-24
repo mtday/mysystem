@@ -1,17 +1,26 @@
 package mysystem.shell.model;
 
-import java.io.Serializable;
+import com.google.gson.JsonObject;
+
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 
 /**
  * An immutable object used to indicate that the shell process should be terminated.
  */
-public class Terminate implements Comparable<Terminate>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class Terminate implements Model, Comparable<Terminate> {
     /**
      * Default constructor.
      */
     private Terminate() {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject();
     }
 
     /**
@@ -49,10 +58,20 @@ public class Terminate implements Comparable<Terminate>, Serializable {
     /**
      * Used to create {@link Terminate} objects.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<Terminate> {
         /**
-         * @return a new {@link Terminate} instance based on this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            // No need to do anything with the json object.
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public Terminate build() {
             return new Terminate();
         }

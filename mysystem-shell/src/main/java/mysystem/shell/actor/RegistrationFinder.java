@@ -99,7 +99,8 @@ public class RegistrationFinder extends UntypedActor {
                 getConsoleManager().tell(new UnrecognizedCommand.Builder(resp.getUserInput().get()).build(), self());
             } else if (registrations.size() > 1) {
                 // Multiple registrations match, turn into a help command.
-                getInputTokenizer().tell(new UserInput.Builder("help " + resp.getUserInput().get()).build(), self());
+                final String input = resp.getUserInput().get().getUserInput().getInput();
+                getInputTokenizer().tell(new UserInput.Builder("help " + input).build(), self());
             } else {
                 try {
                     getCommandExecutor().tell(new Command.Builder(resp).build(), self());

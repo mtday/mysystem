@@ -1,9 +1,13 @@
 package mysystem.db.model;
 
+import com.google.common.base.Preconditions;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValueType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -11,12 +15,17 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import akka.actor.ActorContext;
 import akka.pattern.CircuitBreaker;
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 import mysystem.common.util.CollectionComparator;
+import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
 
-import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -25,9 +34,7 @@ import java.util.concurrent.TimeUnit;
  * An immutable object representing the configuration for the actor that manages operations on an individual database
  * table.
  */
-public class DatabaseManagerConfig implements Comparable<DatabaseManagerConfig>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerConfig> {
     private final String actorName;
     private final DataType dataType;
 
@@ -113,6 +120,24 @@ public class DatabaseManagerConfig implements Comparable<DatabaseManagerConfig>,
      * {@inheritDoc}
      */
     @Override
+    public JsonObject toJson() {
+        final JsonArray actorConfArr = new JsonArray();
+        getActorConfigs().forEach(c -> actorConfArr.add(c.toJson()));
+
+        final JsonObject json = new JsonObject();
+        json.addProperty("actorName", getActorName());
+        json.addProperty("dataType", getDataType().name());
+        json.addProperty("maxFailures", getMaxFailures());
+        json.addProperty("callTimeout", getCallTimeout().toMillis());
+        json.addProperty("resetTimeout", getResetTimeout().toMillis());
+        json.add("actorConfigs", actorConfArr);
+        return json;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String toString() {
         final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
         str.append("actorName", getActorName());
@@ -169,29 +194,35 @@ public class DatabaseManagerConfig implements Comparable<DatabaseManagerConfig>,
     /**
      * Used to create {@link DatabaseManagerConfig} objects.
      */
-    public static class Builder {
-        private final String actorName;
-        private final DataType dataType;
+    public static class Builder implements ModelBuilder<DatabaseManagerConfig> {
+        private Optional<String> actorName = Optional.empty();
+        private Optional<DataType> dataType = Optional.empty();
 
         // The circuit breaker configuration for the database actor.
-        private final int maxFailures;
-        private final FiniteDuration callTimeout;
-        private final FiniteDuration resetTimeout;
+        private Optional<Integer> maxFailures = Optional.empty();
+        private Optional<FiniteDuration> callTimeout = Optional.empty();
+        private Optional<FiniteDuration> resetTimeout = Optional.empty();
 
         // The database actor configurations.
         private final Set<DatabaseActorConfig> actorConfigs = new TreeSet<>();
+
+        /**
+         * Default constructor.
+         */
+        public Builder() {
+        }
 
         /**
          * @param other the {@link DatabaseManagerConfig} to duplicate
          */
         public Builder(final DatabaseManagerConfig other) {
             Objects.requireNonNull(other);
-            this.actorName = other.getActorName();
-            this.dataType = other.getDataType();
-            this.maxFailures = other.getMaxFailures();
-            this.callTimeout = other.getCallTimeout();
-            this.resetTimeout = other.getResetTimeout();
-            this.actorConfigs.addAll(other.getActorConfigs());
+            setActorName(other.getActorName());
+            setDataType(other.getDataType());
+            setMaxFailures(other.getMaxFailures());
+            setCallTimeout(other.getCallTimeout());
+            setResetTimeout(other.getResetTimeout());
+            add(other.getActorConfigs());
         }
 
         /**
@@ -199,51 +230,153 @@ public class DatabaseManagerConfig implements Comparable<DatabaseManagerConfig>,
          * @param managerConfig the configuration defined for the actor
          */
         public Builder(final String actorName, final Config managerConfig) {
-            this.actorName = Objects.requireNonNull(actorName);
+            setActorName(actorName);
 
             if (managerConfig.hasPath("data-type")) {
-                this.dataType = DataType.valueOf(managerConfig.getString("data-type"));
-            } else {
-                throw new IllegalArgumentException("Database manager config must specify the data-type config");
+                setDataType(DataType.valueOf(managerConfig.getString("data-type")));
             }
-
             if (managerConfig.hasPath("max-failures")) {
-                this.maxFailures = managerConfig.getInt("max-failures");
-            } else {
-                throw new IllegalArgumentException("Database manager config must specify the max-failures config");
+                setMaxFailures(managerConfig.getInt("max-failures"));
             }
-
             if (managerConfig.hasPath("call-timeout")) {
                 final long millis = managerConfig.getDuration("call-timeout").toMillis();
-                this.callTimeout = FiniteDuration.create(millis, TimeUnit.MILLISECONDS);
-            } else {
-                throw new IllegalArgumentException("Database manager config must specify the call-timeout config");
+                setCallTimeout(FiniteDuration.create(millis, TimeUnit.MILLISECONDS));
             }
-
             if (managerConfig.hasPath("reset-timeout")) {
                 final long millis = managerConfig.getDuration("reset-timeout").toMillis();
-                this.resetTimeout = FiniteDuration.create(millis, TimeUnit.MILLISECONDS);
-            } else {
-                throw new IllegalArgumentException("Database manager config must specify the reset-timeout config");
+                setResetTimeout(FiniteDuration.create(millis, TimeUnit.MILLISECONDS));
             }
 
             if (managerConfig.hasPath("actors")) {
                 final ConfigObject obj = managerConfig.getConfig("actors").root();
                 obj.entrySet().stream().filter(e -> e.getValue().valueType() == ConfigValueType.OBJECT).forEach(e -> {
                     final Config actorConfig = ((ConfigObject) e.getValue()).toConfig();
-                    this.actorConfigs.add(new DatabaseActorConfig.Builder(e.getKey(), actorConfig).build());
+                    add(new DatabaseActorConfig.Builder(e.getKey(), actorConfig).build());
                 });
-            } else {
-                throw new IllegalArgumentException("Database manager config must specify the actors config");
             }
         }
 
         /**
-         * @return the {@link DatabaseManagerConfig} object
+         * @param actorName the name of the manager actor
+         * @return {@code this} for fluent-style usage
          */
+        public Builder setActorName(final String actorName) {
+            Objects.requireNonNull(actorName);
+            Preconditions.checkArgument(StringUtils.isNotBlank(actorName), "Actor name cannot be blank");
+            this.actorName = Optional.of(actorName);
+            return this;
+        }
+
+        /**
+         * @param dataType the type of data handled by the manager
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setDataType(final DataType dataType) {
+            this.dataType = Optional.of(Objects.requireNonNull(dataType));
+            return this;
+        }
+
+        /**
+         * @param maxFailures the maximum number of failures in the circuit breaker before the breaker is opened
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setMaxFailures(final int maxFailures) {
+            Preconditions.checkArgument(maxFailures > 0, "Maximum failures must be positive");
+            this.maxFailures = Optional.of(maxFailures);
+            return this;
+        }
+
+        /**
+         * @param callTimeout when a call takes longer than this duration, it will be treated as an error
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setCallTimeout(final FiniteDuration callTimeout) {
+            this.callTimeout = Optional.of(Objects.requireNonNull(callTimeout));
+            return this;
+        }
+
+        /**
+         * @param resetTimeout when the circuit breaker is open, the duration to wait before switching to half-closed
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setResetTimeout(final FiniteDuration resetTimeout) {
+            this.resetTimeout = Optional.of(Objects.requireNonNull(resetTimeout));
+            return this;
+        }
+
+        /**
+         * @param actorConfigs the database actor configurations of the actors to be managed
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder add(final Collection<DatabaseActorConfig> actorConfigs) {
+            this.actorConfigs.addAll(Objects.requireNonNull(actorConfigs));
+            return this;
+        }
+
+        /**
+         * @param actorConfigs the database actor configurations of the actors to be managed
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder add(final DatabaseActorConfig... actorConfigs) {
+            return add(Arrays.asList(Objects.requireNonNull(actorConfigs)));
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+            if (json.has("actorName")) {
+                setActorName(json.getAsJsonPrimitive("actorName").getAsString());
+            }
+            if (json.has("dataType")) {
+                setDataType(DataType.valueOf(json.getAsJsonPrimitive("dataType").getAsString()));
+            }
+            if (json.has("maxFailures")) {
+                setMaxFailures(json.getAsJsonPrimitive("maxFailures").getAsInt());
+            }
+            if (json.has("callTimeout")) {
+                setCallTimeout(
+                        Duration.create(json.getAsJsonPrimitive("callTimeout").getAsLong(), TimeUnit.MILLISECONDS));
+            }
+            if (json.has("resetTimeout")) {
+                setResetTimeout(
+                        Duration.create(json.getAsJsonPrimitive("resetTimeout").getAsLong(), TimeUnit.MILLISECONDS));
+            }
+            if (json.has("actorConfigs")) {
+                json.getAsJsonArray("actorConfigs")
+                        .forEach(e -> add(new DatabaseActorConfig.Builder().fromJson(e.getAsJsonObject()).build()));
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public DatabaseManagerConfig build() {
-            return new DatabaseManagerConfig(this.actorName, this.dataType, this.maxFailures, this.callTimeout,
-                    this.resetTimeout, this.actorConfigs);
+            if (!this.actorName.isPresent()) {
+                throw new IllegalStateException("Actor name is required");
+            }
+            if (!this.dataType.isPresent()) {
+                throw new IllegalStateException("Data type is required");
+            }
+            if (!this.maxFailures.isPresent()) {
+                throw new IllegalStateException("Max failures is required");
+            }
+            if (!this.callTimeout.isPresent()) {
+                throw new IllegalStateException("Call timeout is required");
+            }
+            if (!this.resetTimeout.isPresent()) {
+                throw new IllegalStateException("Reset timeout is required");
+            }
+            if (this.actorConfigs.isEmpty()) {
+                throw new IllegalStateException("At least one database actor configuration is required");
+            }
+
+            return new DatabaseManagerConfig(this.actorName.get(), this.dataType.get(), this.maxFailures.get(),
+                    this.callTimeout.get(), this.resetTimeout.get(), this.actorConfigs);
         }
     }
 }

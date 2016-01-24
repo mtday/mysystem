@@ -1,7 +1,13 @@
 package mysystem.common.model;
 
+import com.google.gson.JsonObject;
+
 /**
- * This interface is a marker for model objects in this system.
+ * This interface defines the required functionality for model objects in this system.
  */
 public interface Model {
+    /**
+     * @return a JSON representation of the model object used for serialization
+     */
+    JsonObject toJson();
 }

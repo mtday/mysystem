@@ -38,7 +38,6 @@ import java.util.Set;
  */
 public class RegistrationManagerTest {
     private static ActorSystem system = null;
-    private static TestActorRef<RegistrationManager> actorRef = null;
     private static RegistrationManager actor = null;
 
     /**
@@ -47,7 +46,9 @@ public class RegistrationManagerTest {
     @BeforeClass
     public static void setup() {
         system = ActorSystem.create("test-actor-system", ConfigFactory.load("test-config"));
-        actorRef = TestActorRef.create(system, Props.create(RegistrationManager.class), "actor");
+
+        final TestActorRef<RegistrationManager> actorRef =
+                TestActorRef.create(system, Props.create(RegistrationManager.class), "actor");
         actor = actorRef.underlyingActor();
     }
 
@@ -69,7 +70,7 @@ public class RegistrationManagerTest {
 
             try {
                 final CommandPath path = new CommandPath.Builder("exit").build();
-                final Registration reg = new Registration.Builder(getRef(), path).build();
+                final Registration reg = new Registration.Builder().setActorPath(getRef()).setPath(path).build();
                 final RegistrationResponse response = new RegistrationResponse.Builder(reg).build();
 
                 regmgr.tell(response, getRef());
@@ -95,11 +96,11 @@ public class RegistrationManagerTest {
 
             try {
                 final CommandPath exitPath = new CommandPath.Builder("exit").build();
-                final Registration exit = new Registration.Builder(getRef(), exitPath).build();
+                final Registration exit = new Registration.Builder().setActorPath(getRef()).setPath(exitPath).build();
                 final CommandPath quitPath = new CommandPath.Builder("quit").build();
-                final Registration quit = new Registration.Builder(getRef(), quitPath).build();
+                final Registration quit = new Registration.Builder().setActorPath(getRef()).setPath(quitPath).build();
                 final CommandPath helpPath = new CommandPath.Builder("help").build();
-                final Registration help = new Registration.Builder(getRef(), helpPath).build();
+                final Registration help = new Registration.Builder().setActorPath(getRef()).setPath(helpPath).build();
 
                 final RegistrationResponse response = new RegistrationResponse.Builder(exit, quit, help).build();
 

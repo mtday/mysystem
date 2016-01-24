@@ -40,6 +40,11 @@ public class RegistrationRequestTest {
     }
 
     @Test
+    public void testToJson() {
+        assertEquals("{}", new RegistrationRequest.Builder().build().toJson().toString());
+    }
+
+    @Test
     public void testToString() {
         assertEquals("mysystem.shell.model.RegistrationRequest", new RegistrationRequest.Builder().build().toString());
     }

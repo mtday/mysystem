@@ -52,12 +52,18 @@ public class TokenizedUserInputTest {
     }
 
     @Test
+    public void testToJson() throws ParseException {
+        final TokenizedUserInput input = new TokenizedUserInput.Builder("input").build();
+        assertEquals("{\"userInput\":{\"input\":\"input\"},\"tokens\":[\"input\"]}", input.toJson().toString());
+    }
+
+    @Test
     public void testToString() throws ParseException {
         final TokenizedUserInput a = new TokenizedUserInput.Builder("input").build();
         final TokenizedUserInput b = new TokenizedUserInput.Builder("more input").build();
 
-        assertEquals("input", a.toString());
-        assertEquals("more input", b.toString());
+        assertEquals("TokenizedUserInput[userInput=input,tokens=[input]]", a.toString());
+        assertEquals("TokenizedUserInput[userInput=more input,tokens=[more, input]]", b.toString());
     }
 
     @Test

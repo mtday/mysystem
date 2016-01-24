@@ -1,17 +1,26 @@
 package mysystem.shell.model;
 
-import java.io.Serializable;
+import com.google.gson.JsonObject;
+
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 
 /**
  * An immutable object used to request registration information from a shell command.
  */
-public class RegistrationRequest implements Comparable<RegistrationRequest>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class RegistrationRequest implements Model, Comparable<RegistrationRequest> {
     /**
      * Default constructor.
      */
     private RegistrationRequest() {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject();
     }
 
     /**
@@ -49,10 +58,20 @@ public class RegistrationRequest implements Comparable<RegistrationRequest>, Ser
     /**
      * Used to create {@link RegistrationRequest} objects.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<RegistrationRequest> {
         /**
-         * @return a new {@link RegistrationRequest} instance based on this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            // No need to do anything with the json object.
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public RegistrationRequest build() {
             return new RegistrationRequest();
         }

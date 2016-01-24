@@ -140,6 +140,20 @@ public class DatabaseManagerConfigTest {
     }
 
     @Test
+    public void testToJson() {
+        final DatabaseManagerConfig config = new DatabaseManagerConfig.Builder("a", getConfig()).build();
+
+        final StringBuilder expected = new StringBuilder();
+        expected.append("{\"actorName\":\"a\",\"dataType\":\"COMPANY\",\"maxFailures\":5,\"callTimeout\":10000,");
+        expected.append("\"resetTimeout\":60000,\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
+        expected.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\"},");
+        expected.append("{\"actorName\":\"get-by-id\",\"actorClass\":\"mysystem.db.actor.company.GetActor\",");
+        expected.append("\"messageClass\":\"mysystem.db.model.GetAll\"}]}");
+
+        assertEquals(expected.toString(), config.toJson().toString());
+    }
+
+    @Test
     public void testToString() {
         final DatabaseManagerConfig config = new DatabaseManagerConfig.Builder("a", getConfig()).build();
 
@@ -171,27 +185,27 @@ public class DatabaseManagerConfigTest {
         assertNotNull(circuitBreaker);
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testBuilderNoDataType() {
         new DatabaseManagerConfig.Builder("a", getConfigNoDataType()).build();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testBuilderNoMaxFailures() {
         new DatabaseManagerConfig.Builder("a", getConfigNoMaxFailures()).build();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testBuilderNoCallTimeout() {
         new DatabaseManagerConfig.Builder("a", getConfigNoCallTimeout()).build();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testBuilderNoResetTimeout() {
         new DatabaseManagerConfig.Builder("a", getConfigNoResetTimeout()).build();
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testBuilderNoActors() {
         new DatabaseManagerConfig.Builder("a", getConfigNoActors()).build();
     }

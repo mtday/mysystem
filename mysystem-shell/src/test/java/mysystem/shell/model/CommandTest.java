@@ -1,16 +1,11 @@
 package mysystem.shell.model;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.junit.Test;
-import org.mockito.Mockito;
-
-import akka.actor.ActorRef;
 
 import java.text.ParseException;
 
@@ -24,10 +19,15 @@ public class CommandTest {
         final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
         final TokenizedUserInput uC = new TokenizedUserInput.Builder("a b c").build();
 
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("b", "c").build()).build();
-        final Registration rC = new Registration.Builder(ref, new CommandPath.Builder("a", "b", "c").build()).build();
+        final Registration rA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final Registration rB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("b", "c").build())
+                        .build();
+        final Registration rC =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b", "c").build())
+                        .build();
         final RegistrationResponse rrA = new RegistrationResponse.Builder(rA).setUserInput(uA).build();
         final RegistrationResponse rrB = new RegistrationResponse.Builder(rB).setUserInput(uB).build();
         final RegistrationResponse rrC = new RegistrationResponse.Builder(rC).setUserInput(uC).build();
@@ -54,10 +54,15 @@ public class CommandTest {
         final TokenizedUserInput uB = new TokenizedUserInput.Builder("b").build();
         final TokenizedUserInput uC = new TokenizedUserInput.Builder("a b c").build();
 
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("b", "c").build()).build();
-        final Registration rC = new Registration.Builder(ref, new CommandPath.Builder("a", "b", "c").build()).build();
+        final Registration rA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final Registration rB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("b", "c").build())
+                        .build();
+        final Registration rC =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b", "c").build())
+                        .build();
         final RegistrationResponse rrA = new RegistrationResponse.Builder(rA).setUserInput(uA).build();
         final RegistrationResponse rrB = new RegistrationResponse.Builder(rB).setUserInput(uB).build();
         final RegistrationResponse rrC = new RegistrationResponse.Builder(rC).setUserInput(uC).build();
@@ -66,23 +71,24 @@ public class CommandTest {
         final Command b = new Command.Builder(rrB).build();
         final Command c = new Command.Builder(rrC).build();
 
-        assertFalse(a.equals(null));
-        assertTrue(a.equals(a));
-        assertFalse(a.equals(b));
-        assertFalse(a.equals(c));
-        assertFalse(b.equals(a));
-        assertTrue(b.equals(b));
-        assertFalse(b.equals(c));
-        assertFalse(c.equals(a));
-        assertFalse(c.equals(b));
-        assertTrue(c.equals(c));
+        assertNotEquals(a, null);
+        assertEquals(a, a);
+        assertNotEquals(a, b);
+        assertNotEquals(a, c);
+        assertNotEquals(b, a);
+        assertEquals(b, b);
+        assertNotEquals(b, c);
+        assertNotEquals(c, a);
+        assertNotEquals(c, b);
+        assertEquals(c, c);
     }
 
     @Test
     public void testHashCode() throws ParseException, org.apache.commons.cli.ParseException {
         final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration r = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
+        final Registration r =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
         final Command command = new Command.Builder(rr).build();
 
@@ -92,21 +98,24 @@ public class CommandTest {
     @Test
     public void testToString() throws ParseException, org.apache.commons.cli.ParseException {
         final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration r = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
+        final Registration r =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
         final Command command = new Command.Builder(rr).build();
 
-        assertEquals              (
-                "Command[commandPath=a,registration=Registration[path=a b,description=Optional.absent()],userInput=a]",
+        assertEquals(
+                "Command[commandPath=a,registration=Registration[actorPath=path,path=a b,options=Optional"
+                        + ".empty,description=Optional.empty],userInput=TokenizedUserInput[userInput=a,tokens=[a]]]",
                 command.toString());
     }
 
     @Test
     public void testBuilderCopy() throws ParseException, org.apache.commons.cli.ParseException {
         final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration r = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
+        final Registration r =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(r).setUserInput(u).build();
 
         final Command a = new Command.Builder(rr).build();
@@ -118,22 +127,26 @@ public class CommandTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBuilderTooManyRegistrations() throws ParseException, org.apache.commons.cli.ParseException {
         final TokenizedUserInput u = new TokenizedUserInput.Builder("a").build();
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration rA = new Registration.Builder(ref, new CommandPath.Builder("a", "b").build()).build();
-        final Registration rB = new Registration.Builder(ref, new CommandPath.Builder("a", "b", "c").build()).build();
+        final Registration rA =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final Registration rB =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b", "c").build())
+                        .build();
         final RegistrationResponse rr = new RegistrationResponse.Builder(rA, rB).setUserInput(u).build();
         new Command.Builder(rr).build();
     }
 
     @Test
     public void testBuilderWithOptions() throws ParseException, org.apache.commons.cli.ParseException {
-        final Options options = new Options();
-        options.addOption(new Option("i", true, "description"));
+        final Option option =
+                new Option.Builder().setDescription("description").setShortOption("i").setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
 
         final TokenizedUserInput input = new TokenizedUserInput.Builder("a b -i 1").build();
         final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration reg = new Registration.Builder(ref, commandPath, options).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
         final Command command = new Command.Builder(response).build();
 
@@ -145,15 +158,15 @@ public class CommandTest {
 
     @Test(expected = org.apache.commons.cli.MissingArgumentException.class)
     public void testBuilderWithOptionsAndInvalidInput() throws ParseException, org.apache.commons.cli.ParseException {
-        final Option option = new Option("i", true, "description");
-        option.setRequired(true);
-        final Options options = new Options();
-        options.addOption(option);
+        final Option option =
+                new Option.Builder().setDescription("description").setShortOption("i").setArguments(1).setRequired(true)
+                        .build();
+        final Options options = new Options.Builder(option).build();
 
         final TokenizedUserInput input = new TokenizedUserInput.Builder("a b -i").build();
         final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
-        final ActorRef ref = Mockito.mock(ActorRef.class);
-        final Registration reg = new Registration.Builder(ref, commandPath, options).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
         new Command.Builder(response).build();
     }

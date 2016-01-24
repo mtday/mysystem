@@ -1,7 +1,7 @@
 package mysystem.shell.model;
 
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -10,16 +10,17 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
-import java.io.Serializable;
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
+
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * The immutable parsed command to be executed.
  */
-public class Command implements Comparable<Command>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class Command implements Model, Comparable<Command> {
     private final CommandPath commandPath;
     private final Registration registration;
     private final TokenizedUserInput userInput;
@@ -67,8 +68,20 @@ public class Command implements Comparable<Command>, Serializable {
         } catch (final ParseException parseException) {
             // During the Builder process, this command was guaranteed to have a valid command line, so we can
             // safely suppress this exception here.
-            return Optional.absent();
+            return Optional.empty();
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonObject json = new JsonObject();
+        json.add("commandPath", getCommandPath().toJson());
+        json.add("registration", getRegistration().toJson());
+        json.add("userInput", getUserInput().toJson());
+        return json;
     }
 
     /**
@@ -120,19 +133,25 @@ public class Command implements Comparable<Command>, Serializable {
         if (registration.getOptions().isPresent()) {
             final List<String> tokens = userInput.getTokens();
             final String[] array = tokens.toArray(new String[tokens.size()]);
-            return Optional.of(new DefaultParser().parse(registration.getOptions().get(), array));
+            return Optional.of(new DefaultParser().parse(registration.getOptions().get().asOptions(), array));
         } else {
-            return Optional.absent();
+            return Optional.empty();
         }
     }
 
     /**
      * Used to build {@link Command} instances.
      */
-    public static class Builder {
-        private final CommandPath commandPath;
-        private final Registration registration;
-        private final TokenizedUserInput userInput;
+    public static class Builder implements ModelBuilder<Command> {
+        private Optional<CommandPath> commandPath = Optional.empty();
+        private Optional<Registration> registration = Optional.empty();
+        private Optional<TokenizedUserInput> userInput = Optional.empty();
+
+        /**
+         * Default constructor.
+         */
+        public Builder() {
+        }
 
         /**
          * @param response the {@link RegistrationResponse} providing the command registration and the user input
@@ -143,13 +162,13 @@ public class Command implements Comparable<Command>, Serializable {
             Preconditions.checkArgument(response.getRegistrations().size() == 1);
             Preconditions.checkArgument(response.getUserInput().isPresent());
 
-            this.registration = response.getRegistrations().iterator().next();
-            this.userInput = response.getUserInput().get();
-            this.commandPath = new CommandPath.Builder(this.userInput).build();
+            this.registration = Optional.of(response.getRegistrations().iterator().next());
+            this.userInput = Optional.of(response.getUserInput().get());
+            this.commandPath = Optional.of(new CommandPath.Builder(this.userInput.get()).build());
 
             // Used to verify that the command line parameters are valid before the command is created.
             // This guarantees that the command, once built, will be able to create the command line without issue.
-            parseCommandLine(this.registration, this.userInput);
+            parseCommandLine(this.registration.get(), this.userInput.get());
         }
 
         /**
@@ -158,16 +177,49 @@ public class Command implements Comparable<Command>, Serializable {
         public Builder(final Command command) {
             Objects.requireNonNull(command);
 
-            this.commandPath = command.getCommandPath();
-            this.registration = command.getRegistration();
-            this.userInput = command.getUserInput();
+            this.commandPath = Optional.of(command.getCommandPath());
+            this.registration = Optional.of(command.getRegistration());
+            this.userInput = Optional.of(command.getUserInput());
         }
 
         /**
-         * @return the {@link Command} represented by this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+
+            if (json.has("commandPath")) {
+                this.commandPath =
+                        Optional.of(new CommandPath.Builder().fromJson(json.getAsJsonObject("commandPath")).build());
+            }
+            if (json.has("registration")) {
+                this.registration =
+                        Optional.of(new Registration.Builder().fromJson(json.getAsJsonObject("registration")).build());
+            }
+            if (json.has("userInput")) {
+                this.userInput = Optional.of(
+                        new TokenizedUserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public Command build() {
-            return new Command(this.commandPath, this.registration, this.userInput);
+            if (!this.commandPath.isPresent()) {
+                throw new IllegalStateException("A command path is required to build a command");
+            }
+            if (!this.registration.isPresent()) {
+                throw new IllegalStateException("A command registration is required to build a command");
+            }
+            if (!this.userInput.isPresent()) {
+                throw new IllegalStateException("A tokenized user input is required to build a command");
+            }
+
+            return new Command(this.commandPath.get(), this.registration.get(), this.userInput.get());
         }
     }
 }

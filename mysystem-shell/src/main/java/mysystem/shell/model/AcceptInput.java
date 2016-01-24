@@ -1,17 +1,26 @@
 package mysystem.shell.model;
 
-import java.io.Serializable;
+import com.google.gson.JsonObject;
+
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 
 /**
  * An immutable object used to indicate that more input can be accepted from the shell console.
  */
-public class AcceptInput implements Comparable<AcceptInput>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class AcceptInput implements Model, Comparable<AcceptInput> {
     /**
      * Default constructor.
      */
     private AcceptInput() {
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        return new JsonObject();
     }
 
     /**
@@ -49,10 +58,20 @@ public class AcceptInput implements Comparable<AcceptInput>, Serializable {
     /**
      * Used to create {@link AcceptInput} objects.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<AcceptInput> {
         /**
-         * @return a new {@link AcceptInput} instance based on this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            // No need to actually parse anything from the json object.
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public AcceptInput build() {
             return new AcceptInput();
         }

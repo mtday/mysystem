@@ -20,6 +20,12 @@
     </build>
 
     <dependencies>
+        <!-- Akka -->
+        <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-actor_2.11</artifactId>
+        </dependency>
+
         <!-- Common utilities -->
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -28,6 +34,12 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
+        </dependency>
+
+        <!-- JSON processing -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
         </dependency>
 
         <!-- Unit Testing -->

@@ -40,6 +40,11 @@ public class AcceptInputTest {
     }
 
     @Test
+    public void testToJson() {
+        assertEquals("{}", new AcceptInput.Builder().build().toJson().toString());
+    }
+
+    @Test
     public void testToString() {
         assertEquals("mysystem.shell.model.AcceptInput", new AcceptInput.Builder().build().toString());
     }

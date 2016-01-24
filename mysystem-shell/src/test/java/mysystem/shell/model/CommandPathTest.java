@@ -4,12 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import com.google.common.base.Optional;
-
 import org.junit.Test;
 
 import java.text.ParseException;
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * Perform testing of the {@link CommandPath} class and builder.
@@ -89,8 +88,8 @@ public class CommandPathTest {
 
     @Test
     public void testBuilderWithMultipleAdds() {
-        assertEquals                                                                                      ("a b c d e",
-                new CommandPath.Builder("a", "b").add("c").add(Arrays.asList("d", "e")).build().toString());
+        final CommandPath path = new CommandPath.Builder("a", "b").add("c").add(Arrays.asList("d", "e")).build();
+        assertEquals("a b c d e", path.toString());
     }
 
     @Test
@@ -205,5 +204,10 @@ public class CommandPathTest {
 
         assertEquals(2, a.getSize());
         assertEquals(3, b.getSize());
+    }
+
+    @Test
+    public void testToJson() {
+        assertEquals("{\"path\":[\"a\",\"b\"]}", new CommandPath.Builder("a", "b").build().toJson().toString());
     }
 }

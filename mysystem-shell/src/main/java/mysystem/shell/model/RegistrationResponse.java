@@ -1,21 +1,24 @@
 package mysystem.shell.model;
 
-import com.google.common.base.Optional;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 import mysystem.common.util.CollectionComparator;
 import mysystem.common.util.OptionalComparator;
 
-import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -23,9 +26,7 @@ import java.util.TreeSet;
  * An immutable object used to response to a registration request with information describing the commands made
  * available in the shell.
  */
-public class RegistrationResponse implements Comparable<RegistrationResponse>, Serializable {
-    private final static long serialVersionUID = 1L;
-
+public class RegistrationResponse implements Model, Comparable<RegistrationResponse> {
     private final SortedSet<Registration> registrations = new TreeSet<>();
     private final Optional<TokenizedUserInput> userInput;
 
@@ -51,6 +52,22 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
      */
     public Optional<TokenizedUserInput> getUserInput() {
         return this.userInput;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonArray regArr = new JsonArray();
+        getRegistrations().forEach(r -> regArr.add(r.toJson()));
+
+        final JsonObject json = new JsonObject();
+        json.add("registrations", regArr);
+        if (getUserInput().isPresent()) {
+            json.add("userInput", getUserInput().get().toJson());
+        }
+        return json;
     }
 
     /**
@@ -101,9 +118,9 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
     /**
      * Used to create {@link RegistrationResponse} objects.
      */
-    public static class Builder {
+    public static class Builder implements ModelBuilder<RegistrationResponse> {
         private final SortedSet<Registration> registrations = new TreeSet<>();
-        private Optional<TokenizedUserInput> userInput = Optional.absent();
+        private Optional<TokenizedUserInput> userInput = Optional.empty();
 
         /**
          * Default constructor.
@@ -139,12 +156,12 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
                     Optional<CommandPath> commandPath = Optional.of(path);
                     while (commandPath.isPresent()) {
                         final Optional<Registration> match =
-                                Optional.fromNullable(registrationMap.get(commandPath.get()));
+                                Optional.ofNullable(registrationMap.get(commandPath.get()));
                         if (match.isPresent()) {
                             add(match.get());
 
                             // Now that we have found a match, do not process any more parents.
-                            commandPath = Optional.absent();
+                            commandPath = Optional.empty();
                         } else {
                             commandPath = commandPath.get().getParent();
                         }
@@ -194,8 +211,25 @@ public class RegistrationResponse implements Comparable<RegistrationResponse>, S
         }
 
         /**
-         * @return a new {@link RegistrationResponse} instance based on this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+            if (json.has("registrations")) {
+                json.getAsJsonArray("registrations")
+                        .forEach(e -> add(new Registration.Builder().fromJson(e.getAsJsonObject()).build()));
+            }
+            if (json.has("userInput")) {
+                setUserInput(new TokenizedUserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public RegistrationResponse build() {
             return new RegistrationResponse(this.registrations, this.userInput);
         }

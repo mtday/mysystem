@@ -101,14 +101,20 @@ public class DatabaseActorConfigTest {
     }
 
     @Test
+    public void testToJson() {
+        final DatabaseActorConfig config = new DatabaseActorConfig.Builder("a", getConfig()).build();
+
+        assertEquals("{\"actorName\":\"a\",\"actorClass\":\"mysystem.db.actor.company.GetActor\","
+                + "\"messageClass\":\"mysystem.db.model.GetAll\"}", config.toJson().toString());
+    }
+
+    @Test
     public void testToString() {
         final DatabaseActorConfig config = new DatabaseActorConfig.Builder("a", getConfig()).build();
 
-        final StringBuilder expected = new StringBuilder();
-        expected.append("DatabaseActorConfig[actorName=a,actorClass=mysystem.db.actor.company.GetActor,");
-        expected.append("messageClass=mysystem.db.model.GetAll]");
-
-        assertEquals(expected.toString(), config.toString());
+        assertEquals(
+                "DatabaseActorConfig[actorName=a,actorClass=mysystem.db.actor.company.GetActor,messageClass=mysystem"
+                        + ".db.model.GetAll]", config.toString());
     }
 
     @Test(expected = IllegalArgumentException.class)

@@ -40,6 +40,11 @@ public class TerminateTest {
     }
 
     @Test
+    public void testToJson() {
+        assertEquals("{}", new Terminate.Builder().build().toJson().toString());
+    }
+
+    @Test
     public void testToString() {
         assertEquals("mysystem.shell.model.Terminate", new Terminate.Builder().build().toString());
     }

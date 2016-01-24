@@ -145,7 +145,8 @@ public class ConsoleManager extends UntypedActor {
     }
 
     protected void handleUnrecognizedCommand(final UnrecognizedCommand unrecognizedCommand) throws IOException {
-        getConsoleReader().println("The specified command was not recognized: " + unrecognizedCommand.getUserInput());
+        final String input = unrecognizedCommand.getUserInput().getUserInput().getInput();
+        getConsoleReader().println("The specified command was not recognized: " + input);
         getConsoleReader().println("Use 'help' to see all the available commands.");
         getConsoleReader().flush();
         self().tell(new AcceptInput.Builder().build(), self());

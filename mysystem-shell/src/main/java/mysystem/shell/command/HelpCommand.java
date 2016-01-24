@@ -1,6 +1,5 @@
 package mysystem.shell.command;
 
-import org.apache.commons.cli.Option;
 import org.apache.commons.lang3.StringUtils;
 
 import akka.actor.ActorSelection;
@@ -10,6 +9,7 @@ import mysystem.shell.actor.RegistrationManager;
 import mysystem.shell.model.Command;
 import mysystem.shell.model.CommandPath;
 import mysystem.shell.model.ConsoleOutput;
+import mysystem.shell.model.Option;
 import mysystem.shell.model.Registration;
 import mysystem.shell.model.RegistrationLookup;
 import mysystem.shell.model.RegistrationRequest;
@@ -67,7 +67,8 @@ public class HelpCommand extends UntypedActor {
     protected void handleRegistrationRequest() {
         final String description = "display usage information for available shell commands";
         final CommandPath help = new CommandPath.Builder("help").build();
-        final Registration reg = new Registration.Builder(self(), help).setDescription(description).build();
+        final Registration reg =
+                new Registration.Builder().setActorPath(self()).setPath(help).setDescription(description).build();
         sender().tell(new RegistrationResponse.Builder().add(reg).build(), self());
     }
 
@@ -120,10 +121,10 @@ public class HelpCommand extends UntypedActor {
             for (final Option option : registration.getOptions().get().getOptions()) {
                 final StringBuilder str = new StringBuilder("    ");
                 str.append("-");
-                str.append(option.getOpt());
-                if (option.getLongOpt() != null) {
+                str.append(option.getShortOption());
+                if (option.getLongOption().isPresent()) {
                     str.append("  --");
-                    str.append(option.getLongOpt());
+                    str.append(option.getLongOption().get());
                 }
                 if (option.isRequired()) {
                     str.append("  (required)");

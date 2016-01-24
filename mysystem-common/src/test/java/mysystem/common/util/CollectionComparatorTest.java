@@ -1,13 +1,12 @@
 package mysystem.common.util;
 
-import com.google.common.base.Optional;
-
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Perform testing of the {@link CollectionComparatorTest} class.
@@ -72,7 +71,7 @@ public class CollectionComparatorTest {
     @Test
     public void testCompareBothCustomComparator() {
         final Collection<Optional<Integer>> a = Collections.singleton(Optional.of(1));
-        final Collection<Optional<Integer>> b = Arrays.asList(Optional.of(1), Optional.absent());
+        final Collection<Optional<Integer>> b = Arrays.asList(Optional.of(1), Optional.empty());
 
         Assert.assertEquals(-1, new CollectionComparator<Optional<Integer>>(new OptionalComparator<>()).compare(a, b));
     }

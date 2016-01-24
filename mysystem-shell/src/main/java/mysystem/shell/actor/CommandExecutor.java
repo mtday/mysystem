@@ -53,7 +53,7 @@ public class CommandExecutor extends UntypedActor {
     public void onReceive(final Object message) {
         if (message instanceof Command) {
             // Proxy the command to the command's implementation actor.
-            ((Command) message).getRegistration().getActor().tell(message, self());
+            context().actorSelection(((Command) message).getRegistration().getActorPath()).tell(message, self());
         } else {
             // Send everything else back to the console manager.
             getConsoleManager().tell(message, self());

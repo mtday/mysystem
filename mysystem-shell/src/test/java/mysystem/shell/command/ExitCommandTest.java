@@ -90,7 +90,7 @@ public class ExitCommandTest {
         new JavaTestKit(system) {{
             final TokenizedUserInput userInput = new TokenizedUserInput.Builder("exit").build();
             final CommandPath path = new CommandPath.Builder("exit").build();
-            final Registration reg = new Registration.Builder(getRef(), path).build();
+            final Registration reg = new Registration.Builder().setActorPath(getRef()).setPath(path).build();
             final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(userInput).build();
             final Command command = new Command.Builder(response).build();
 

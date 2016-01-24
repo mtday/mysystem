@@ -1,22 +1,23 @@
 package mysystem.shell.model;
 
-import com.google.common.base.Optional;
+import com.google.gson.JsonObject;
 
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.model.Model;
+import mysystem.common.model.ModelBuilder;
 import mysystem.common.util.OptionalComparator;
 
-import java.io.Serializable;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * An immutable representation of output to be sent to the shell display.
  */
-public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
-    private final static long serialVersionUID = 1L;
+public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
     private final Optional<String> output;
     private final boolean hasMore;
     private final boolean terminate;
@@ -51,6 +52,20 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
      */
     public boolean isTerminate() {
         return this.terminate;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public JsonObject toJson() {
+        final JsonObject json = new JsonObject();
+        if (getOutput().isPresent()) {
+            json.addProperty("output", getOutput().get());
+        }
+        json.addProperty("hasMore", hasMore());
+        json.addProperty("terminate", isTerminate());
+        return json;
     }
 
     /**
@@ -104,16 +119,15 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
     /**
      * Used to create {@link ConsoleOutput} instances.
      */
-    public static class Builder {
-        private final Optional<String> output;
+    public static class Builder implements ModelBuilder<ConsoleOutput> {
+        private Optional<String> output = Optional.empty();
         private boolean hasMore = false;
         private boolean terminate = false;
 
         /**
-         * Default constructor, output will be a blank string.
+         * Default constructor.
          */
         public Builder() {
-            this.output = Optional.absent();
         }
 
         /**
@@ -151,8 +165,27 @@ public class ConsoleOutput implements Comparable<ConsoleOutput>, Serializable {
         }
 
         /**
-         * @return the {@link ConsoleOutput} defined in this builder
+         * {@inheritDoc}
          */
+        @Override
+        public Builder fromJson(final JsonObject json) {
+            Objects.requireNonNull(json);
+            if (json.has("output")) {
+                this.output = Optional.of(json.getAsJsonPrimitive("output").getAsString());
+            }
+            if (json.has("hasMore")) {
+                this.hasMore = json.getAsJsonPrimitive("hasMore").getAsBoolean();
+            }
+            if (json.has("terminate")) {
+                this.terminate = json.getAsJsonPrimitive("terminate").getAsBoolean();
+            }
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
         public ConsoleOutput build() {
             return new ConsoleOutput(this.output, this.hasMore, this.terminate);
         }
