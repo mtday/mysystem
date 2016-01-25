@@ -7,6 +7,11 @@ import com.google.gson.JsonObject;
  */
 public interface Model {
     /**
+     * @return the serialization manifest used to uniquely distinguish this model object
+     */
+    String getSerializationManifest();
+
+    /**
      * @return a JSON representation of the model object used for serialization
      */
     JsonObject toJson();

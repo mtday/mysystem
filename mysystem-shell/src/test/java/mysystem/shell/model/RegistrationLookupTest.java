@@ -78,7 +78,10 @@ public class RegistrationLookupTest {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
         assertEquals(
-                "{\"paths\":[{\"path\":[\"a\"]}],\"userInput\":{\"userInput\":{\"input\":\"a\"},\"tokens\":[\"a\"]}}",
+                "{\"paths\":[{\"path\":[\"a\"],\"manifest\":\"CommandPath\"}],"
+                        + "\"userInput\":{\"userInput\":{\"input\":\"a\",\"manifest\":\"UserInput\"},"
+                        + "\"tokens\":[\"a\"],\"manifest\":\"TokenizedUserInput\"},"
+                        + "\"manifest\":\"RegistrationLookup\"}",
                 lookup.toJson().toString());
     }
 
@@ -86,7 +89,8 @@ public class RegistrationLookupTest {
     public void testToString() throws ParseException {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
-        assertEquals("RegistrationLookup[paths=[a],userInput=Optional[TokenizedUserInput[userInput=a,tokens=[a]]]]",
+        assertEquals(
+                "RegistrationLookup[paths=[a],userInput=Optional[TokenizedUserInput[userInput=a,tokens=[a]]]]",
                 lookup.toString());
     }
 

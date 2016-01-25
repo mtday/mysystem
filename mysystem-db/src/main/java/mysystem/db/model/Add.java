@@ -25,26 +25,26 @@ import java.util.TreeSet;
  * An immutable class that represents the information needed to add model objects to a table in the database.
  */
 public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<M>> {
-    private final String manifest;
+    private final static String SERIALIZATION_MANIFEST = Add.class.getSimpleName();
+
     private final DataType dataType;
     private final SortedSet<M> models;
 
     /**
-     * @param manifest the serialization manifest value used to determine the type of model objects in this collection
      * @param dataType the type of data to be added to the database
      * @param models the model objects to add to the database
      */
-    private Add(final String manifest, final DataType dataType, final SortedSet<M> models) {
-        this.manifest = manifest;
+    private Add(final DataType dataType, final SortedSet<M> models) {
         this.dataType = dataType;
         this.models = new TreeSet<>(models);
     }
 
     /**
-     * @return the serialization manifest value used to determine the type of model objects in this collection
+     * {@inheritDoc}
      */
-    protected String getManifest() {
-        return this.manifest;
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -71,9 +71,9 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
         getModels().forEach(m -> modelArr.add(m.toJson()));
 
         final JsonObject json = new JsonObject();
-        json.addProperty("manifest", getManifest());
         json.addProperty("dataType", getDataType().name());
         json.add("models", modelArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -83,7 +83,6 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
     @Override
     public String toString() {
         final ToStringBuilder str = new ToStringBuilder(this, ToStringStyle.SHORT_PREFIX_STYLE);
-        str.append("manifest", getManifest());
         str.append("dataType", getDataType());
         str.append("models", getModels());
         return str.build();
@@ -99,7 +98,6 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
         }
 
         final CompareToBuilder cmp = new CompareToBuilder();
-        cmp.append(getManifest(), other.getManifest());
         cmp.append(getDataType(), other.getDataType());
         cmp.append(getModels(), other.getModels(), new CollectionComparator<M>());
         return cmp.toComparison();
@@ -120,7 +118,6 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
     @Override
     public int hashCode() {
         final HashCodeBuilder hash = new HashCodeBuilder();
-        hash.append(getManifest());
         hash.append(getDataType().name());
         hash.append(getModels());
         return hash.toHashCode();
@@ -130,7 +127,6 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
      * Used to create {@link Add} instances.
      */
     public static class Builder<M extends Model> implements ModelBuilder<Add<M>> {
-        private final ManifestMapping manifestMapping = new ManifestMapping();
         private Optional<DataType> dataType = Optional.empty();
         private final SortedSet<M> models = new TreeSet<>();
 
@@ -193,32 +189,24 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
         }
 
         /**
-         * @return the serialization manifest type for the model objects in this collection
-         */
-        protected Optional<String> getManifest() {
-            if (this.models.isEmpty()) {
-                return Optional.empty();
-            }
-            return this.manifestMapping.getManifest(this.models.first().getClass());
-        }
-
-        /**
          * {@inheritDoc}
          */
         @Override
         @SuppressWarnings("unchecked")
-        public Builder<M> fromJson(final JsonObject json) {
+        public Builder<M> fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("dataType")) {
                 setDataType(DataType.valueOf(json.getAsJsonPrimitive("dataType").getAsString()));
             }
-            if (json.has("models") && json.has("manifest")) {
-                final Optional<ModelBuilder<?>> builder =
-                        this.manifestMapping.getBuilder(json.getAsJsonPrimitive("manifest").getAsString());
-                if (builder.isPresent()) {
-                    json.getAsJsonArray("models")
-                            .forEach(e -> add((M) builder.get().fromJson(e.getAsJsonObject()).build()));
-                }
+            if (json.has("models")) {
+                json.getAsJsonArray("models").forEach(jsonElement -> {
+                    final JsonObject obj = jsonElement.getAsJsonObject();
+                    final Optional<ModelBuilder<?>> builder =
+                            mapping.getBuilder(obj.getAsJsonPrimitive("manifest").getAsString());
+                    if (builder.isPresent()) {
+                        add((M) builder.get().fromJson(mapping, obj).build());
+                    }
+                });
             }
             return this;
         }
@@ -235,12 +223,15 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
                 throw new IllegalStateException("At least one model object is required");
             }
 
-            final Optional<String> manifest = getManifest();
-            if (!manifest.isPresent()) {
-                throw new IllegalStateException("Unable to determine manifest for model objects");
-            }
+            return new Add<>(this.dataType.get(), this.models);
+        }
 
-            return new Add<>(manifest.get(), this.dataType.get(), this.models);
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

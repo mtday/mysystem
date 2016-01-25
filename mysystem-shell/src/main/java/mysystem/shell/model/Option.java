@@ -11,6 +11,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.OptionalComparator;
 
 import java.util.Objects;
@@ -20,6 +21,8 @@ import java.util.Optional;
  * An immutable class representing a possible option available to a command.
  */
 public class Option implements Model, Comparable<Option> {
+    private final static String SERIALIZATION_MANIFEST = Option.class.getSimpleName();
+
     private final String description;
     private final String shortOption;
     private final Optional<String> longOption;
@@ -47,6 +50,14 @@ public class Option implements Model, Comparable<Option> {
         this.arguments = arguments;
         this.required = required;
         this.optionalArg = optionalArg;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -133,6 +144,7 @@ public class Option implements Model, Comparable<Option> {
         json.addProperty("arguments", getArguments());
         json.addProperty("required", isRequired());
         json.addProperty("optionalArg", hasOptionalArg());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -283,7 +295,7 @@ public class Option implements Model, Comparable<Option> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("description")) {
                 setDescription(json.getAsJsonPrimitive("description").getAsString());
@@ -323,6 +335,14 @@ public class Option implements Model, Comparable<Option> {
 
             return new Option(this.description.get(), this.shortOption.get(), this.longOption, this.argName,
                     this.arguments, this.required, this.optionalArg);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

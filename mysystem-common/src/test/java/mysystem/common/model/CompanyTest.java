@@ -9,10 +9,14 @@ import com.google.gson.JsonParser;
 
 import org.junit.Test;
 
+import mysystem.common.serialization.ManifestMapping;
+
 /**
  * Perform testing of the {@link Company} class and builder.
  */
 public class CompanyTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final Company a = new Company.Builder().setId(1).setName("a").build();
@@ -85,10 +89,10 @@ public class CompanyTest {
         final Company c = new Company.Builder().setId(2).setName("b").build();
         final Company d = new Company.Builder().setName("b").build();
 
-        assertEquals("{\"id\":1,\"name\":\"a\",\"active\":true}", a.toJson().toString());
-        assertEquals("{\"id\":1,\"name\":\"a\",\"active\":false}", b.toJson().toString());
-        assertEquals("{\"id\":2,\"name\":\"b\",\"active\":true}", c.toJson().toString());
-        assertEquals("{\"name\":\"b\",\"active\":true}", d.toJson().toString());
+        assertEquals("{\"id\":1,\"name\":\"a\",\"active\":true,\"manifest\":\"Company\"}", a.toJson().toString());
+        assertEquals("{\"id\":1,\"name\":\"a\",\"active\":false,\"manifest\":\"Company\"}", b.toJson().toString());
+        assertEquals("{\"id\":2,\"name\":\"b\",\"active\":true,\"manifest\":\"Company\"}", c.toJson().toString());
+        assertEquals("{\"name\":\"b\",\"active\":true,\"manifest\":\"Company\"}", d.toJson().toString());
     }
 
     @Test
@@ -132,15 +136,15 @@ public class CompanyTest {
         final Company cc = new Company.Builder().setId(2).setName("b").build();
         final Company cd = new Company.Builder().setName("b").build();
 
-        assertEquals(ca, new Company.Builder().fromJson(ja).build());
-        assertEquals(cb, new Company.Builder().fromJson(jb).build());
-        assertEquals(cc, new Company.Builder().fromJson(jc).build());
-        assertEquals(cd, new Company.Builder().fromJson(jd).build());
+        assertEquals(ca, new Company.Builder().fromJson(mapping, ja).build());
+        assertEquals(cb, new Company.Builder().fromJson(mapping, jb).build());
+        assertEquals(cc, new Company.Builder().fromJson(mapping, jc).build());
+        assertEquals(cd, new Company.Builder().fromJson(mapping, jd).build());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testBuilderFromJsonNoName() {
-        new Company.Builder().fromJson(new JsonParser().parse("{\"active\":true}").getAsJsonObject()).build();
+        new Company.Builder().fromJson(mapping, new JsonParser().parse("{\"active\":true}").getAsJsonObject()).build();
     }
 
     @Test

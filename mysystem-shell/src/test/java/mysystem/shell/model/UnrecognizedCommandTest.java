@@ -75,7 +75,10 @@ public class UnrecognizedCommandTest {
     public void testToJson() throws ParseException {
         final TokenizedUserInput input = new TokenizedUserInput.Builder("a").build();
         final UnrecognizedCommand cmd = new UnrecognizedCommand.Builder(input).build();
-        assertEquals("{\"userInput\":{\"userInput\":{\"input\":\"a\"},\"tokens\":[\"a\"]}}", cmd.toJson().toString());
+        assertEquals(
+                "{\"userInput\":{\"userInput\":{\"input\":\"a\",\"manifest\":\"UserInput\"},\"tokens\":[\"a\"],"
+                        + "\"manifest\":\"TokenizedUserInput\"},\"manifest\":\"UnrecognizedCommand\"}",
+                cmd.toJson().toString());
     }
 
     @Test

@@ -23,12 +23,6 @@ public class ManifestMappingTest {
     }
 
     @Test
-    public void testGetManifestUnrecognized() {
-        final Optional<String> manifest = new ManifestMapping().getManifest(String.class);
-        assertFalse(manifest.isPresent());
-    }
-
-    @Test
     public void testGetBuilder() {
         final Optional<ModelBuilder<?>> builder = new ManifestMapping().getBuilder(Company.class.getSimpleName());
         assertTrue(builder.isPresent());

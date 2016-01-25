@@ -1,8 +1,10 @@
 package mysystem.db.model;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.typesafe.config.Config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -11,6 +13,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import akka.actor.UntypedActor;
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +22,8 @@ import java.util.Optional;
  * An immutable object representing the configuration for the actor that manages a database operation.
  */
 public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfig> {
+    private final static String SERIALIZATION_MANIFEST = DatabaseActorConfig.class.getSimpleName();
+
     private final String actorName;
     private final Class<? extends UntypedActor> actorClass;
     private final Class<?> messageClass;
@@ -33,6 +38,14 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
         this.actorName = actorName;
         this.actorClass = actorClass;
         this.messageClass = messageClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -65,6 +78,7 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
         json.addProperty("actorName", getActorName());
         json.addProperty("actorClass", getActorClass().getName());
         json.addProperty("messageClass", getMessageClass().getName());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -145,7 +159,7 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
          * @param actorConfig the configuration defined for the actor
          */
         public Builder(final String actorName, final Config actorConfig) {
-            this.actorName = Optional.of(Objects.requireNonNull(actorName));
+            setActorName(actorName);
 
             if (Objects.requireNonNull(actorConfig).hasPath("actor-class")) {
                 setActorClass(actorConfig.getString("actor-class"));
@@ -158,6 +172,17 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
             } else {
                 throw new IllegalArgumentException("Database actor config must specify a message class: " + actorName);
             }
+        }
+
+        /**
+         * @param actorName the name of the actor when deployed into an actor system
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setActorName(final String actorName) {
+            Objects.requireNonNull(actorName);
+            Preconditions.checkArgument(StringUtils.isNotBlank(actorName), "Invalid actor name");
+            this.actorName = Optional.of(actorName);
+            return this;
         }
 
         /**
@@ -190,8 +215,17 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
+            if (json.has("actorName")) {
+                setActorName(json.getAsJsonPrimitive("actorName").getAsString());
+            }
+            if (json.has("actorClass")) {
+                setActorClass(json.getAsJsonPrimitive("actorClass").getAsString());
+            }
+            if (json.has("messageClass")) {
+                setMessageClass(json.getAsJsonPrimitive("messageClass").getAsString());
+            }
             return this;
         }
 
@@ -211,6 +245,14 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
             }
 
             return new DatabaseActorConfig(this.actorName.get(), this.actorClass.get(), this.messageClass.get());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

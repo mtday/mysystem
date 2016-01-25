@@ -54,7 +54,8 @@ public class TokenizedUserInputTest {
     @Test
     public void testToJson() throws ParseException {
         final TokenizedUserInput input = new TokenizedUserInput.Builder("input").build();
-        assertEquals("{\"userInput\":{\"input\":\"input\"},\"tokens\":[\"input\"]}", input.toJson().toString());
+        assertEquals("{\"userInput\":{\"input\":\"input\",\"manifest\":\"UserInput\"},\"tokens\":[\"input\"],"
+                + "\"manifest\":\"TokenizedUserInput\"}", input.toJson().toString());
     }
 
     @Test

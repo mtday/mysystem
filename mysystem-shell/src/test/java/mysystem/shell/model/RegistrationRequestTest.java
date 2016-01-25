@@ -41,7 +41,9 @@ public class RegistrationRequestTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{}", new RegistrationRequest.Builder().build().toJson().toString());
+        assertEquals(
+                "{\"manifest\":\"RegistrationRequest\"}",
+                new RegistrationRequest.Builder().build().toJson().toString());
     }
 
     @Test

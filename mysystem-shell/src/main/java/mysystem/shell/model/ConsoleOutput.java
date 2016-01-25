@@ -9,6 +9,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.OptionalComparator;
 
 import java.util.Objects;
@@ -18,6 +19,8 @@ import java.util.Optional;
  * An immutable representation of output to be sent to the shell display.
  */
 public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
+    private final static String SERIALIZATION_MANIFEST = ConsoleOutput.class.getSimpleName();
+
     private final Optional<String> output;
     private final boolean hasMore;
     private final boolean terminate;
@@ -31,6 +34,14 @@ public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
         this.output = output;
         this.hasMore = hasMore;
         this.terminate = terminate;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -65,6 +76,7 @@ public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
         }
         json.addProperty("hasMore", hasMore());
         json.addProperty("terminate", isTerminate());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -168,7 +180,7 @@ public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("output")) {
                 this.output = Optional.of(json.getAsJsonPrimitive("output").getAsString());
@@ -188,6 +200,14 @@ public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
         @Override
         public ConsoleOutput build() {
             return new ConsoleOutput(this.output, this.hasMore, this.terminate);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

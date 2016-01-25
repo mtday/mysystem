@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,6 +22,8 @@ import java.util.Optional;
  * The immutable parsed command to be executed.
  */
 public class Command implements Model, Comparable<Command> {
+    private final static String SERIALIZATION_MANIFEST = Command.class.getSimpleName();
+
     private final CommandPath commandPath;
     private final Registration registration;
     private final TokenizedUserInput userInput;
@@ -35,6 +38,14 @@ public class Command implements Model, Comparable<Command> {
         this.commandPath = commandPath;
         this.registration = registration;
         this.userInput = userInput;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -81,6 +92,7 @@ public class Command implements Model, Comparable<Command> {
         json.add("commandPath", getCommandPath().toJson());
         json.add("registration", getRegistration().toJson());
         json.add("userInput", getUserInput().toJson());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -186,20 +198,20 @@ public class Command implements Model, Comparable<Command> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
 
             if (json.has("commandPath")) {
                 this.commandPath =
-                        Optional.of(new CommandPath.Builder().fromJson(json.getAsJsonObject("commandPath")).build());
+                        Optional.of(new CommandPath.Builder().fromJson(mapping, json.getAsJsonObject("commandPath")).build());
             }
             if (json.has("registration")) {
                 this.registration =
-                        Optional.of(new Registration.Builder().fromJson(json.getAsJsonObject("registration")).build());
+                        Optional.of(new Registration.Builder().fromJson(mapping, json.getAsJsonObject("registration")).build());
             }
             if (json.has("userInput")) {
                 this.userInput = Optional.of(
-                        new TokenizedUserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+                        new TokenizedUserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
             }
             return this;
         }
@@ -220,6 +232,14 @@ public class Command implements Model, Comparable<Command> {
             }
 
             return new Command(this.commandPath.get(), this.registration.get(), this.userInput.get());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

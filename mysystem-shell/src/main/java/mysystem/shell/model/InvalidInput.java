@@ -9,6 +9,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.OptionalComparator;
 
 import java.text.ParseException;
@@ -19,6 +20,8 @@ import java.util.Optional;
  * An immutable object used to represent invalid input provided by the user.
  */
 public class InvalidInput implements Model, Comparable<InvalidInput> {
+    private final static String SERIALIZATION_MANIFEST = InvalidInput.class.getSimpleName();
+
     private final UserInput userInput;
     private final String error;
     private final Optional<Integer> location;
@@ -32,6 +35,14 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
         this.userInput = userInput;
         this.error = error;
         this.location = location;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -66,6 +77,7 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
         if (getLocation().isPresent()) {
             json.addProperty("location", getLocation().get());
         }
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -166,9 +178,10 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
-            this.userInput = Optional.of(new UserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+            this.userInput =
+                    Optional.of(new UserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
             this.error = Optional.of(json.getAsJsonPrimitive("error").getAsString());
             if (json.has("location")) {
                 this.location = Optional.of(json.getAsJsonPrimitive("location").getAsInt());
@@ -188,6 +201,14 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
             }
 
             return new InvalidInput(this.userInput.get(), this.error.get(), this.location);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

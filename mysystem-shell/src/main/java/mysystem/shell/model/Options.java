@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 
 import java.util.Arrays;
@@ -24,6 +25,8 @@ import java.util.TreeSet;
  * An immutable class used to manage the options available to a command.
  */
 public class Options implements Model, Comparable<Options> {
+    private final static String SERIALIZATION_MANIFEST = Options.class.getSimpleName();
+
     private final SortedSet<Option> options = new TreeSet<>();
 
     /**
@@ -31,6 +34,14 @@ public class Options implements Model, Comparable<Options> {
      */
     private Options(final Set<Option> options) {
         this.options.addAll(options);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -59,6 +70,7 @@ public class Options implements Model, Comparable<Options> {
 
         final JsonObject json = new JsonObject();
         json.add("options", optionArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -147,10 +159,10 @@ public class Options implements Model, Comparable<Options> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             if (Objects.requireNonNull(json).has("options")) {
                 json.getAsJsonArray("options")
-                        .forEach(e -> add(new Option.Builder().fromJson(e.getAsJsonObject()).build()));
+                        .forEach(e -> add(new Option.Builder().fromJson(mapping, e.getAsJsonObject()).build()));
             }
             return this;
         }
@@ -165,6 +177,14 @@ public class Options implements Model, Comparable<Options> {
             }
 
             return new Options(this.options);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

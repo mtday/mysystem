@@ -8,6 +8,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import akka.actor.ActorRef;
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -16,6 +17,8 @@ import java.util.Optional;
  * An immutable representation of a command registration available for use within the shell.
  */
 public class Registration implements Model, Comparable<Registration> {
+    private final static String SERIALIZATION_MANIFEST = Registration.class.getSimpleName();
+
     private final String actorPath;
     private final CommandPath path;
     private final Optional<Options> options;
@@ -33,6 +36,14 @@ public class Registration implements Model, Comparable<Registration> {
         this.path = path;
         this.options = options;
         this.description = description;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -77,6 +88,7 @@ public class Registration implements Model, Comparable<Registration> {
         if (getDescription().isPresent()) {
             json.addProperty("description", getDescription().get());
         }
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -202,16 +214,16 @@ public class Registration implements Model, Comparable<Registration> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("actorPath")) {
                 setActorPath(json.getAsJsonPrimitive("actorPath").getAsString());
             }
             if (json.has("path")) {
-                setPath(new CommandPath.Builder().fromJson(json.getAsJsonObject("path")).build());
+                setPath(new CommandPath.Builder().fromJson(mapping, json.getAsJsonObject("path")).build());
             }
             if (json.has("options")) {
-                setOptions(new Options.Builder().fromJson(json.getAsJsonObject("options")).build());
+                setOptions(new Options.Builder().fromJson(mapping, json.getAsJsonObject("options")).build());
             }
             if (json.has("description")) {
                 setDescription(json.getAsJsonPrimitive("description").getAsString());
@@ -232,6 +244,14 @@ public class Registration implements Model, Comparable<Registration> {
             }
 
             return new Registration(this.actorPath.get(), this.path.get(), this.options, this.description);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

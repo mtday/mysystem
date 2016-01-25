@@ -146,9 +146,10 @@ public class DatabaseManagerConfigTest {
         final StringBuilder expected = new StringBuilder();
         expected.append("{\"actorName\":\"a\",\"dataType\":\"COMPANY\",\"maxFailures\":5,\"callTimeout\":10000,");
         expected.append("\"resetTimeout\":60000,\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
-        expected.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\"},");
-        expected.append("{\"actorName\":\"get-by-id\",\"actorClass\":\"mysystem.db.actor.company.GetActor\",");
-        expected.append("\"messageClass\":\"mysystem.db.model.GetAll\"}]}");
+        expected.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        expected.append("\"manifest\":\"DatabaseActorConfig\"},{\"actorName\":\"get-by-id\",\"actorClass\":");
+        expected.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        expected.append("\"manifest\":\"DatabaseActorConfig\"}],\"manifest\":\"DatabaseManagerConfig\"}");
 
         assertEquals(expected.toString(), config.toJson().toString());
     }

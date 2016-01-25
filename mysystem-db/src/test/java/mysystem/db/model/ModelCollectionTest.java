@@ -68,9 +68,9 @@ public class ModelCollectionTest {
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
-        assertEquals(23273, a.hashCode());
-        assertEquals(-2022412317, b.hashCode());
-        assertEquals(-2023276970, c.hashCode());
+        assertEquals(629, a.hashCode());
+        assertEquals(1730046, b.hashCode());
+        assertEquals(865393, c.hashCode());
     }
 
     @Test
@@ -83,10 +83,13 @@ public class ModelCollectionTest {
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
-        assertEquals("{\"models\":[]}", a.toJson().toString());
-        assertEquals("{\"models\":[{\"name\":\"a\",\"active\":true},{\"name\":\"b\",\"active\":true}],"
-                + "\"manifest\":\"Company\"}", b.toJson().toString());
-        assertEquals("{\"models\":[{\"name\":\"c\",\"active\":true}],\"manifest\":\"Company\"}", c.toJson().toString());
+        assertEquals("{\"models\":[],\"manifest\":\"ModelCollection\"}", a.toJson().toString());
+        assertEquals(
+                "{\"models\":[{\"name\":\"a\",\"active\":true,\"manifest\":\"Company\"},{\"name\":\"b\","
+                        + "\"active\":true,\"manifest\":\"Company\"}],\"manifest\":\"ModelCollection\"}",
+                b.toJson().toString());
+        assertEquals("{\"models\":[{\"name\":\"c\",\"active\":true,\"manifest\":\"Company\"}],"
+                + "\"manifest\":\"ModelCollection\"}", c.toJson().toString());
     }
 
     @Test
@@ -99,13 +102,10 @@ public class ModelCollectionTest {
         final ModelCollection<Company> b = new ModelCollection.Builder<>(companyA, companyB).build();
         final ModelCollection<Company> c = new ModelCollection.Builder<>(companyC).build();
 
-        assertEquals("ModelCollection[manifest=Optional.empty,models=[]]", a.toString());
-        assertEquals(
-                "ModelCollection[manifest=Optional[Company],models=[Company[id=Optional.empty,name=a,active=true], "
-                        + "Company[id=Optional.empty,name=b,active=true]]]", b.toString());
-        assertEquals(
-                "ModelCollection[manifest=Optional[Company],models=[Company[id=Optional.empty,name=c,active=true]]]",
-                c.toString());
+        assertEquals("ModelCollection[models=[]]", a.toString());
+        assertEquals("ModelCollection[models=[Company[id=Optional.empty,name=a,active=true], "
+                + "Company[id=Optional.empty,name=b,active=true]]]", b.toString());
+        assertEquals("ModelCollection[models=[Company[id=Optional.empty,name=c,active=true]]]", c.toString());
     }
 
     @Test
@@ -125,7 +125,6 @@ public class ModelCollectionTest {
 
     @Test
     public void testBuilderNoCompanies() {
-        assertEquals(
-                "ModelCollection[manifest=Optional.empty,models=[]]", new ModelCollection.Builder().build().toString());
+        assertEquals("ModelCollection[models=[]]", new ModelCollection.Builder().build().toString());
     }
 }

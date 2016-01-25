@@ -48,8 +48,12 @@ public class ConsoleOutputTest {
         final ConsoleOutput a = new ConsoleOutput.Builder("output").setTerminate(true).build();
         final ConsoleOutput b = new ConsoleOutput.Builder("more output").setHasMore(true).build();
 
-        assertEquals("{\"output\":\"output\",\"hasMore\":false,\"terminate\":true}", a.toJson().toString());
-        assertEquals("{\"output\":\"more output\",\"hasMore\":true,\"terminate\":false}", b.toJson().toString());
+        assertEquals(
+                "{\"output\":\"output\",\"hasMore\":false,\"terminate\":true,\"manifest\":\"ConsoleOutput\"}",
+                a.toJson().toString());
+        assertEquals(
+                "{\"output\":\"more output\",\"hasMore\":true,\"terminate\":false,\"manifest\":\"ConsoleOutput\"}",
+                b.toJson().toString());
     }
 
     @Test

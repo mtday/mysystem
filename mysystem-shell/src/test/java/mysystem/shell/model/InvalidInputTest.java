@@ -66,7 +66,8 @@ public class InvalidInputTest {
     public void testToJson() {
         final ParseException ex = new ParseException("Message", 10);
         final InvalidInput a = new InvalidInput.Builder(new UserInput.Builder("a").build(), ex).build();
-        assertEquals("{\"userInput\":{\"input\":\"a\"},\"error\":\"Message\",\"location\":10}", a.toJson().toString());
+        assertEquals("{\"userInput\":{\"input\":\"a\",\"manifest\":\"UserInput\"},\"error\":\"Message\","
+                + "\"location\":10,\"manifest\":\"InvalidInput\"}", a.toJson().toString());
     }
 
     @Test

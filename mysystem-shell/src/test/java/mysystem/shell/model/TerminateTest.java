@@ -41,7 +41,7 @@ public class TerminateTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{}", new Terminate.Builder().build().toJson().toString());
+        assertEquals("{\"manifest\":\"Terminate\"}", new Terminate.Builder().build().toJson().toString());
     }
 
     @Test

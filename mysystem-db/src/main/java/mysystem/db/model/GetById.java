@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 import mysystem.common.util.OptionalComparator;
 
@@ -26,6 +27,8 @@ import java.util.TreeSet;
  * in the database.
  */
 public class GetById implements Model, HasDataType, Comparable<GetById> {
+    private final static String SERIALIZATION_MANIFEST = GetById.class.getSimpleName();
+
     private final DataType dataType;
     private final SortedSet<Integer> ids;
     private final Optional<Boolean> active;
@@ -40,6 +43,14 @@ public class GetById implements Model, HasDataType, Comparable<GetById> {
         this.dataType = dataType;
         this.ids = new TreeSet<>(ids);
         this.active = active;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -79,6 +90,7 @@ public class GetById implements Model, HasDataType, Comparable<GetById> {
             json.addProperty("active", getActive().get());
         }
         json.add("ids", idsArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -216,7 +228,7 @@ public class GetById implements Model, HasDataType, Comparable<GetById> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("dataType")) {
                 setDataType(DataType.valueOf(json.getAsJsonPrimitive("dataType").getAsString()));
@@ -243,6 +255,14 @@ public class GetById implements Model, HasDataType, Comparable<GetById> {
             }
 
             return new GetById(this.dataType.get(), this.ids, this.active);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

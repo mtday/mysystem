@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 
 import java.nio.charset.StandardCharsets;
@@ -24,6 +25,8 @@ import java.util.Optional;
  * An immutable representation of tokenized user input received from the shell interface.
  */
 public class TokenizedUserInput implements Model, Comparable<TokenizedUserInput> {
+    private final static String SERIALIZATION_MANIFEST = TokenizedUserInput.class.getSimpleName();
+
     private final UserInput userInput;
     private final List<String> tokens;
 
@@ -34,6 +37,14 @@ public class TokenizedUserInput implements Model, Comparable<TokenizedUserInput>
     private TokenizedUserInput(final UserInput userInput, final List<String> tokens) {
         this.userInput = userInput;
         this.tokens = new ArrayList<>(tokens);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -61,6 +72,7 @@ public class TokenizedUserInput implements Model, Comparable<TokenizedUserInput>
         final JsonObject json = new JsonObject();
         json.add("userInput", getUserInput().toJson());
         json.add("tokens", tokensArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -235,10 +247,10 @@ public class TokenizedUserInput implements Model, Comparable<TokenizedUserInput>
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("userInput")) {
-                setUserInput(new UserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+                setUserInput(new UserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
             }
             if (json.has("tokens")) {
                 json.getAsJsonArray("tokens").forEach(e -> this.tokens.add(e.getAsString()));
@@ -255,6 +267,14 @@ public class TokenizedUserInput implements Model, Comparable<TokenizedUserInput>
             }
 
             return new TokenizedUserInput(this.userInput.get(), this.tokens);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

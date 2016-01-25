@@ -4,11 +4,14 @@ import com.google.gson.JsonObject;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 /**
  * An immutable object used to indicate that more input can be accepted from the shell console.
  */
 public class AcceptInput implements Model, Comparable<AcceptInput> {
+    private final static String SERIALIZATION_MANIFEST = AcceptInput.class.getSimpleName();
+
     /**
      * Default constructor.
      */
@@ -19,8 +22,18 @@ public class AcceptInput implements Model, Comparable<AcceptInput> {
      * {@inheritDoc}
      */
     @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public JsonObject toJson() {
-        return new JsonObject();
+        final JsonObject json = new JsonObject();
+        json.addProperty("manifest", getSerializationManifest());
+        return json;
     }
 
     /**
@@ -63,7 +76,7 @@ public class AcceptInput implements Model, Comparable<AcceptInput> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             // No need to actually parse anything from the json object.
             return this;
         }
@@ -74,6 +87,14 @@ public class AcceptInput implements Model, Comparable<AcceptInput> {
         @Override
         public AcceptInput build() {
             return new AcceptInput();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

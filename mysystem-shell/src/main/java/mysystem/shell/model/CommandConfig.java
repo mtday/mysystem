@@ -11,6 +11,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 import akka.actor.UntypedActor;
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -19,6 +20,8 @@ import java.util.Optional;
  * An immutable object representing a command configuration to be made available in the shell.
  */
 public class CommandConfig implements Model, Comparable<CommandConfig> {
+    private final static String SERIALIZATION_MANIFEST = CommandConfig.class.getSimpleName();
+
     private final String commandName;
     private final Class<? extends UntypedActor> commandClass;
 
@@ -29,6 +32,14 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
     private CommandConfig(final String commandName, final Class<? extends UntypedActor> commandClass) {
         this.commandName = commandName;
         this.commandClass = commandClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -53,6 +64,7 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
         final JsonObject json = new JsonObject();
         json.addProperty("commandName", getCommandName());
         json.addProperty("commandClass", getCommandClass().getName());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -146,7 +158,7 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             this.commandName = Optional.of(json.getAsJsonPrimitive("commandName").getAsString());
 
@@ -172,6 +184,14 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
             }
 
             return new CommandConfig(this.commandName.get(), this.commandClass.get());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

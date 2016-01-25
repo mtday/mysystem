@@ -17,6 +17,7 @@ import akka.actor.ActorContext;
 import akka.pattern.CircuitBreaker;
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 import scala.concurrent.duration.Duration;
 import scala.concurrent.duration.FiniteDuration;
@@ -35,6 +36,8 @@ import java.util.concurrent.TimeUnit;
  * table.
  */
 public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerConfig> {
+    private final static String SERIALIZATION_MANIFEST = DatabaseManagerConfig.class.getSimpleName();
+
     private final String actorName;
     private final DataType dataType;
 
@@ -63,6 +66,14 @@ public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerC
         this.callTimeout = callTimeout;
         this.resetTimeout = resetTimeout;
         this.actorConfigs.addAll(actorConfigs);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -131,6 +142,7 @@ public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerC
         json.addProperty("callTimeout", getCallTimeout().toMillis());
         json.addProperty("resetTimeout", getResetTimeout().toMillis());
         json.add("actorConfigs", actorConfArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -325,7 +337,7 @@ public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerC
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("actorName")) {
                 setActorName(json.getAsJsonPrimitive("actorName").getAsString());
@@ -345,8 +357,8 @@ public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerC
                         Duration.create(json.getAsJsonPrimitive("resetTimeout").getAsLong(), TimeUnit.MILLISECONDS));
             }
             if (json.has("actorConfigs")) {
-                json.getAsJsonArray("actorConfigs")
-                        .forEach(e -> add(new DatabaseActorConfig.Builder().fromJson(e.getAsJsonObject()).build()));
+                json.getAsJsonArray("actorConfigs").forEach(
+                        e -> add(new DatabaseActorConfig.Builder().fromJson(mapping, e.getAsJsonObject()).build()));
             }
             return this;
         }
@@ -377,6 +389,14 @@ public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerC
 
             return new DatabaseManagerConfig(this.actorName.get(), this.dataType.get(), this.maxFailures.get(),
                     this.callTimeout.get(), this.resetTimeout.get(), this.actorConfigs);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

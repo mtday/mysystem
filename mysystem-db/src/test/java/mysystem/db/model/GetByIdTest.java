@@ -84,10 +84,12 @@ public class GetByIdTest {
         final GetById c = new GetById.Builder(DataType.COMPANY, Arrays.asList(2, 3)).build();
         final GetById d = new GetById.Builder(DataType.COMPANY, 1).setActive(true).build();
 
-        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1]}", a.toJson().toString());
-        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1,2]}", b.toJson().toString());
-        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[2,3]}", c.toJson().toString());
-        assertEquals("{\"dataType\":\"COMPANY\",\"active\":true,\"ids\":[1]}", d.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1],\"manifest\":\"GetById\"}", a.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1,2],\"manifest\":\"GetById\"}", b.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[2,3],\"manifest\":\"GetById\"}", c.toJson().toString());
+        assertEquals(
+                "{\"dataType\":\"COMPANY\",\"active\":true,\"ids\":[1],\"manifest\":\"GetById\"}",
+                d.toJson().toString());
     }
 
     @Test

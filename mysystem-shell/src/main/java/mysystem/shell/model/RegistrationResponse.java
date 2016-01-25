@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 import mysystem.common.util.OptionalComparator;
 
@@ -27,6 +28,8 @@ import java.util.TreeSet;
  * available in the shell.
  */
 public class RegistrationResponse implements Model, Comparable<RegistrationResponse> {
+    private final static String SERIALIZATION_MANIFEST = RegistrationResponse.class.getSimpleName();
+
     private final SortedSet<Registration> registrations = new TreeSet<>();
     private final Optional<TokenizedUserInput> userInput;
 
@@ -38,6 +41,14 @@ public class RegistrationResponse implements Model, Comparable<RegistrationRespo
             final Collection<Registration> registrations, final Optional<TokenizedUserInput> userInput) {
         this.registrations.addAll(registrations);
         this.userInput = userInput;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -67,6 +78,7 @@ public class RegistrationResponse implements Model, Comparable<RegistrationRespo
         if (getUserInput().isPresent()) {
             json.add("userInput", getUserInput().get().toJson());
         }
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -214,14 +226,15 @@ public class RegistrationResponse implements Model, Comparable<RegistrationRespo
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("registrations")) {
                 json.getAsJsonArray("registrations")
-                        .forEach(e -> add(new Registration.Builder().fromJson(e.getAsJsonObject()).build()));
+                        .forEach(e -> add(new Registration.Builder().fromJson(mapping, e.getAsJsonObject()).build()));
             }
             if (json.has("userInput")) {
-                setUserInput(new TokenizedUserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+                setUserInput(
+                        new TokenizedUserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
             }
             return this;
         }
@@ -232,6 +245,14 @@ public class RegistrationResponse implements Model, Comparable<RegistrationRespo
         @Override
         public RegistrationResponse build() {
             return new RegistrationResponse(this.registrations, this.userInput);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

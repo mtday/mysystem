@@ -41,7 +41,7 @@ public class AcceptInputTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{}", new AcceptInput.Builder().build().toJson().toString());
+        assertEquals("{\"manifest\":\"AcceptInput\"}", new AcceptInput.Builder().build().toJson().toString());
     }
 
     @Test

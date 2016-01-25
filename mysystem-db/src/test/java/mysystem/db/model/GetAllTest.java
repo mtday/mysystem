@@ -48,8 +48,8 @@ public class GetAllTest {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
         final GetAll b = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
 
-        assertEquals("{\"dataType\":\"COMPANY\"}", a.toJson().toString());
-        assertEquals("{\"dataType\":\"COMPANY\",\"active\":true}", b.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"manifest\":\"GetAll\"}", a.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"active\":true,\"manifest\":\"GetAll\"}", b.toJson().toString());
     }
 
     @Test

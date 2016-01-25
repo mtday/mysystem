@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -14,6 +15,8 @@ import java.util.Optional;
  * An immutable representation of unprocessed user input received from the shell interface.
  */
 public class UserInput implements Model, Comparable<UserInput> {
+    private final static String SERIALIZATION_MANIFEST = UserInput.class.getSimpleName();
+
     private final String input;
 
     /**
@@ -21,6 +24,14 @@ public class UserInput implements Model, Comparable<UserInput> {
      */
     private UserInput(final String input) {
         this.input = input;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -51,6 +62,7 @@ public class UserInput implements Model, Comparable<UserInput> {
     public JsonObject toJson() {
         final JsonObject json = new JsonObject();
         json.addProperty("input", getInput());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -128,7 +140,7 @@ public class UserInput implements Model, Comparable<UserInput> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             if (Objects.requireNonNull(json).has("input")) {
                 setInput(json.getAsJsonPrimitive("input").getAsString());
             }
@@ -145,6 +157,14 @@ public class UserInput implements Model, Comparable<UserInput> {
             }
 
             return new UserInput(this.input.get());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

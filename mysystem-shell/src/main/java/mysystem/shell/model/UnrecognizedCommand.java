@@ -7,6 +7,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -15,6 +16,8 @@ import java.util.Optional;
  * An immutable object used to represent an unrecognized command provided by the user.
  */
 public class UnrecognizedCommand implements Model, Comparable<UnrecognizedCommand> {
+    private final static String SERIALIZATION_MANIFEST = UnrecognizedCommand.class.getSimpleName();
+
     private final TokenizedUserInput userInput;
 
     /**
@@ -22,6 +25,14 @@ public class UnrecognizedCommand implements Model, Comparable<UnrecognizedComman
      */
     private UnrecognizedCommand(final TokenizedUserInput userInput) {
         this.userInput = userInput;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -38,6 +49,7 @@ public class UnrecognizedCommand implements Model, Comparable<UnrecognizedComman
     public JsonObject toJson() {
         final JsonObject json = new JsonObject();
         json.add("userInput", getUserInput().toJson());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -110,9 +122,10 @@ public class UnrecognizedCommand implements Model, Comparable<UnrecognizedComman
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             if (Objects.requireNonNull(json).has("userInput")) {
-                setUserInput(new TokenizedUserInput.Builder().fromJson(json.getAsJsonObject("userInput")).build());
+                setUserInput(
+                        new TokenizedUserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
             }
             return this;
         }
@@ -127,6 +140,14 @@ public class UnrecognizedCommand implements Model, Comparable<UnrecognizedComman
             }
 
             return new UnrecognizedCommand(this.userInput.get());
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

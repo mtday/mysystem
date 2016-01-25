@@ -208,6 +208,8 @@ public class CommandPathTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{\"path\":[\"a\",\"b\"]}", new CommandPath.Builder("a", "b").build().toJson().toString());
+        assertEquals(
+                "{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"}",
+                new CommandPath.Builder("a", "b").build().toJson().toString());
     }
 }

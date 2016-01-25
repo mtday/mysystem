@@ -104,8 +104,10 @@ public class DatabaseActorConfigTest {
     public void testToJson() {
         final DatabaseActorConfig config = new DatabaseActorConfig.Builder("a", getConfig()).build();
 
-        assertEquals("{\"actorName\":\"a\",\"actorClass\":\"mysystem.db.actor.company.GetActor\","
-                + "\"messageClass\":\"mysystem.db.model.GetAll\"}", config.toJson().toString());
+        assertEquals(
+                "{\"actorName\":\"a\",\"actorClass\":\"mysystem.db.actor.company.GetActor\","
+                        + "\"messageClass\":\"mysystem.db.model.GetAll\",\"manifest\":\"DatabaseActorConfig\"}",
+                config.toJson().toString());
     }
 
     @Test

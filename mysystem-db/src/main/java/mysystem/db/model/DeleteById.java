@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 
 import java.util.Arrays;
@@ -25,6 +26,8 @@ import java.util.TreeSet;
  * in the database.
  */
 public class DeleteById implements Model, HasDataType, Comparable<DeleteById> {
+    private final static String SERIALIZATION_MANIFEST = DeleteById.class.getSimpleName();
+
     private final DataType dataType;
     private final SortedSet<Integer> ids;
 
@@ -35,6 +38,14 @@ public class DeleteById implements Model, HasDataType, Comparable<DeleteById> {
     private DeleteById(final DataType dataType, final SortedSet<Integer> ids) {
         this.dataType = dataType;
         this.ids = new TreeSet<>(ids);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -63,6 +74,7 @@ public class DeleteById implements Model, HasDataType, Comparable<DeleteById> {
         final JsonObject json = new JsonObject();
         json.addProperty("dataType", getDataType().name());
         json.add("ids", idsArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -178,7 +190,7 @@ public class DeleteById implements Model, HasDataType, Comparable<DeleteById> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("dataType")) {
                 setDataType(DataType.valueOf(json.getAsJsonPrimitive("dataType").getAsString()));
@@ -202,6 +214,14 @@ public class DeleteById implements Model, HasDataType, Comparable<DeleteById> {
             }
 
             return new DeleteById(this.dataType.get(), this.ids);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

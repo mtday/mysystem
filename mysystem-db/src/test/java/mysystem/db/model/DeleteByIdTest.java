@@ -65,9 +65,9 @@ public class DeleteByIdTest {
         final DeleteById b = new DeleteById.Builder(DataType.COMPANY, 1, 2).build();
         final DeleteById c = new DeleteById.Builder(DataType.COMPANY, Arrays.asList(2, 3)).build();
 
-        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1]}", a.toJson().toString());
-        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1,2]}", b.toJson().toString());
-        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[2,3]}", c.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1],\"manifest\":\"DeleteById\"}", a.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[1,2],\"manifest\":\"DeleteById\"}", b.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"ids\":[2,3],\"manifest\":\"DeleteById\"}", c.toJson().toString());
     }
 
     @Test

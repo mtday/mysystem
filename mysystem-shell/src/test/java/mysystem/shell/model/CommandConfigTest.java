@@ -83,7 +83,8 @@ public class CommandConfigTest {
     @Test
     public void testToJson() {
         assertEquals(
-                "{\"commandName\":\"a\",\"commandClass\":\"mysystem.shell.command.ExitCommand\"}",
+                "{\"commandName\":\"a\",\"commandClass\":\"mysystem.shell.command.ExitCommand\",\"manifest"
+                        + "\":\"CommandConfig\"}",
                 new CommandConfig.Builder("a", getConfig(ExitCommand.class)).build().toJson().toString());
     }
 

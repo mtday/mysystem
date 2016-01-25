@@ -115,7 +115,9 @@ public class RegistrationResponseTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{\"registrations\":[]}", new RegistrationResponse.Builder().build().toJson().toString());
+        assertEquals(
+                "{\"registrations\":[],\"manifest\":\"RegistrationResponse\"}",
+                new RegistrationResponse.Builder().build().toJson().toString());
     }
 
     @Test

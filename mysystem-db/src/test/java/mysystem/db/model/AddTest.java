@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import mysystem.common.model.Company;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Arrays;
 
@@ -14,6 +15,8 @@ import java.util.Arrays;
  * Perform testing on the {@link Add} class.
  */
 public class AddTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final Company ca = new Company.Builder().setName("a").build();
@@ -88,10 +91,10 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals(-274206683, a.hashCode());
-        assertEquals(-273341956, b.hashCode());
-        assertEquals(-273341882, c.hashCode());
-        assertEquals(-274205314, d.hashCode());
+        assertEquals(1604616716, a.hashCode());
+        assertEquals(1605481443, b.hashCode());
+        assertEquals(1605481517, c.hashCode());
+        assertEquals(1604618085, d.hashCode());
     }
 
     @Test
@@ -107,20 +110,17 @@ public class AddTest {
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
         assertEquals(
-                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true}]}",
+                "{\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true,\"manifest\":\"Company\"}],"
+                        + "\"manifest\":\"Add\"}",
                 a.toJson().toString());
-        assertEquals(
-                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true},"
-                        + "{\"name\":\"b\",\"active\":true}]}",
-                b.toJson().toString());
-        assertEquals(
-                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"b\",\"active\":true},"
-                        + "{\"name\":\"c\",\"active\":true}]}",
-                c.toJson().toString());
-        assertEquals(
-                "{\"manifest\":\"Company\",\"dataType\":\"COMPANY\",\"models\":[{\"id\":1,\"name\":\"a\","
-                        + "\"active\":true}]}",
-                d.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true,"
+                + "\"manifest\":\"Company\"},{\"name\":\"b\",\"active\":true,\"manifest\":\"Company\"}],"
+                + "\"manifest\":\"Add\"}", b.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"b\",\"active\":true,"
+                + "\"manifest\":\"Company\"},{\"name\":\"c\",\"active\":true,\"manifest\":\"Company\"}],"
+                + "\"manifest\":\"Add\"}", c.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"models\":[{\"id\":1,\"name\":\"a\",\"active\":true,"
+                + "\"manifest\":\"Company\"}],\"manifest\":\"Add\"}", d.toJson().toString());
     }
 
     @Test
@@ -135,20 +135,12 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals(
-                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]",
-                a.toString());
-        assertEquals(
-                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true], "
-                        + "Company[id=Optional.empty,name=b,active=true]]]",
-                b.toString());
-        assertEquals(
-                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=b,active=true], "
-                        + "Company[id=Optional.empty,name=c,active=true]]]",
-                c.toString());
-        assertEquals(
-                "Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional[1],name=a,active=true]]]",
-                d.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]", a.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true], "
+                + "Company[id=Optional.empty,name=b,active=true]]]", b.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional.empty,name=b,active=true], "
+                + "Company[id=Optional.empty,name=c,active=true]]]", c.toString());
+        assertEquals("Add[dataType=COMPANY,models=[Company[id=Optional[1],name=a,active=true]]]", d.toString());
     }
 
     @Test
@@ -156,12 +148,21 @@ public class AddTest {
         final Company company = new Company.Builder().setName("a").build();
         final Add<Company> add = new Add.Builder<Company>(DataType.COMPANY).add(company).build();
 
-        assertEquals("Add[manifest=Company,dataType=COMPANY,models=[Company[id=Optional.empty,name=a,active=true]]]",
-                add.toString());
+        assertEquals(DataType.COMPANY, add.getDataType());
+        assertEquals(1, add.getModels().size());
+        assertTrue(add.getModels().contains(company));
     }
 
     @Test(expected = IllegalStateException.class)
     public void testBuilderNoModels() {
         new Add.Builder(DataType.COMPANY).build();
+    }
+
+    @Test
+    public void testJsonRoundTrip() {
+        final Company company = new Company.Builder().setName("a").build();
+        final Add<Company> original = new Add.Builder<Company>(DataType.COMPANY).add(company).build();
+        final Add<Company> copy = new Add.Builder<Company>().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
     }
 }

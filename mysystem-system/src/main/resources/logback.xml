@@ -19,7 +19,7 @@
         </rollingPolicy>
 
         <encoder>
-            <pattern>%-6level %-40logger %msg%n</pattern>
+            <pattern>%d{HH:mm:ss} %-6level %-46logger %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -32,6 +32,10 @@
     </root>
 
     <logger name="mysystem" level="DEBUG" additivity="false">
+        <appender-ref ref="ASYNC" />
+    </logger>
+
+    <logger name="akka.event.slf4j" level="WARN">
         <appender-ref ref="ASYNC" />
     </logger>
 

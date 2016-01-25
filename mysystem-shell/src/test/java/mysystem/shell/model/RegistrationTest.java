@@ -77,7 +77,8 @@ public class RegistrationTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"]}}",
+        assertEquals("{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},"
+                        + "\"manifest\":\"Registration\"}",
                 new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
                         .build().toJson().toString());
     }
@@ -137,11 +138,9 @@ public class RegistrationTest {
         final Registration cmd =
                 new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options)
                         .setDescription("description").build();
-        assertEquals(
-                "Registration[actorPath=path,path=a b,"
-                        + "options=Optional[Options[options=[Option[description=description,shortOption=s,"
-                        + "longOption=Optional.empty,argName=Optional.empty,arguments=0,required=false,"
-                        + "optionalArg=false]]]],description=Optional[description]]",
-                cmd.toString());
+        assertEquals("Registration[actorPath=path,path=a b,"
+                + "options=Optional[Options[options=[Option[description=description,shortOption=s,"
+                + "longOption=Optional.empty,argName=Optional.empty,arguments=0,required=false,"
+                + "optionalArg=false]]]],description=Optional[description]]", cmd.toString());
     }
 }

@@ -9,6 +9,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.OptionalComparator;
 
 import java.util.Objects;
@@ -18,6 +19,8 @@ import java.util.Optional;
  * An immutable representation of a company.
  */
 public class Company implements Model, HasOptionalId, HasActive, Comparable<Company> {
+    private final static String SERIALIZATION_MANIFEST = Company.class.getSimpleName();
+
     private final Optional<Integer> id;
     private final String name;
     private final boolean active;
@@ -31,6 +34,14 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
         this.id = id;
         this.name = name;
         this.active = active;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -67,6 +78,7 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
         }
         json.addProperty("name", getName());
         json.addProperty("active", isActive());
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -182,7 +194,7 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             if (json.has("id")) {
                 setId(json.getAsJsonPrimitive("id").getAsInt());
             }
@@ -206,6 +218,14 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
             }
 
             return new Company(this.id, this.name.get(), this.active);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

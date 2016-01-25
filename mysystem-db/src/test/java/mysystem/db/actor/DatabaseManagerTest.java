@@ -29,6 +29,7 @@ import mysystem.db.model.HasDataType;
 import mysystem.db.model.ModelCollection;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -149,7 +150,7 @@ public class DatabaseManagerTest {
             final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
             try {
-                final HasDataType msg = () -> DataType.COMPANY;
+                final SimpleMessage msg = new SimpleMessage();
 
                 dbmgr.tell(msg, getRef());
 
@@ -159,5 +160,14 @@ public class DatabaseManagerTest {
                 system.terminate();
             }
         }};
+    }
+
+    private static class SimpleMessage implements HasDataType, Serializable {
+        private final static long serialVersionUID = 1L;
+
+        @Override
+        public DataType getDataType() {
+            return DataType.COMPANY;
+        }
     }
 }

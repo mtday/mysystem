@@ -8,6 +8,7 @@ import org.apache.commons.lang3.builder.CompareToBuilder;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 
 import java.util.ArrayList;
@@ -24,6 +25,8 @@ import java.util.Optional;
  * An immutable representation of the fully qualified path to a shell command.
  */
 public class CommandPath implements Model, Comparable<CommandPath> {
+    private final static String SERIALIZATION_MANIFEST = CommandPath.class.getSimpleName();
+
     private final List<String> path;
 
     /**
@@ -31,6 +34,14 @@ public class CommandPath implements Model, Comparable<CommandPath> {
      */
     private CommandPath(final List<String> path) {
         this.path = path;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -141,6 +152,7 @@ public class CommandPath implements Model, Comparable<CommandPath> {
 
         final JsonObject json = new JsonObject();
         json.add("path", pathArr);
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -256,7 +268,7 @@ public class CommandPath implements Model, Comparable<CommandPath> {
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             if (Objects.requireNonNull(json).has("path")) {
                 json.getAsJsonArray("path").forEach(e -> add(e.getAsJsonPrimitive().getAsString()));
             }
@@ -273,6 +285,14 @@ public class CommandPath implements Model, Comparable<CommandPath> {
             }
 
             return new CommandPath(this.path);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringStyle;
 
 import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.common.util.CollectionComparator;
 import mysystem.common.util.OptionalComparator;
 
@@ -24,6 +25,8 @@ import java.util.TreeSet;
  * An immutable object used to lookup registration information for the command paths.
  */
 public class RegistrationLookup implements Model, Comparable<RegistrationLookup> {
+    private final static String SERIALIZATION_MANIFEST = RegistrationLookup.class.getSimpleName();
+
     private final Set<CommandPath> paths = new TreeSet<>();
     private final Optional<TokenizedUserInput> userInput;
 
@@ -34,6 +37,14 @@ public class RegistrationLookup implements Model, Comparable<RegistrationLookup>
     private RegistrationLookup(final Collection<CommandPath> paths, final Optional<TokenizedUserInput> userInput) {
         this.paths.addAll(paths);
         this.userInput = userInput;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getSerializationManifest() {
+        return SERIALIZATION_MANIFEST;
     }
 
     /**
@@ -63,6 +74,7 @@ public class RegistrationLookup implements Model, Comparable<RegistrationLookup>
         if (getUserInput().isPresent()) {
             json.add("userInput", getUserInput().get().toJson());
         }
+        json.addProperty("manifest", getSerializationManifest());
         return json;
     }
 
@@ -168,15 +180,15 @@ public class RegistrationLookup implements Model, Comparable<RegistrationLookup>
          * {@inheritDoc}
          */
         @Override
-        public Builder fromJson(final JsonObject json) {
+        public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
             if (json.has("paths")) {
                 json.getAsJsonArray("paths")
-                        .forEach(e -> add(new CommandPath.Builder().fromJson(e.getAsJsonObject()).build()));
+                        .forEach(e -> add(new CommandPath.Builder().fromJson(mapping, e.getAsJsonObject()).build()));
             }
             if (json.has("userInput")) {
-                setUserInput(
-                        new TokenizedUserInput.Builder().fromJson(json.get("userInput").getAsJsonObject()).build());
+                setUserInput(new TokenizedUserInput.Builder().fromJson(mapping, json.get("userInput").getAsJsonObject())
+                        .build());
             }
             return this;
         }
@@ -191,6 +203,14 @@ public class RegistrationLookup implements Model, Comparable<RegistrationLookup>
             }
 
             return new RegistrationLookup(this.paths, this.userInput);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String getSerializationManifest() {
+            return SERIALIZATION_MANIFEST;
         }
     }
 }
