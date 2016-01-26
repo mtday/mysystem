@@ -11,6 +11,8 @@ import mysystem.common.serialization.ManifestMapping;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable representation of unprocessed user input received from the shell interface.
  */
@@ -78,7 +80,7 @@ public class UserInput implements Model, Comparable<UserInput> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final UserInput other) {
+    public int compareTo(@Nullable final UserInput other) {
         if (other == null) {
             return 1;
         }

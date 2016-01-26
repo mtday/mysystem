@@ -37,13 +37,15 @@ public class ManifestMapping {
         final Set<Class<? extends Model>> models = reflections.getSubTypesOf(Model.class);
         final Set<Class<? extends ModelBuilder>> builders = reflections.getSubTypesOf(ModelBuilder.class);
 
-        sort(getTriples(getPairs(models, builders))).forEach(t -> {
-            // Mapping from serialization manifest to model class.
-            this.manifestMap.put(t.getMiddle(), t.getLeft());
+        sort(getTriples(getPairs(models, builders))).forEach(this::putTriple);
+    }
 
-            // Mapping from serialization manifest to builder class.
-            this.builderMap.put(t.getLeft(), t.getRight());
-        });
+    protected void putTriple(final Triple<String, Class<? extends Model>, Class<? extends ModelBuilder>> triple) {
+        // Mapping from serialization manifest to model class.
+        this.manifestMap.put(triple.getMiddle(), triple.getLeft());
+
+        // Mapping from serialization manifest to builder class.
+        this.builderMap.put(triple.getLeft(), triple.getRight());
     }
 
     protected Set<Pair<Class<? extends Model>, Class<? extends ModelBuilder>>> getPairs(
@@ -53,7 +55,7 @@ public class ManifestMapping {
 
         return models.stream()
                 .map(c -> Pair.<Class<? extends Model>, Class<? extends ModelBuilder>>of(c, map.get(c.getName())))
-                .collect(Collectors.toSet());
+                .filter(p -> p.getRight() != null).collect(Collectors.toSet());
     }
 
     protected SortedSet<Triple<String, Class<? extends Model>, Class<? extends ModelBuilder>>> sort(

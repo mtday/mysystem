@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object representing the configuration for the actor that manages operations on an individual database
  * table.
@@ -165,7 +167,7 @@ public class DatabaseManagerConfig implements Model, Comparable<DatabaseManagerC
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final DatabaseManagerConfig other) {
+    public int compareTo(@Nullable final DatabaseManagerConfig other) {
         if (other == null) {
             return 1;
         }

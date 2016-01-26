@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Arrays;
 
@@ -12,6 +17,8 @@ import java.util.Arrays;
  * Perform testing on the {@link GetById} class.
  */
 public class GetByIdTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final GetById a = new GetById.Builder(DataType.COMPANY, 1).build();
@@ -115,5 +122,31 @@ public class GetByIdTest {
     @Test(expected = IllegalStateException.class)
     public void testBuilderNoIds() {
         new GetById.Builder(DataType.COMPANY).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoDataType() {
+        new GetById.Builder().build();
+    }
+
+    @Test
+    public void testFromJson() {
+        final GetById original = new GetById.Builder(DataType.COMPANY, 1, 2).build();
+        final GetById copy = new GetById.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoDataType() {
+        final JsonObject json = new JsonParser().parse("{\"ids\":[1],\"manifest\":\"GetById\"}").getAsJsonObject();
+        new GetById.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoIds() {
+        final JsonObject json =
+                new JsonParser().parse("{\"dataType\":\"COMPANY\",\"manifest\":\"GetById\"}").getAsJsonObject();
+        new GetById.Builder().fromJson(mapping, json).build();
     }
 }

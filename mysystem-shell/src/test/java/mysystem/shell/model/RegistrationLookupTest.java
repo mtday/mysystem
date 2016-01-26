@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
 
@@ -12,6 +17,8 @@ import java.text.ParseException;
  * Perform testing of the {@link RegistrationLookup} class and builder.
  */
 public class RegistrationLookupTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() throws ParseException {
         final CommandPath cA = new CommandPath.Builder("a b").build();
@@ -77,11 +84,10 @@ public class RegistrationLookupTest {
     public void testToJson() throws ParseException {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
-        assertEquals(
-                "{\"paths\":[{\"path\":[\"a\"],\"manifest\":\"CommandPath\"}],"
+        assertEquals("{\"paths\":[{\"path\":[\"a\"],\"manifest\":\"CommandPath\"}],"
                         + "\"userInput\":{\"userInput\":{\"input\":\"a\",\"manifest\":\"UserInput\"},"
-                        + "\"tokens\":[\"a\"],\"manifest\":\"TokenizedUserInput\"},"
-                        + "\"manifest\":\"RegistrationLookup\"}",
+                        + "\"tokens\":[\"a\"],\"manifest\":\"TokenizedUserInput\"}," +
+                "\"manifest\":\"RegistrationLookup\"}",
                 lookup.toJson().toString());
     }
 
@@ -89,13 +95,34 @@ public class RegistrationLookupTest {
     public void testToString() throws ParseException {
         final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
         final RegistrationLookup lookup = new RegistrationLookup.Builder(userInput).build();
-        assertEquals(
-                "RegistrationLookup[paths=[a],userInput=Optional[TokenizedUserInput[userInput=a,tokens=[a]]]]",
+        assertEquals("RegistrationLookup[paths=[a],userInput=Optional[TokenizedUserInput[userInput=a,tokens=[a]]]]",
                 lookup.toString());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testBuilderNoPaths() throws ParseException {
         new RegistrationLookup.Builder().build();
+    }
+
+    @Test
+    public void testBuilderFromJson() throws ParseException {
+        final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
+        final RegistrationLookup original = new RegistrationLookup.Builder(userInput).build();
+        final RegistrationLookup copy = new RegistrationLookup.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test
+    public void testBuilderFromJsonNoPaths() throws ParseException {
+        final String jsonStr = "{\"userInput\":{\"userInput\":{\"input\":\"a\",\"manifest\":\"UserInput\"},"
+                + "\"tokens\":[\"a\"],\"manifest\":\"TokenizedUserInput\"}," + "\"manifest\":\"RegistrationLookup\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+
+        final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
+        final RegistrationLookup expected = new RegistrationLookup.Builder(userInput).build();
+
+        final RegistrationLookup copy = new RegistrationLookup.Builder().fromJson(mapping, json).build();
+
+        assertEquals(expected, copy);
     }
 }

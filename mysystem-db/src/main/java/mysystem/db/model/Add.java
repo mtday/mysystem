@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class that represents the information needed to add model objects to a table in the database.
  */
@@ -92,7 +94,7 @@ public class Add<M extends Model> implements Model, HasDataType, Comparable<Add<
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Add<M> other) {
+    public int compareTo(@Nullable final Add<M> other) {
         if (other == null) {
             return 1;
         }

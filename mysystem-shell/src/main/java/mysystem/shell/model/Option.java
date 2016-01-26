@@ -17,6 +17,8 @@ import mysystem.common.util.OptionalComparator;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class representing a possible option available to a command.
  */
@@ -168,7 +170,11 @@ public class Option implements Model, Comparable<Option> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Option other) {
+    public int compareTo(@Nullable final Option other) {
+        if (other == null) {
+            return 1;
+        }
+
         final OptionalComparator<String> optionalComparatorString = new OptionalComparator<>();
         final CompareToBuilder cmp = new CompareToBuilder();
         cmp.append(getDescription(), other.getDescription());
@@ -221,6 +227,24 @@ public class Option implements Model, Comparable<Option> {
          * Default constructor.
          */
         public Builder() {
+        }
+
+        /**
+         * @param other the {@link Option} to duplicate
+         */
+        public Builder(final Option other) {
+            Objects.requireNonNull(other);
+            setDescription(other.getDescription());
+            setShortOption(other.getShortOption());
+            if (other.getLongOption().isPresent()) {
+                setLongOption(other.getLongOption().get());
+            }
+            if (other.getArgName().isPresent()) {
+                setArgName(other.getArgName().get());
+            }
+            setArguments(other.getArguments());
+            setRequired(other.isRequired());
+            setOptionalArg(other.hasOptionalArg());
         }
 
         /**

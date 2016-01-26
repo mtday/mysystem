@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
 
@@ -12,6 +17,8 @@ import java.text.ParseException;
  * Perform testing of the {@link TokenizedUserInput} class and builder.
  */
 public class TokenizedUserInputTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() throws ParseException {
         final TokenizedUserInput a = new TokenizedUserInput.Builder("input").build();
@@ -209,5 +216,18 @@ public class TokenizedUserInputTest {
     @Test(expected = ParseException.class)
     public void testTokenizeWithUnmatchedSingleQuote() throws ParseException {
         new TokenizedUserInput.Builder("input 'quoted string").build();
+    }
+
+    @Test
+    public void testBuilderFromJson() throws ParseException {
+        final TokenizedUserInput original = new TokenizedUserInput.Builder("a").build();
+        final TokenizedUserInput copy = new TokenizedUserInput.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoInput() throws ParseException {
+        final JsonObject json = new JsonParser().parse("{\"manifest\":\"TokenizedUserInput\"}").getAsJsonObject();
+        new TokenizedUserInput.Builder().fromJson(mapping, json).build();
     }
 }

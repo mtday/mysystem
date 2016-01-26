@@ -9,6 +9,7 @@ import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import com.typesafe.config.ConfigValueFactory;
 
+import org.hsqldb.jdbc.JDBCDriver;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,11 +26,9 @@ import mysystem.db.config.DatabaseConfig;
 import mysystem.db.model.DataType;
 import mysystem.db.model.DatabaseManagerConfig;
 import mysystem.db.model.GetById;
-import mysystem.db.model.HasDataType;
 import mysystem.db.model.ModelCollection;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -83,6 +82,17 @@ public class DatabaseManagerTest {
         return ConfigFactory.parseMap(map).withFallback(ConfigFactory.load("test-config"));
     }
 
+    private static Config getDatabaseConfig() {
+        final Map<String, ConfigValue> map = new HashMap<>();
+        map.put(
+                DatabaseConfig.DATABASE_DRIVER_CLASS.getKey(),
+                ConfigValueFactory.fromAnyRef(JDBCDriver.class.getName()));
+        map.put(DatabaseConfig.DATABASE_JDBC_URL.getKey(), ConfigValueFactory.fromAnyRef("jdbc:hsqldb:mem:testdb"));
+        map.put(DatabaseConfig.DATABASE_USERNAME.getKey(), ConfigValueFactory.fromAnyRef("SA"));
+        map.put(DatabaseConfig.DATABASE_PASSWORD.getKey(), ConfigValueFactory.fromAnyRef(""));
+        return ConfigFactory.parseMap(map);
+    }
+
     @Test
     public void testGetDatabaseActorConfigsNoActors() {
         final Config config = ConfigFactory.parseMap(new HashMap<String, ConfigValue>());
@@ -109,7 +119,7 @@ public class DatabaseManagerTest {
 
     @Test
     public void testReceiveGetById() {
-        final ActorSystem system = ActorSystem.create("test-create", getConfig());
+        final ActorSystem system = ActorSystem.create("test-get-by-id", getConfig());
         new JavaTestKit(system) {{
             final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
@@ -128,7 +138,8 @@ public class DatabaseManagerTest {
 
     @Test
     public void testReceiveWithUnhandled() {
-        final ActorSystem system = ActorSystem.create("test-create", getConfig());
+        final Config config = ConfigFactory.parseMap(new HashMap<>());
+        final ActorSystem system = ActorSystem.create("test-unhandled", config);
         new JavaTestKit(system) {{
             final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
@@ -145,14 +156,13 @@ public class DatabaseManagerTest {
 
     @Test
     public void testReceiveWithUnrecognizedDataType() {
-        final ActorSystem system = ActorSystem.create("test-create", getConfig());
+        final Config config = ConfigFactory.parseMap(new HashMap<>());
+        final ActorSystem system = ActorSystem.create("test-bad-data-type", config);
         new JavaTestKit(system) {{
             final ActorRef dbmgr = system.actorOf(Props.create(DatabaseManager.class, testdb.getDataSource()));
 
             try {
-                final SimpleMessage msg = new SimpleMessage();
-
-                dbmgr.tell(msg, getRef());
+                dbmgr.tell(new GetById.Builder(DataType.COMPANY, 1).build(), getRef());
 
                 expectNoMsg(duration("100 ms"));
             } finally {
@@ -162,12 +172,13 @@ public class DatabaseManagerTest {
         }};
     }
 
-    private static class SimpleMessage implements HasDataType, Serializable {
-        private final static long serialVersionUID = 1L;
-
-        @Override
-        public DataType getDataType() {
-            return DataType.COMPANY;
-        }
+    @Test
+    public void testCreate() {
+        final ActorSystem system = ActorSystem.create("test-create", getDatabaseConfig());
+        new JavaTestKit(system) {{
+            final ActorRef dbmgr = DatabaseManager.create(system);
+            dbmgr.tell(PoisonPill.getInstance(), getRef());
+            system.terminate();
+        }};
     }
 }

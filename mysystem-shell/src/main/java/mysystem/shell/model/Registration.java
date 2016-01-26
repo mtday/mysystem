@@ -13,6 +13,8 @@ import mysystem.common.serialization.ManifestMapping;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable representation of a command registration available for use within the shell.
  */
@@ -109,7 +111,7 @@ public class Registration implements Model, Comparable<Registration> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Registration registration) {
+    public int compareTo(@Nullable final Registration registration) {
         if (registration == null) {
             return 1;
         }

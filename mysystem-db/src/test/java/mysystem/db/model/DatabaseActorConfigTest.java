@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
@@ -11,6 +13,7 @@ import com.typesafe.config.ConfigValueFactory;
 
 import org.junit.Test;
 
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.db.actor.company.GetActor;
 
 import java.util.HashMap;
@@ -20,6 +23,8 @@ import java.util.Map;
  * Perform testing of the {@link DatabaseActorConfig} class and builder.
  */
 public class DatabaseActorConfigTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     private Config getConfig() {
         final Map<String, ConfigValue> map = new HashMap<>();
         map.put("actor-class", ConfigValueFactory.fromAnyRef(GetActor.class.getName()));
@@ -144,5 +149,38 @@ public class DatabaseActorConfigTest {
         final DatabaseActorConfig a = new DatabaseActorConfig.Builder("a", getConfig()).build();
         final DatabaseActorConfig b = new DatabaseActorConfig.Builder(a).build();
         assertEquals(a, b);
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final DatabaseActorConfig original = new DatabaseActorConfig.Builder("a", getConfig()).build();
+        final DatabaseActorConfig copy = new DatabaseActorConfig.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoActorName() {
+        final String jsonStr = "{\"actorClass\":\"mysystem.db.actor.company.GetActor\","
+                + "\"messageClass\":\"mysystem.db.model.GetAll\",\"manifest\":\"DatabaseActorConfig\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new DatabaseActorConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoActorClass() {
+        final String jsonStr =
+                "{\"actorName\":\"a\",\"messageClass\":\"mysystem.db.model.GetAll\","
+                        + "\"manifest\":\"DatabaseActorConfig\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new DatabaseActorConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoMessageClass() {
+        final String jsonStr =
+                "{\"actorName\":\"a\",\"actorClass\":\"mysystem.db.actor.company.GetActor\","
+                        + "\"manifest\":\"DatabaseActorConfig\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new DatabaseActorConfig.Builder().fromJson(mapping, json).build();
     }
 }

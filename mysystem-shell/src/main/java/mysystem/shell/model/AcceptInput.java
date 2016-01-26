@@ -6,6 +6,8 @@ import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
 import mysystem.common.serialization.ManifestMapping;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object used to indicate that more input can be accepted from the shell console.
  */
@@ -48,7 +50,7 @@ public class AcceptInput implements Model, Comparable<AcceptInput> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final AcceptInput other) {
+    public int compareTo(@Nullable final AcceptInput other) {
         return (other == null) ? 1 : 0;
     }
 

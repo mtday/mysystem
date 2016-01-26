@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object used to lookup registration information for the command paths.
  */
@@ -93,7 +95,7 @@ public class RegistrationLookup implements Model, Comparable<RegistrationLookup>
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final RegistrationLookup other) {
+    public int compareTo(@Nullable final RegistrationLookup other) {
         if (other == null) {
             return 1;
         }

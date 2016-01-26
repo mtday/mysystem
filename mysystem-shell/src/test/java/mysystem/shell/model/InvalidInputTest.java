@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
 
@@ -12,6 +17,8 @@ import java.text.ParseException;
  * Perform testing of the {@link InvalidInput} class and builder.
  */
 public class InvalidInputTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final ParseException ex = new ParseException("Message", 10);
@@ -95,13 +102,52 @@ public class InvalidInputTest {
         assertEquals(a, b);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void testBuilderWithNegativeErrorOffset() {
+        new InvalidInput.Builder().setLocation(-1).build();
+    }
+
+    @Test
+    public void testBuilderWithNegativeErrorInParseException() {
         final ParseException ex = new ParseException("Message", -1);
         final InvalidInput a = new InvalidInput.Builder(new UserInput.Builder("a").build(), ex).build();
 
         assertEquals("Message", a.getError());
         assertEquals("a", a.getUserInput().getInput());
         assertFalse(a.getLocation().isPresent());
+    }
+
+    @Test
+    public void testBuilderFromJson() throws ParseException {
+        final org.apache.commons.cli.ParseException ex = new org.apache.commons.cli.ParseException("Message");
+        final InvalidInput original = new InvalidInput.Builder(new TokenizedUserInput.Builder("a").build(), ex).build();
+        final InvalidInput copy = new InvalidInput.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoUserInput() throws ParseException {
+        new InvalidInput.Builder().setError("error").build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoError() throws ParseException {
+        final TokenizedUserInput userInput = new TokenizedUserInput.Builder("a").build();
+        new InvalidInput.Builder().setUserInput(userInput).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoUserInput() {
+        final String jsonStr = "{\"error\":\"Message\",\"location\":10,\"manifest\":\"InvalidInput\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new InvalidInput.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoError() {
+        final String jsonStr = "{\"userInput\":{\"input\":\"a\",\"manifest\":\"UserInput\"},"
+                + "\"location\":10,\"manifest\":\"InvalidInput\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new InvalidInput.Builder().fromJson(mapping, json).build();
     }
 }

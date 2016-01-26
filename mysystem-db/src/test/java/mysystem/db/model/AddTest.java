@@ -4,6 +4,9 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
 
 import mysystem.common.model.Company;
@@ -109,10 +112,8 @@ public class AddTest {
         final Add<Company> c = new Add.Builder<>(DataType.COMPANY, Arrays.asList(cb, cc)).build();
         final Add<Company> d = new Add.Builder<>(DataType.COMPANY, cd).build();
 
-        assertEquals(
-                "{\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true,\"manifest\":\"Company\"}],"
-                        + "\"manifest\":\"Add\"}",
-                a.toJson().toString());
+        assertEquals("{\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true,\"manifest\":\"Company\"}],"
+                + "\"manifest\":\"Add\"}", a.toJson().toString());
         assertEquals("{\"dataType\":\"COMPANY\",\"models\":[{\"name\":\"a\",\"active\":true,"
                 + "\"manifest\":\"Company\"},{\"name\":\"b\",\"active\":true,\"manifest\":\"Company\"}],"
                 + "\"manifest\":\"Add\"}", b.toJson().toString());
@@ -164,5 +165,36 @@ public class AddTest {
         final Add<Company> original = new Add.Builder<Company>(DataType.COMPANY).add(company).build();
         final Add<Company> copy = new Add.Builder<Company>().fromJson(mapping, original.toJson()).build();
         assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoDataType() {
+        final Company company = new Company.Builder().setName("a").build();
+        new Add.Builder().add(company).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoDataType() {
+        final String jsonStr = "{\"models\":[{\"id\":1,\"name\":\"a\",\"active\":true,\"manifest\":\"Company\"}],"
+                + "\"manifest\":\"Add\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new Add.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoModels() {
+        final String jsonStr = "{\"dataType\":\"COMPANY\",\"manifest\":\"Add\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new Add.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonUnrecognizedManifest() {
+        final String jsonStr =
+                "{\"dataType\":\"COMPANY\",\"models\":[{\"id\":1,\"name\":\"a\",\"active\":true,"
+                        + "\"manifest\":\"Unrecognized\"}],"
+                        + "\"manifest\":\"Add\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new Add.Builder().fromJson(mapping, json).build();
     }
 }

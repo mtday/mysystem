@@ -1,18 +1,28 @@
 package mysystem.shell.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.apache.commons.cli.CommandLine;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
+import java.util.Optional;
 
 /**
  * Perform testing of the {@link Command} class and builder.
  */
 public class CommandTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() throws ParseException, org.apache.commons.cli.ParseException {
         final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
@@ -156,7 +166,7 @@ public class CommandTest {
         assertEquals("1", commandLine.getOptionValue('i'));
     }
 
-    @Test(expected = org.apache.commons.cli.MissingArgumentException.class)
+    @Test(expected = org.apache.commons.cli.ParseException.class)
     public void testBuilderWithOptionsAndInvalidInput() throws ParseException, org.apache.commons.cli.ParseException {
         final Option option =
                 new Option.Builder().setDescription("description").setShortOption("i").setArguments(1).setRequired(true)
@@ -168,6 +178,104 @@ public class CommandTest {
         final Registration reg =
                 new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options).build();
         final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
-        new Command.Builder(response).build();
+        final Command command = new Command.Builder(response).build();
+        command.validateCommandLine();
+    }
+
+    @Test
+    public void testGetCommandLineParseException() throws ParseException, org.apache.commons.cli.ParseException {
+        final Option option =
+                new Option.Builder().setDescription("description").setShortOption("i").setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
+
+        final TokenizedUserInput input = new TokenizedUserInput.Builder("a b --i").build();
+        final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
+        final Registration reg =
+                new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options).build();
+        final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
+
+        final Command command = Mockito.mock(Command.class);
+        Mockito.when(command.getRegistration()).thenReturn(reg);
+        Mockito.when(command.getUserInput()).thenReturn(input);
+        Mockito.when(command.getCommandLine()).thenCallRealMethod();
+        final Optional<CommandLine> commandLine = command.getCommandLine();
+        assertFalse(commandLine.isPresent());
+    }
+
+    @Test
+    public void testBuilderFromJson() throws ParseException, org.apache.commons.cli.ParseException {
+        final Option option =
+                new Option.Builder().setDescription("description").setShortOption("i").setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
+
+        final TokenizedUserInput input = new TokenizedUserInput.Builder("a b -i 1").build();
+        final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
+        final Registration reg =
+                new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options).build();
+        final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
+        final Command original = new Command.Builder(response).build();
+        final Command copy = new Command.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test
+    public void testToJson() throws ParseException, org.apache.commons.cli.ParseException {
+        final Option option =
+                new Option.Builder().setDescription("description").setShortOption("i").setArguments(1).build();
+        final Options options = new Options.Builder(option).build();
+
+        final TokenizedUserInput input = new TokenizedUserInput.Builder("a b -i 1").build();
+        final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
+        final Registration reg =
+                new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options).build();
+        final RegistrationResponse response = new RegistrationResponse.Builder(reg).setUserInput(input).build();
+        final Command command = new Command.Builder(response).build();
+
+        assertEquals(
+                "{\"commandPath\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},"
+                        + "\"registration\":{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"],"
+                        + "\"manifest\":\"CommandPath\"},\"options\":{\"options\":[{\"description\":\"description\","
+                        + "\"shortOption\":\"i\",\"arguments\":1,\"required\":false,\"optionalArg\":false,"
+                        + "\"manifest\":\"Option\"}],\"manifest\":\"Options\"},\"manifest\":\"Registration\"},"
+                        + "\"userInput\":{\"userInput\":{\"input\":\"a b -i 1\",\"manifest\":\"UserInput\"},"
+                        + "\"tokens\":[\"a\",\"b\",\"-i\",\"1\"],\"manifest\":\"TokenizedUserInput\"},"
+                        + "\"manifest\":\"Command\"}",
+                command.toJson().toString());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoCommandPath() throws ParseException, org.apache.commons.cli.ParseException {
+        final String jsonStr = "{\"registration\":{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"],"
+                + "\"manifest\":\"CommandPath\"},\"options\":{\"options\":[{\"description\":\"description\","
+                + "\"shortOption\":\"i\",\"arguments\":1,\"required\":false,\"optionalArg\":false,"
+                + "\"manifest\":\"Option\"}],\"manifest\":\"Options\"},\"manifest\":\"Registration\"},"
+                + "\"userInput\":{\"userInput\":{\"input\":\"a b -i 1\",\"manifest\":\"UserInput\"},"
+                + "\"tokens\":[\"a\",\"b\",\"-i\",\"1\"],\"manifest\":\"TokenizedUserInput\"},"
+                + "\"manifest\":\"Command\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new Command.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoRegistration() throws ParseException, org.apache.commons.cli.ParseException {
+        final String jsonStr = "{\"commandPath\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},"
+                + "\"userInput\":{\"userInput\":{\"input\":\"a b -i 1\",\"manifest\":\"UserInput\"},"
+                + "\"tokens\":[\"a\",\"b\",\"-i\",\"1\"],\"manifest\":\"TokenizedUserInput\"},"
+                + "\"manifest\":\"Command\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new Command.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoUserInput() throws ParseException, org.apache.commons.cli.ParseException {
+        final String jsonStr = "{\"commandPath\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},"
+                + "\"registration\":{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"],"
+                + "\"manifest\":\"CommandPath\"},\"options\":{\"options\":[{\"description\":\"description\","
+                + "\"shortOption\":\"i\",\"arguments\":1,\"required\":false,\"optionalArg\":false,"
+                + "\"manifest\":\"Option\"}],\"manifest\":\"Options\"},\"manifest\":\"Registration\"},"
+                + "\"manifest\":\"Command\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new Command.Builder().fromJson(mapping, json).build();
     }
 }

@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigObject;
@@ -18,6 +20,7 @@ import akka.actor.ActorContext;
 import akka.actor.ActorSystem;
 import akka.actor.Scheduler;
 import akka.pattern.CircuitBreaker;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.db.actor.company.GetActor;
 import scala.concurrent.ExecutionContextExecutor;
 
@@ -28,6 +31,8 @@ import java.util.Map;
  * Perform testing of the {@link DatabaseManagerConfig} class and builder.
  */
 public class DatabaseManagerConfigTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     private ConfigObject getActorConfig() {
         final Map<String, ConfigValue> map = new HashMap<>();
         map.put("get-all.actor-class", ConfigValueFactory.fromAnyRef(GetActor.class.getName()));
@@ -191,6 +196,11 @@ public class DatabaseManagerConfigTest {
         new DatabaseManagerConfig.Builder("a", getConfigNoDataType()).build();
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testBuilderNegativeMaxFailures() {
+        new DatabaseManagerConfig.Builder("a", getConfigNoMaxFailures()).setMaxFailures(-1).build();
+    }
+
     @Test(expected = IllegalStateException.class)
     public void testBuilderNoMaxFailures() {
         new DatabaseManagerConfig.Builder("a", getConfigNoMaxFailures()).build();
@@ -216,5 +226,94 @@ public class DatabaseManagerConfigTest {
         final DatabaseManagerConfig a = new DatabaseManagerConfig.Builder("a", getConfig()).build();
         final DatabaseManagerConfig b = new DatabaseManagerConfig.Builder(a).build();
         assertEquals(a, b);
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final DatabaseManagerConfig original = new DatabaseManagerConfig.Builder("a", getConfig()).build();
+        final DatabaseManagerConfig copy =
+                new DatabaseManagerConfig.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoActorName() {
+        final StringBuilder jsonStr = new StringBuilder();
+        jsonStr.append("{\"dataType\":\"COMPANY\",\"maxFailures\":5,\"callTimeout\":10000,");
+        jsonStr.append("\"resetTimeout\":60000,\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"},{\"actorName\":\"get-by-id\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"}],\"manifest\":\"DatabaseManagerConfig\"}");
+
+        final JsonObject json = new JsonParser().parse(jsonStr.toString()).getAsJsonObject();
+        new DatabaseManagerConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoDataType() {
+        final StringBuilder jsonStr = new StringBuilder();
+        jsonStr.append("{\"actorName\":\"a\",\"maxFailures\":5,\"callTimeout\":10000,");
+        jsonStr.append("\"resetTimeout\":60000,\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"},{\"actorName\":\"get-by-id\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"}],\"manifest\":\"DatabaseManagerConfig\"}");
+
+        final JsonObject json = new JsonParser().parse(jsonStr.toString()).getAsJsonObject();
+        new DatabaseManagerConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoMaxFailures() {
+        final StringBuilder jsonStr = new StringBuilder();
+        jsonStr.append("{\"actorName\":\"a\",\"dataType\":\"COMPANY\",\"callTimeout\":10000,");
+        jsonStr.append("\"resetTimeout\":60000,\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"},{\"actorName\":\"get-by-id\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"}],\"manifest\":\"DatabaseManagerConfig\"}");
+
+        final JsonObject json = new JsonParser().parse(jsonStr.toString()).getAsJsonObject();
+        new DatabaseManagerConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoCallTimeout() {
+        final StringBuilder jsonStr = new StringBuilder();
+        jsonStr.append("{\"actorName\":\"a\",\"dataType\":\"COMPANY\",\"maxFailures\":5,");
+        jsonStr.append("\"resetTimeout\":60000,\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"},{\"actorName\":\"get-by-id\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"}],\"manifest\":\"DatabaseManagerConfig\"}");
+
+        final JsonObject json = new JsonParser().parse(jsonStr.toString()).getAsJsonObject();
+        new DatabaseManagerConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoResetTimeout() {
+        final StringBuilder jsonStr = new StringBuilder();
+        jsonStr.append("{\"actorName\":\"a\",\"dataType\":\"COMPANY\",\"maxFailures\":5,\"callTimeout\":10000,");
+        jsonStr.append("\"actorConfigs\":[{\"actorName\":\"get-all\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"},{\"actorName\":\"get-by-id\",\"actorClass\":");
+        jsonStr.append("\"mysystem.db.actor.company.GetActor\",\"messageClass\":\"mysystem.db.model.GetAll\",");
+        jsonStr.append("\"manifest\":\"DatabaseActorConfig\"}],\"manifest\":\"DatabaseManagerConfig\"}");
+
+        final JsonObject json = new JsonParser().parse(jsonStr.toString()).getAsJsonObject();
+        new DatabaseManagerConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoActorConfigs() {
+        final StringBuilder jsonStr = new StringBuilder();
+        jsonStr.append("{\"actorName\":\"a\",\"dataType\":\"COMPANY\",\"maxFailures\":5,\"callTimeout\":10000,");
+        jsonStr.append("\"resetTimeout\":60000,\"manifest\":\"DatabaseManagerConfig\"}");
+
+        final JsonObject json = new JsonParser().parse(jsonStr.toString()).getAsJsonObject();
+        new DatabaseManagerConfig.Builder().fromJson(mapping, json).build();
     }
 }

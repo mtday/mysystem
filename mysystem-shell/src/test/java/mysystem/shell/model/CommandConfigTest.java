@@ -4,12 +4,15 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import org.junit.Test;
 
 import akka.actor.UntypedActor;
+import mysystem.common.serialization.ManifestMapping;
 import mysystem.shell.command.ExitCommand;
 import mysystem.shell.command.HelpCommand;
 
@@ -19,6 +22,8 @@ import java.util.Objects;
  * Perform testing of the {@link CommandConfig} class and builder.
  */
 public class CommandConfigTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     private Config getConfig() {
         return ConfigFactory.parseString("{ }");
     }
@@ -95,7 +100,7 @@ public class CommandConfigTest {
                 new CommandConfig.Builder("a", getConfig(ExitCommand.class)).build().toString());
     }
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test(expected = IllegalStateException.class)
     public void testBuilderNoClass() {
         new CommandConfig.Builder("a", getConfig()).build();
     }
@@ -111,5 +116,27 @@ public class CommandConfigTest {
         final CommandConfig b = new CommandConfig.Builder(a).build();
 
         assertEquals(a, b);
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final CommandConfig original = new CommandConfig.Builder("a", getConfig(ExitCommand.class)).build();
+        final CommandConfig copy = new CommandConfig.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoCommandName() {
+        final String jsonStr =
+                "{\"commandClass\":\"mysystem.shell.command.ExitCommand\",\"manifest\":\"CommandConfig\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new CommandConfig.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoCommandClass() {
+        final String jsonStr = "{\"commandName\":\"a\",\"manifest\":\"CommandConfig\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+        new CommandConfig.Builder().fromJson(mapping, json).build();
     }
 }

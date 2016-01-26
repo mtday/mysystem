@@ -4,12 +4,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 /**
  * Perform testing of the {@link ConsoleOutput} class and builder.
  */
 public class ConsoleOutputTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final ConsoleOutput a = new ConsoleOutput.Builder("output").build();
@@ -71,5 +78,23 @@ public class ConsoleOutputTest {
         final ConsoleOutput b = new ConsoleOutput.Builder(a).build();
 
         assertEquals(a, b);
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final ConsoleOutput original = new ConsoleOutput.Builder("output").setTerminate(true).build();
+        final ConsoleOutput copy = new ConsoleOutput.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test
+    public void testBuilderFromJsonNoBooleans() {
+        final JsonObject json =
+                new JsonParser().parse("{\"output\":\"output\",\"manifest\":\"ConsoleOutput\"}").getAsJsonObject();
+        final ConsoleOutput c = new ConsoleOutput.Builder().fromJson(mapping, json).build();
+        assertTrue(c.getOutput().isPresent());
+        assertEquals("output", c.getOutput().get());
+        assertFalse(c.hasMore());
+        assertFalse(c.isTerminate());
     }
 }

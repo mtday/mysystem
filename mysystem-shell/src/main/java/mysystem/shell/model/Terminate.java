@@ -6,6 +6,8 @@ import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
 import mysystem.common.serialization.ManifestMapping;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object used to indicate that the shell process should be terminated.
  */
@@ -48,7 +50,7 @@ public class Terminate implements Model, Comparable<Terminate> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Terminate other) {
+    public int compareTo(@Nullable final Terminate other) {
         return (other == null) ? 1 : 0;
     }
 

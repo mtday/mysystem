@@ -15,6 +15,8 @@ import mysystem.common.util.OptionalComparator;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable representation of a company.
  */
@@ -98,7 +100,7 @@ public class Company implements Model, HasOptionalId, HasActive, Comparable<Comp
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Company other) {
+    public int compareTo(@Nullable final Company other) {
         if (other == null) {
             return 1;
         }

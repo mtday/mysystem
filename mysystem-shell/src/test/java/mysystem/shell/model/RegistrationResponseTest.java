@@ -5,7 +5,12 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -16,6 +21,8 @@ import java.util.Map;
  * Perform testing of the {@link RegistrationResponse} class and builder.
  */
 public class RegistrationResponseTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final Registration rA =
@@ -122,7 +129,8 @@ public class RegistrationResponseTest {
 
     @Test
     public void testToString() {
-        assertEquals("RegistrationResponse[registrations=[],userInput=Optional.empty]",
+        assertEquals(
+                "RegistrationResponse[registrations=[],userInput=Optional.empty]",
                 new RegistrationResponse.Builder().build().toString());
     }
 
@@ -192,5 +200,24 @@ public class RegistrationResponseTest {
 
         assertEquals(1, responseD.getRegistrations().size());
         assertTrue(responseD.getRegistrations().contains(regB));
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final Registration reg =
+                new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
+                        .build();
+        final RegistrationResponse original = new RegistrationResponse.Builder(reg).build();
+        final RegistrationResponse copy =
+                new RegistrationResponse.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test
+    public void testFromJsonNoRegistrations() {
+        final JsonObject json = new JsonParser().parse("{\"manifest\":\"RegistrationResponse\"}").getAsJsonObject();
+        final RegistrationResponse response = new RegistrationResponse.Builder().fromJson(mapping, json).build();
+        assertEquals(0, response.getRegistrations().size());
     }
 }

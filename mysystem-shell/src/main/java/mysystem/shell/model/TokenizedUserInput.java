@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable representation of tokenized user input received from the shell interface.
  */
@@ -91,7 +93,7 @@ public class TokenizedUserInput implements Model, Comparable<TokenizedUserInput>
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final TokenizedUserInput other) {
+    public int compareTo(@Nullable final TokenizedUserInput other) {
         if (other == null) {
             return 1;
         }

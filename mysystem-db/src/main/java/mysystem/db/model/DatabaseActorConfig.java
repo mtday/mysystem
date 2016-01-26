@@ -18,6 +18,8 @@ import mysystem.common.serialization.ManifestMapping;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object representing the configuration for the actor that manages a database operation.
  */
@@ -98,7 +100,7 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final DatabaseActorConfig other) {
+    public int compareTo(@Nullable final DatabaseActorConfig other) {
         if (other == null) {
             return 1;
         }
@@ -235,13 +237,13 @@ public class DatabaseActorConfig implements Model, Comparable<DatabaseActorConfi
         @Override
         public DatabaseActorConfig build() {
             if (!this.actorName.isPresent()) {
-                throw new IllegalArgumentException("The actor name is required");
+                throw new IllegalStateException("The actor name is required");
             }
             if (!this.actorClass.isPresent()) {
-                throw new IllegalArgumentException("The actor class is required");
+                throw new IllegalStateException("The actor class is required");
             }
             if (!this.messageClass.isPresent()) {
-                throw new IllegalArgumentException("The message class is required");
+                throw new IllegalStateException("The message class is required");
             }
 
             return new DatabaseActorConfig(this.actorName.get(), this.actorClass.get(), this.messageClass.get());

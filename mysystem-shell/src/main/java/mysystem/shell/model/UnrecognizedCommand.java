@@ -12,6 +12,8 @@ import mysystem.common.serialization.ManifestMapping;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object used to represent an unrecognized command provided by the user.
  */
@@ -67,7 +69,7 @@ public class UnrecognizedCommand implements Model, Comparable<UnrecognizedComman
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final UnrecognizedCommand other) {
+    public int compareTo(@Nullable final UnrecognizedCommand other) {
         if (other == null) {
             return 1;
         }

@@ -4,12 +4,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 /**
  * Perform testing of the {@link Registration} class and builder.
  */
 public class RegistrationTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final Registration a =
@@ -77,7 +84,8 @@ public class RegistrationTest {
 
     @Test
     public void testToJson() {
-        assertEquals("{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},"
+        assertEquals(
+                "{\"actorPath\":\"path\",\"path\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},"
                         + "\"manifest\":\"Registration\"}",
                 new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
                         .build().toJson().toString());
@@ -85,7 +93,8 @@ public class RegistrationTest {
 
     @Test
     public void testBuilderWithPath() {
-        assertEquals("Registration[actorPath=path,path=a b,options=Optional.empty,description=Optional.empty]",
+        assertEquals(
+                "Registration[actorPath=path,path=a b,options=Optional.empty,description=Optional.empty]",
                 new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
                         .build().toString());
     }
@@ -94,8 +103,9 @@ public class RegistrationTest {
     public void testBuilderCopy() {
         final Registration cmd =
                 new Registration.Builder().setActorPath("path").setPath(new CommandPath.Builder("a", "b").build())
-                        .build();
-        assertEquals("Registration[actorPath=path,path=a b,options=Optional.empty,description=Optional.empty]",
+                        .setDescription("description").build();
+        assertEquals(
+                "Registration[actorPath=path,path=a b,options=Optional.empty,description=Optional[description]]",
                 new Registration.Builder(cmd).build().toString());
     }
 
@@ -142,5 +152,36 @@ public class RegistrationTest {
                 + "options=Optional[Options[options=[Option[description=description,shortOption=s,"
                 + "longOption=Optional.empty,argName=Optional.empty,arguments=0,required=false,"
                 + "optionalArg=false]]]],description=Optional[description]]", cmd.toString());
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final Option option = new Option.Builder().setDescription("description").setShortOption("s").build();
+        final Options options = new Options.Builder(option).build();
+
+        final CommandPath commandPath = new CommandPath.Builder("a", "b").build();
+        final Registration original =
+                new Registration.Builder().setActorPath("path").setPath(commandPath).setOptions(options)
+                        .setDescription("description").build();
+        final Registration copy = new Registration.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoActorPath() {
+        final String jsonStr =
+                "{\"path\":{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"},\"manifest\":\"Registration\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+
+        new Registration.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoPath() {
+        final String jsonStr = "{\"actorPath\":\"path\",\"manifest\":\"Registration\"}";
+        final JsonObject json = new JsonParser().parse(jsonStr).getAsJsonObject();
+
+        new Registration.Builder().fromJson(mapping, json).build();
     }
 }

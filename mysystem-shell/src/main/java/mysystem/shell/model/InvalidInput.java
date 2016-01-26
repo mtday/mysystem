@@ -1,7 +1,9 @@
 package mysystem.shell.model;
 
+import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.CompareToBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -15,6 +17,8 @@ import mysystem.common.util.OptionalComparator;
 import java.text.ParseException;
 import java.util.Objects;
 import java.util.Optional;
+
+import javax.annotation.Nullable;
 
 /**
  * An immutable object used to represent invalid input provided by the user.
@@ -97,7 +101,7 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final InvalidInput other) {
+    public int compareTo(@Nullable final InvalidInput other) {
         if (other == null) {
             return 1;
         }
@@ -148,10 +152,11 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
          * @param parseException the parse exception caused by the invalid input
          */
         public Builder(final UserInput userInput, final ParseException parseException) {
-            this.userInput = Optional.of(Objects.requireNonNull(userInput));
-            this.error = Optional.of(Objects.requireNonNull(parseException).getMessage());
+            setUserInput(userInput);
+            //noinspection ThrowableResultOfMethodCallIgnored
+            setError(Objects.requireNonNull(parseException).getMessage());
             if (parseException.getErrorOffset() >= 0) {
-                this.location = Optional.of(parseException.getErrorOffset());
+                setLocation(parseException.getErrorOffset());
             }
         }
 
@@ -160,18 +165,59 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
          * @param parseException the parse exception caused by the invalid input
          */
         public Builder(final TokenizedUserInput userInput, final org.apache.commons.cli.ParseException parseException) {
-            this.userInput = Optional.of(Objects.requireNonNull(userInput).getUserInput());
-            this.error = Optional.of(Objects.requireNonNull(parseException).getMessage());
-            this.location = Optional.empty();
+            setUserInput(Objects.requireNonNull(userInput).getUserInput());
+            //noinspection ThrowableResultOfMethodCallIgnored
+            setError(Objects.requireNonNull(parseException).getMessage());
         }
 
         /**
          * @param invalidInput the {@link InvalidInput} to duplicate
          */
         public Builder(final InvalidInput invalidInput) {
-            this.userInput = Optional.of(Objects.requireNonNull(invalidInput).getUserInput());
-            this.error = Optional.of(invalidInput.getError());
-            this.location = invalidInput.getLocation();
+            setUserInput(Objects.requireNonNull(invalidInput).getUserInput());
+            setError(invalidInput.getError());
+            if (invalidInput.getLocation().isPresent()) {
+                setLocation(invalidInput.getLocation().get());
+            }
+        }
+
+        /**
+         * @param userInput the user input to include in the request
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setUserInput(final UserInput userInput) {
+            this.userInput = Optional.of(Objects.requireNonNull(userInput));
+            return this;
+        }
+
+        /**
+         * @param userInput the user input to include in the request
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setUserInput(final TokenizedUserInput userInput) {
+            this.userInput = Optional.of(Objects.requireNonNull(userInput).getUserInput());
+            return this;
+        }
+
+        /**
+         * @param error the error message describing the invalid input
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setError(final String error) {
+            Objects.requireNonNull(error);
+            Preconditions.checkArgument(StringUtils.isNotBlank(error), "Error message cannot be blank");
+            this.error = Optional.of(error);
+            return this;
+        }
+
+        /**
+         * @param location the location of the error in the input
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setLocation(final int location) {
+            Preconditions.checkArgument(location >= 0, "Error location must be positive");
+            this.location = Optional.of(location);
+            return this;
         }
 
         /**
@@ -180,18 +226,22 @@ public class InvalidInput implements Model, Comparable<InvalidInput> {
         @Override
         public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
-            this.userInput =
-                    Optional.of(new UserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
-            this.error = Optional.of(json.getAsJsonPrimitive("error").getAsString());
+            if (json.has("userInput")) {
+                setUserInput(new UserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
+            }
+            if (json.has("error")) {
+                setError(json.getAsJsonPrimitive("error").getAsString());
+            }
             if (json.has("location")) {
-                this.location = Optional.of(json.getAsJsonPrimitive("location").getAsInt());
+                setLocation(json.getAsJsonPrimitive("location").getAsInt());
             }
             return this;
         }
 
         /**
-         * @return a new {@link InvalidInput} instance based on this builder
+         * {@inheritDoc}
          */
+        @Override
         public InvalidInput build() {
             if (!this.userInput.isPresent()) {
                 throw new IllegalStateException("User input is required when building invalid input");

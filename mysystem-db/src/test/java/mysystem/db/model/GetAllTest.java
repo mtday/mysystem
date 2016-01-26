@@ -4,12 +4,19 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 /**
  * Perform testing on the {@link GetAll} class.
  */
 public class GetAllTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final GetAll a = new GetAll.Builder(DataType.COMPANY).build();
@@ -59,5 +66,24 @@ public class GetAllTest {
 
         assertEquals("GetAll[dataType=COMPANY,active=Optional.empty]", a.toString());
         assertEquals("GetAll[dataType=COMPANY,active=Optional[true]]", b.toString());
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoDataType() {
+        new GetAll.Builder().build();
+    }
+
+    @Test
+    public void testFromJson() {
+        final GetAll original = new GetAll.Builder(DataType.COMPANY).setActive(true).build();
+        final GetAll copy = new GetAll.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoDataType() {
+        final JsonObject json = new JsonParser().parse("{\"manifest\":\"GetAll\"}").getAsJsonObject();
+        new GetAll.Builder().fromJson(mapping, json).build();
     }
 }

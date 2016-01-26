@@ -4,9 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
 
 import mysystem.common.model.Company;
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Arrays;
 
@@ -14,6 +18,8 @@ import java.util.Arrays;
  * Perform testing on the {@link ModelCollection} class.
  */
 public class ModelCollectionTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final Company companyA = new Company.Builder().setName("a").build();
@@ -126,5 +132,44 @@ public class ModelCollectionTest {
     @Test
     public void testBuilderNoCompanies() {
         assertEquals("ModelCollection[models=[]]", new ModelCollection.Builder().build().toString());
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final Company companyA = new Company.Builder().setName("a").build();
+        final Company companyB = new Company.Builder().setName("b").build();
+        final Company companyC = new Company.Builder().setName("c").build();
+
+        final ModelCollection<Company> original = new ModelCollection.Builder<>(companyA, companyB, companyC).build();
+        final ModelCollection<Company> copy =
+                new ModelCollection.Builder<Company>().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test
+    public void testBuilderFromJsonNoModels() {
+        // a JsonObject with no "models" element.
+        final JsonObject json = new JsonParser().parse("{\"manifest\":\"ModelCollection\"}").getAsJsonObject();
+
+        final ModelCollection<Company> empty = new ModelCollection.Builder<Company>().build();
+        final ModelCollection<Company> copy =
+                new ModelCollection.Builder<Company>().fromJson(mapping, json).build();
+
+        assertEquals(empty, copy);
+    }
+
+    @Test
+    public void testBuilderFromJsonNoBuilder() {
+        // a JsonObject with manifest unrecognized.
+        final JsonObject json = new JsonParser()
+                .parse("{\"models\":[{\"name\":\"a\",\"active\":true,\"manifest\":\"Unrecognized\"}],"
+                        + "\"manifest\":\"ModelCollection\"}").getAsJsonObject();
+
+        final ModelCollection<Company> empty = new ModelCollection.Builder<Company>().build();
+        final ModelCollection<Company> copy =
+                new ModelCollection.Builder<Company>().fromJson(mapping, json).build();
+
+        assertEquals(empty, copy);
     }
 }

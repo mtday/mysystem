@@ -15,6 +15,8 @@ import mysystem.common.util.OptionalComparator;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class that represents the information needed to fetch all objects from a table in the database.
  */
@@ -87,7 +89,7 @@ public class GetAll implements Model, HasDataType, Comparable<GetAll> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final GetAll other) {
+    public int compareTo(@Nullable final GetAll other) {
         if (other == null) {
             return 1;
         }

@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class that represents the information needed to fetch objects with specific unique ids from a table
  * in the database.
@@ -110,7 +112,7 @@ public class GetById implements Model, HasDataType, Comparable<GetById> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final GetById other) {
+    public int compareTo(@Nullable final GetById other) {
         if (other == null) {
             return 1;
         }

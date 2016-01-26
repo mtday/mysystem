@@ -15,6 +15,8 @@ import mysystem.common.util.OptionalComparator;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable representation of output to be sent to the shell display.
  */
@@ -96,7 +98,7 @@ public class ConsoleOutput implements Model, Comparable<ConsoleOutput> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final ConsoleOutput other) {
+    public int compareTo(@Nullable final ConsoleOutput other) {
         if (other == null) {
             return 1;
         }

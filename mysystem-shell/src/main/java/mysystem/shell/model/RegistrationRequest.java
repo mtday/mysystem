@@ -6,6 +6,8 @@ import mysystem.common.model.Model;
 import mysystem.common.model.ModelBuilder;
 import mysystem.common.serialization.ManifestMapping;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object used to request registration information from a shell command.
  */
@@ -48,7 +50,7 @@ public class RegistrationRequest implements Model, Comparable<RegistrationReques
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final RegistrationRequest other) {
+    public int compareTo(@Nullable final RegistrationRequest other) {
         return (other == null) ? 1 : 0;
     }
 

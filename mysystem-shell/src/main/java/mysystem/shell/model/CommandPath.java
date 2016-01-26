@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable representation of the fully qualified path to a shell command.
  */
@@ -168,7 +170,7 @@ public class CommandPath implements Model, Comparable<CommandPath> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final CommandPath other) {
+    public int compareTo(@Nullable final CommandPath other) {
         if (other == null) {
             return 1;
         }

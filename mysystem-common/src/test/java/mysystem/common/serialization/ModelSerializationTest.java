@@ -2,9 +2,12 @@ package mysystem.common.serialization;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.gson.JsonObject;
+
 import org.junit.Test;
 
 import mysystem.common.model.Company;
+import mysystem.common.model.Model;
 
 /**
  * Perform testing on the {@link ModelSerialization} class.
@@ -19,6 +22,24 @@ public class ModelSerializationTest {
     public void testManifest() {
         final Company company = new Company.Builder().setName("a").build();
         assertEquals(Company.class.getSimpleName(), new ModelSerialization().manifest(company));
+    }
+
+    private final static class UnrecognizedModel implements Model {
+        @Override
+        public String getSerializationManifest() {
+            return getClass().getSimpleName();
+        }
+
+        @Override
+        public JsonObject toJson() {
+            return new JsonObject();
+        }
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testManifestUnrecognizedModel() {
+        final UnrecognizedModel model = new UnrecognizedModel();
+        new ModelSerialization().manifest(model);
     }
 
     @Test(expected = RuntimeException.class)

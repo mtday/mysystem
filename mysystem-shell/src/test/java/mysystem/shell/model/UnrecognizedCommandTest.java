@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
 
@@ -12,6 +17,8 @@ import java.text.ParseException;
  * Perform testing of the {@link UnrecognizedCommand} class and builder.
  */
 public class UnrecognizedCommandTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() throws ParseException {
         final TokenizedUserInput uA = new TokenizedUserInput.Builder("a").build();
@@ -86,5 +93,19 @@ public class UnrecognizedCommandTest {
         final TokenizedUserInput input = new TokenizedUserInput.Builder("a").build();
         final UnrecognizedCommand cmd = new UnrecognizedCommand.Builder(input).build();
         assertEquals("UnrecognizedCommand[userInput=TokenizedUserInput[userInput=a,tokens=[a]]]", cmd.toString());
+    }
+
+    @Test
+    public void testBuilderFromJson() throws ParseException {
+        final TokenizedUserInput input = new TokenizedUserInput.Builder("a").build();
+        final UnrecognizedCommand original = new UnrecognizedCommand.Builder(input).build();
+        final UnrecognizedCommand copy = new UnrecognizedCommand.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoInput() throws ParseException {
+        final JsonObject json = new JsonParser().parse("{\"manifest\":\"UnrecognizedCommand\"}").getAsJsonObject();
+        new UnrecognizedCommand.Builder().fromJson(mapping, json).build();
     }
 }

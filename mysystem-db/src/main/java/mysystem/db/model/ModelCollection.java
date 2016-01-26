@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class that represents the company objects retrieved from the database.
  */
@@ -79,7 +81,7 @@ public class ModelCollection<M extends Model> implements Model, Comparable<Model
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final ModelCollection other) {
+    public int compareTo(@Nullable final ModelCollection other) {
         if (other == null) {
             return 1;
         }
@@ -159,13 +161,15 @@ public class ModelCollection<M extends Model> implements Model, Comparable<Model
         @SuppressWarnings("unchecked")
         public Builder<M> fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
-            if (json.has("models") && json.has("manifest")) {
-                final Optional<ModelBuilder<?>> builder =
-                        mapping.getBuilder(json.getAsJsonPrimitive("manifest").getAsString());
-                if (builder.isPresent()) {
-                    json.getAsJsonArray("models")
-                            .forEach(e -> add((M) builder.get().fromJson(mapping, e.getAsJsonObject()).build()));
-                }
+            if (json.has("models")) {
+                json.getAsJsonArray("models").forEach(jsonElement -> {
+                    final JsonObject obj = jsonElement.getAsJsonObject();
+                    final Optional<ModelBuilder<?>> builder =
+                            mapping.getBuilder(obj.getAsJsonPrimitive("manifest").getAsString());
+                    if (builder.isPresent()) {
+                        add((M) builder.get().fromJson(mapping, obj).build());
+                    }
+                });
             }
             return this;
         }

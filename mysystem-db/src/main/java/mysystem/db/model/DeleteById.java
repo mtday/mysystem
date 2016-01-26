@@ -21,6 +21,8 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class that represents the information needed to delete objects with specific unique ids from a table
  * in the database.
@@ -93,7 +95,7 @@ public class DeleteById implements Model, HasDataType, Comparable<DeleteById> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final DeleteById other) {
+    public int compareTo(@Nullable final DeleteById other) {
         if (other == null) {
             return 1;
         }

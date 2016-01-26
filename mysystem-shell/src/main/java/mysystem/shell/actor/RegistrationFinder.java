@@ -103,9 +103,13 @@ public class RegistrationFinder extends UntypedActor {
                 getInputTokenizer().tell(new UserInput.Builder("help " + input).build(), self());
             } else {
                 try {
-                    getCommandExecutor().tell(new Command.Builder(resp).build(), self());
+                    final Command command = new Command.Builder(resp).build();
+                    // Test to make sure the command line parameters are valid.
+                    command.validateCommandLine();
+
+                    getCommandExecutor().tell(command, self());
                 } catch (final ParseException error) {
-                    // No registrations found so the command is not recognized.
+                    // This will happen if the command line parameters are invalid.
                     getConsoleManager()
                             .tell(new InvalidInput.Builder(resp.getUserInput().get(), error).build(), self());
                 }

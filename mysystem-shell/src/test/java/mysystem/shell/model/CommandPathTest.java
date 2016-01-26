@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.text.ParseException;
 import java.util.Arrays;
@@ -14,6 +19,8 @@ import java.util.Optional;
  * Perform testing of the {@link CommandPath} class and builder.
  */
 public class CommandPathTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final CommandPath a = new CommandPath.Builder("a", "b").build();
@@ -211,5 +218,18 @@ public class CommandPathTest {
         assertEquals(
                 "{\"path\":[\"a\",\"b\"],\"manifest\":\"CommandPath\"}",
                 new CommandPath.Builder("a", "b").build().toJson().toString());
+    }
+
+    @Test
+    public void testBuilderFromJson() {
+        final CommandPath original = new CommandPath.Builder("a", "b").build();
+        final CommandPath copy = new CommandPath.Builder().fromJson(mapping, original.toJson()).build();
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderFromJsonNoPaths() {
+        final JsonObject json = new JsonParser().parse("{\"manifest\":\"CommandPath\"}").getAsJsonObject();
+        new CommandPath.Builder().fromJson(mapping, json).build();
     }
 }

@@ -23,6 +23,8 @@ import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object used to response to a registration request with information describing the commands made
  * available in the shell.
@@ -97,7 +99,7 @@ public class RegistrationResponse implements Model, Comparable<RegistrationRespo
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final RegistrationResponse other) {
+    public int compareTo(@Nullable final RegistrationResponse other) {
         if (other == null) {
             return 1;
         }

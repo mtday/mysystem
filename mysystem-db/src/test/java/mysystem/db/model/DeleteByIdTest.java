@@ -4,7 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import org.junit.Test;
+
+import mysystem.common.serialization.ManifestMapping;
 
 import java.util.Arrays;
 
@@ -12,6 +17,8 @@ import java.util.Arrays;
  * Perform testing on the {@link DeleteById} class.
  */
 public class DeleteByIdTest {
+    private final ManifestMapping mapping = new ManifestMapping();
+
     @Test
     public void testCompareTo() {
         final DeleteById a = new DeleteById.Builder(DataType.COMPANY, 1).build();
@@ -83,13 +90,38 @@ public class DeleteByIdTest {
 
     @Test
     public void testBuilderAdd() {
-        final DeleteById company =
-                new DeleteById.Builder(DataType.COMPANY).add(1).add(Arrays.asList(2, 3)).build();
+        final DeleteById company = new DeleteById.Builder(DataType.COMPANY).add(1).add(Arrays.asList(2, 3)).build();
         assertEquals("DeleteById[dataType=COMPANY,ids=[1, 2, 3]]", company.toString());
     }
 
     @Test(expected = IllegalStateException.class)
     public void testBuilderNoIds() {
         new DeleteById.Builder(DataType.COMPANY).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testBuilderNoDataType() {
+        new DeleteById.Builder().build();
+    }
+
+    @Test
+    public void testFromJson() {
+        final DeleteById original = new DeleteById.Builder(DataType.COMPANY, 1, 2).build();
+        final DeleteById copy = new DeleteById.Builder().fromJson(mapping, original.toJson()).build();
+
+        assertEquals(original, copy);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoDataType() {
+        final JsonObject json = new JsonParser().parse("{\"ids\":[1],\"manifest\":\"DeleteById\"}").getAsJsonObject();
+        new DeleteById.Builder().fromJson(mapping, json).build();
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testFromJsonNoIds() {
+        final JsonObject json =
+                new JsonParser().parse("{\"dataType\":\"COMPANY\",\"manifest\":\"DeleteById\"}").getAsJsonObject();
+        new DeleteById.Builder().fromJson(mapping, json).build();
     }
 }

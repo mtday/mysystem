@@ -18,6 +18,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * The immutable parsed command to be executed.
  */
@@ -77,10 +79,17 @@ public class Command implements Model, Comparable<Command> {
         try {
             return parseCommandLine(getRegistration(), getUserInput());
         } catch (final ParseException parseException) {
-            // During the Builder process, this command was guaranteed to have a valid command line, so we can
-            // safely suppress this exception here.
+            // This exception is suppressed. The validateCommandLine method is used to determine whether the command
+            // line is valid or not.
             return Optional.empty();
         }
+    }
+
+    /**
+     * @throws ParseException if the command line parameters are invalid for some reason
+     */
+    public void validateCommandLine() throws ParseException {
+        parseCommandLine(getRegistration(), getUserInput());
     }
 
     /**
@@ -112,7 +121,7 @@ public class Command implements Model, Comparable<Command> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Command other) {
+    public int compareTo(@Nullable final Command other) {
         if (other == null) {
             return 1;
         }
@@ -167,9 +176,8 @@ public class Command implements Model, Comparable<Command> {
 
         /**
          * @param response the {@link RegistrationResponse} providing the command registration and the user input
-         * @throws ParseException if there is a problem with the user input matching the command options
          */
-        public Builder(final RegistrationResponse response) throws ParseException {
+        public Builder(final RegistrationResponse response) {
             Objects.requireNonNull(response);
             Preconditions.checkArgument(response.getRegistrations().size() == 1);
             Preconditions.checkArgument(response.getUserInput().isPresent());
@@ -177,10 +185,6 @@ public class Command implements Model, Comparable<Command> {
             this.registration = Optional.of(response.getRegistrations().iterator().next());
             this.userInput = Optional.of(response.getUserInput().get());
             this.commandPath = Optional.of(new CommandPath.Builder(this.userInput.get()).build());
-
-            // Used to verify that the command line parameters are valid before the command is created.
-            // This guarantees that the command, once built, will be able to create the command line without issue.
-            parseCommandLine(this.registration.get(), this.userInput.get());
         }
 
         /**
@@ -188,10 +192,36 @@ public class Command implements Model, Comparable<Command> {
          */
         public Builder(final Command command) {
             Objects.requireNonNull(command);
+            setCommandPath(command.getCommandPath());
+            setRegistration(command.getRegistration());
+            setUserInput(command.getUserInput());
+        }
 
-            this.commandPath = Optional.of(command.getCommandPath());
-            this.registration = Optional.of(command.getRegistration());
-            this.userInput = Optional.of(command.getUserInput());
+        /**
+         * @param registration the command registration describing the expected parameters
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setRegistration(final Registration registration) {
+            this.registration = Optional.of(Objects.requireNonNull(registration));
+            return this;
+        }
+
+        /**
+         * @param userInput the tokenized input provided by the user
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setUserInput(final TokenizedUserInput userInput) {
+            this.userInput = Optional.of(Objects.requireNonNull(userInput));
+            return this;
+        }
+
+        /**
+         * @param commandPath the path to the command as entered by the user
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setCommandPath(final CommandPath commandPath) {
+            this.commandPath = Optional.of(Objects.requireNonNull(commandPath));
+            return this;
         }
 
         /**
@@ -200,18 +230,17 @@ public class Command implements Model, Comparable<Command> {
         @Override
         public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
-
-            if (json.has("commandPath")) {
-                this.commandPath =
-                        Optional.of(new CommandPath.Builder().fromJson(mapping, json.getAsJsonObject("commandPath")).build());
-            }
             if (json.has("registration")) {
-                this.registration =
-                        Optional.of(new Registration.Builder().fromJson(mapping, json.getAsJsonObject("registration")).build());
+                setRegistration(
+                        new Registration.Builder().fromJson(mapping, json.getAsJsonObject("registration")).build());
             }
             if (json.has("userInput")) {
-                this.userInput = Optional.of(
+                setUserInput(
                         new TokenizedUserInput.Builder().fromJson(mapping, json.getAsJsonObject("userInput")).build());
+            }
+            if (json.has("commandPath")) {
+                setCommandPath(
+                        new CommandPath.Builder().fromJson(mapping, json.getAsJsonObject("commandPath")).build());
             }
             return this;
         }
@@ -221,14 +250,14 @@ public class Command implements Model, Comparable<Command> {
          */
         @Override
         public Command build() {
-            if (!this.commandPath.isPresent()) {
-                throw new IllegalStateException("A command path is required to build a command");
-            }
             if (!this.registration.isPresent()) {
                 throw new IllegalStateException("A command registration is required to build a command");
             }
             if (!this.userInput.isPresent()) {
                 throw new IllegalStateException("A tokenized user input is required to build a command");
+            }
+            if (!this.commandPath.isPresent()) {
+                throw new IllegalStateException("A command path is required to build a command");
             }
 
             return new Command(this.commandPath.get(), this.registration.get(), this.userInput.get());

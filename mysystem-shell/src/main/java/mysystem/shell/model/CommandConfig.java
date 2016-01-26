@@ -16,6 +16,8 @@ import mysystem.common.serialization.ManifestMapping;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable object representing a command configuration to be made available in the shell.
  */
@@ -83,7 +85,7 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final CommandConfig other) {
+    public int compareTo(@Nullable final CommandConfig other) {
         if (other == null) {
             return 1;
         }
@@ -117,8 +119,8 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
      * Used to create {@link CommandConfig} objects.
      */
     public static class Builder implements ModelBuilder<CommandConfig> {
-        private Optional<String> commandName;
-        private Optional<Class<? extends UntypedActor>> commandClass;
+        private Optional<String> commandName = Optional.empty();
+        private Optional<Class<? extends UntypedActor>> commandClass = Optional.empty();
 
         /**
          * Default constructor.
@@ -131,8 +133,8 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
          */
         public Builder(final CommandConfig other) {
             Objects.requireNonNull(other);
-            this.commandName = Optional.of(other.getCommandName());
-            this.commandClass = Optional.of(other.getCommandClass());
+            setCommandName(other.getCommandName());
+            setCommandClass(other.getCommandClass());
         }
 
         /**
@@ -140,18 +142,42 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
          * @param commandConfig the configuration defined for the command
          */
         public Builder(final String commandName, final Config commandConfig) {
-            this.commandName = Optional.of(Objects.requireNonNull(commandName));
+            setCommandName(Objects.requireNonNull(commandName));
 
             if (Objects.requireNonNull(commandConfig).hasPath("class")) {
-                final String className = commandConfig.getString("class");
-                try {
-                    this.commandClass = Optional.of(Class.forName(className).asSubclass(UntypedActor.class));
-                } catch (final ClassNotFoundException notFound) {
-                    throw new IllegalArgumentException("Shell command class not found: " + className);
-                }
-            } else {
-                throw new IllegalArgumentException("Shell command config must specify a class: " + commandName);
+                setCommandClass(commandConfig.getString("class"));
             }
+        }
+
+        /**
+         * @param commandName the name of the command as defined in the configuration
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setCommandName(final String commandName) {
+            this.commandName = Optional.of(Objects.requireNonNull(commandName));
+            return this;
+        }
+
+        /**
+         * @param commandClass the class that specifies the command actor
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setCommandClass(final Class<? extends UntypedActor> commandClass) {
+            this.commandClass = Optional.of(Objects.requireNonNull(commandClass));
+            return this;
+        }
+
+        /**
+         * @param className the name of the class that specifies the command actor
+         * @return {@code this} for fluent-style usage
+         */
+        public Builder setCommandClass(final String className) {
+            try {
+                setCommandClass(Class.forName(Objects.requireNonNull(className)).asSubclass(UntypedActor.class));
+            } catch (final ClassNotFoundException notFound) {
+                throw new IllegalArgumentException("Shell command class not found: " + className);
+            }
+            return this;
         }
 
         /**
@@ -160,13 +186,11 @@ public class CommandConfig implements Model, Comparable<CommandConfig> {
         @Override
         public Builder fromJson(final ManifestMapping mapping, final JsonObject json) {
             Objects.requireNonNull(json);
-            this.commandName = Optional.of(json.getAsJsonPrimitive("commandName").getAsString());
-
-            final String className = json.getAsJsonPrimitive("commandClass").getAsString();
-            try {
-                this.commandClass = Optional.of(Class.forName(className).asSubclass(UntypedActor.class));
-            } catch (final ClassNotFoundException notFound) {
-                throw new IllegalArgumentException("Shell command class not found: " + className);
+            if (json.has("commandName")) {
+                setCommandName(json.getAsJsonPrimitive("commandName").getAsString());
+            }
+            if (json.has("commandClass")) {
+                setCommandClass(json.getAsJsonPrimitive("commandClass").getAsString());
             }
             return this;
         }

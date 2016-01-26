@@ -21,6 +21,8 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import javax.annotation.Nullable;
+
 /**
  * An immutable class used to manage the options available to a command.
  */
@@ -88,7 +90,11 @@ public class Options implements Model, Comparable<Options> {
      * {@inheritDoc}
      */
     @Override
-    public int compareTo(final Options other) {
+    public int compareTo(@Nullable final Options other) {
+        if (other == null) {
+            return 1;
+        }
+
         final CompareToBuilder cmp = new CompareToBuilder();
         cmp.append(getOptions(), other.getOptions(), new CollectionComparator<Option>());
         return cmp.toComparison();
@@ -122,6 +128,13 @@ public class Options implements Model, Comparable<Options> {
          * Default constructor.
          */
         public Builder() {
+        }
+
+        /**
+         * @param other the {@link Options} object to duplicate
+         */
+        public Builder(final Options other) {
+            Objects.requireNonNull(other).getOptions().forEach(this::add);
         }
 
         /**
