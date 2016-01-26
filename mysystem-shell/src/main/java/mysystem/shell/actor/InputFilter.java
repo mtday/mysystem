@@ -1,8 +1,8 @@
 package mysystem.shell.actor;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorRefFactory;
 import akka.actor.ActorSelection;
-import akka.actor.ActorSystem;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import mysystem.shell.model.AcceptInput;
@@ -17,20 +17,20 @@ public class InputFilter extends UntypedActor {
     private final ActorSelection inputTokenizer;
 
     /**
-     * @param actorSystem the {@link ActorSystem} that will host the actor
+     * @param refFactory the {@link ActorRefFactory} that will host the actor
      * @return an {@link ActorRef} for the created actor
      */
-    public static ActorRef create(final ActorSystem actorSystem) {
+    public static ActorRef create(final ActorRefFactory refFactory) {
         final Props props = Props.create(InputFilter.class);
-        return Objects.requireNonNull(actorSystem).actorOf(props, InputFilter.class.getSimpleName());
+        return Objects.requireNonNull(refFactory).actorOf(props, InputFilter.class.getSimpleName());
     }
 
     /**
-     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @param refFactory the {@link ActorRefFactory} hosting the actor
      * @return an {@link ActorSelection} referencing this actor
      */
-    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
-        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + InputFilter.class.getSimpleName());
+    public static ActorSelection getActorSelection(final ActorRefFactory refFactory) {
+        return Objects.requireNonNull(refFactory).actorSelection("/user/" + InputFilter.class.getSimpleName());
     }
 
     /**

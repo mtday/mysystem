@@ -5,6 +5,7 @@ import com.typesafe.config.ConfigObject;
 import com.typesafe.config.ConfigValueType;
 
 import akka.actor.ActorRef;
+import akka.actor.ActorRefFactory;
 import akka.actor.ActorSelection;
 import akka.actor.ActorSystem;
 import akka.actor.Props;
@@ -30,20 +31,20 @@ import java.util.stream.Collectors;
  */
 public class RegistrationManager extends UntypedActor {
     /**
-     * @param actorSystem the {@link ActorSystem} that will host the actor
+     * @param refFactory the {@link ActorRefFactory} that will host the actor
      * @return an {@link ActorRef} for the created actor
      */
-    public static ActorRef create(final ActorSystem actorSystem) {
-        Objects.requireNonNull(actorSystem);
-        return actorSystem.actorOf(Props.create(RegistrationManager.class), RegistrationManager.class.getSimpleName());
+    public static ActorRef create(final ActorRefFactory refFactory) {
+        Objects.requireNonNull(refFactory);
+        return refFactory.actorOf(Props.create(RegistrationManager.class), RegistrationManager.class.getSimpleName());
     }
 
     /**
-     * @param actorSystem the {@link ActorSystem} hosting the actor
+     * @param refFactory the {@link ActorRefFactory} hosting the actor
      * @return an {@link ActorSelection} referencing this actor
      */
-    public static ActorSelection getActorSelection(final ActorSystem actorSystem) {
-        return Objects.requireNonNull(actorSystem).actorSelection("/user/" + RegistrationManager.class.getSimpleName());
+    public static ActorSelection getActorSelection(final ActorRefFactory refFactory) {
+        return Objects.requireNonNull(refFactory).actorSelection("/user/" + RegistrationManager.class.getSimpleName());
     }
 
     private final Map<CommandPath, Registration> registrations = new TreeMap<>();

@@ -25,6 +25,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>mysystem-common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>mysystem-db</artifactId>
+        </dependency>
 
         <!-- Akka -->
         <dependency>

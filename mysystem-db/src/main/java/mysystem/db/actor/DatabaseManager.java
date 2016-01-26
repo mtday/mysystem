@@ -8,7 +8,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import akka.actor.ActorContext;
 import akka.actor.ActorRef;
-import akka.actor.ActorSystem;
+import akka.actor.ActorRefFactory;
+import akka.actor.ActorSelection;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
 import akka.pattern.CircuitBreaker;
@@ -34,12 +35,20 @@ public class DatabaseManager extends UntypedActor {
     private final Map<DataType, ActorRef> actors = new TreeMap<>();
 
     /**
-     * @param actorSystem the {@link ActorSystem} that will host the actor
+     * @param refFactory the {@link ActorRefFactory} that will host the actor
      * @return an {@link ActorRef} for the created actor
      */
-    public static ActorRef create(final ActorSystem actorSystem) {
+    public static ActorRef create(final ActorRefFactory refFactory) {
         final Props props = Props.create(DatabaseManager.class);
-        return Objects.requireNonNull(actorSystem).actorOf(props, DatabaseManager.class.getSimpleName());
+        return Objects.requireNonNull(refFactory).actorOf(props, DatabaseManager.class.getSimpleName());
+    }
+
+    /**
+     * @param refFactory the {@link ActorRefFactory} hosting the actor used to find the selection
+     * @return an {@link ActorSelection} referencing this actor
+     */
+    public static ActorSelection getActorSelection(final ActorRefFactory refFactory) {
+        return Objects.requireNonNull(refFactory).actorSelection("/user/" + DatabaseManager.class.getSimpleName());
     }
 
     public DatabaseManager(final DataSource dataSource) {
