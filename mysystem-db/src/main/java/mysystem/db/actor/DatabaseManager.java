@@ -10,9 +10,14 @@ import akka.actor.ActorContext;
 import akka.actor.ActorRef;
 import akka.actor.ActorRefFactory;
 import akka.actor.ActorSelection;
+import akka.actor.ActorSystem;
+import akka.actor.Address;
 import akka.actor.Props;
 import akka.actor.UntypedActor;
+import akka.cluster.Cluster;
 import akka.pattern.CircuitBreaker;
+import mysystem.common.model.SystemRole;
+import mysystem.common.util.cluster.ClusterUtils;
 import mysystem.db.config.DatabaseConfig;
 import mysystem.db.model.DataType;
 import mysystem.db.model.DatabaseManagerConfig;
@@ -44,11 +49,18 @@ public class DatabaseManager extends UntypedActor {
     }
 
     /**
-     * @param refFactory the {@link ActorRefFactory} hosting the actor used to find the selection
+     * @param actorSystem the {@link ActorSystem} hosting the actor used to find the selection
+     * @param cluster the {@link Cluster} from which the selection should be retrieved
      * @return an {@link ActorSelection} referencing this actor
      */
-    public static ActorSelection getActorSelection(final ActorRefFactory refFactory) {
-        return Objects.requireNonNull(refFactory).actorSelection("/user/" + DatabaseManager.class.getSimpleName());
+    public static Optional<ActorSelection> getActorSelection(final ActorSystem actorSystem, final Cluster cluster) {
+        final Optional<Address> address =
+                new ClusterUtils().getRandomNode(Objects.requireNonNull(cluster), SystemRole.SYSTEM);
+        if (!address.isPresent()) {
+            return Optional.empty();
+        }
+        return Optional.of(Objects.requireNonNull(actorSystem)
+                .actorSelection(String.format("%s/user/%s", address.get(), DatabaseManager.class.getSimpleName())));
     }
 
     public DatabaseManager(final DataSource dataSource) {

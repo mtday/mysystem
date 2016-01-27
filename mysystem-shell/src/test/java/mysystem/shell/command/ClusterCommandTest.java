@@ -71,7 +71,7 @@ public class ClusterCommandTest {
     private static Member getMember(final String host, final int port) {
         final Address address = new Address("akka.tcp", "mysystem", host, port);
         final UniqueAddress uniqueAddress = new UniqueAddress(address, 1);
-        final Set<String> roles = Sets.newHashSet("0.0.0-SNAPSHOT", "shell");
+        final Set<String> roles = Sets.newHashSet("0.0.0-SNAPSHOT", "SHELL");
         scala.collection.immutable.Set<String> immutableRoles = JavaConversions.asScalaSet(roles).toSet();
         return new Member(uniqueAddress, 1, MemberStatus.up(), immutableRoles);
     }
@@ -144,7 +144,7 @@ public class ClusterCommandTest {
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
-                assertEquals("    akka.tcp://mysystem@127.0.0.1:2551  Up  leader  0.0.0-SNAPSHOT shell",
+                assertEquals("    akka.tcp://mysystem@127.0.0.1:2551  Up  leader  0.0.0-SNAPSHOT SHELL",
                         output.getOutput().get());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());
@@ -152,7 +152,7 @@ public class ClusterCommandTest {
                 output = expectMsgClass(duration("500 ms"), ConsoleOutput.class);
                 assertNotNull(output);
                 assertTrue(output.getOutput().isPresent());
-                assertEquals("    akka.tcp://mysystem@127.0.0.1:2552  Up          0.0.0-SNAPSHOT shell",
+                assertEquals("    akka.tcp://mysystem@127.0.0.1:2552  Up          0.0.0-SNAPSHOT SHELL",
                         output.getOutput().get());
                 assertTrue(output.hasMore());
                 assertFalse(output.isTerminate());

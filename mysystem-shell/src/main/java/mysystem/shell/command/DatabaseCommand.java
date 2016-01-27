@@ -1,10 +1,10 @@
 package mysystem.shell.command;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import akka.actor.ActorSelection;
-import akka.actor.Address;
 import akka.actor.UntypedActor;
 import akka.cluster.Cluster;
-import akka.cluster.ClusterEvent;
 import mysystem.db.actor.DatabaseManager;
 import mysystem.db.model.DataType;
 import mysystem.db.model.GetAll;
@@ -16,15 +16,40 @@ import mysystem.shell.model.ConsoleOutput;
 import mysystem.shell.model.Registration;
 import mysystem.shell.model.RegistrationRequest;
 import mysystem.shell.model.RegistrationResponse;
-import scala.Option;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedSet;
 
 /**
- * This actor implements the {@code database} command in the shell.
+ * This actor implements the {@code database} command in the shell. It is only used to test communication into a
+ * cluster and is not intended to implement real functionality.
  */
 public class DatabaseCommand extends UntypedActor {
+    private final Cluster cluster;
+
+    /**
+     * Default constructor.
+     */
+    public DatabaseCommand() {
+        this.cluster = Cluster.get(context().system());
+    }
+
+    /**
+     * @param cluster the {@link Cluster} to which this command belongs
+     */
+    @VisibleForTesting
+    public DatabaseCommand(final Cluster cluster) {
+        this.cluster = Objects.requireNonNull(cluster);
+    }
+
+    /**
+     * @return the {@link Cluster} to which this command belongs
+     */
+    protected Cluster getCluster() {
+        return this.cluster;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -50,18 +75,8 @@ public class DatabaseCommand extends UntypedActor {
         sender().tell(new RegistrationResponse.Builder().add(reg).build(), self());
     }
 
-    protected Optional<ActorSelection> getDatabaseManager() {
-        final ClusterEvent.CurrentClusterState state = Cluster.get(context().system()).state();
-        final Option<Address> systemLeader = state.roleLeader("system");
-        if (systemLeader.isEmpty()) {
-            return Optional.empty();
-        }
-        final ActorSelection localSelection = DatabaseManager.getActorSelection(context());
-        return Optional.of(context().actorSelection(systemLeader.get() + localSelection.pathString()));
-    }
-
     protected void handleCommand() {
-        final Optional<ActorSelection> dbmanager = getDatabaseManager();
+        final Optional<ActorSelection> dbmanager = DatabaseManager.getActorSelection(context().system(), getCluster());
         if (dbmanager.isPresent()) {
             dbmanager.get().tell(new GetAll.Builder().setDataType(DataType.COMPANY).build(), self());
         } else {
