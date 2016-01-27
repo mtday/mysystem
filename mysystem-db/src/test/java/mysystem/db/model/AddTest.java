@@ -170,7 +170,7 @@ public class AddTest {
     @Test(expected = IllegalStateException.class)
     public void testBuilderNoDataType() {
         final Company company = new Company.Builder().setName("a").build();
-        new Add.Builder().add(company).build();
+        new Add.Builder<Company>().add(company).build();
     }
 
     @Test(expected = IllegalStateException.class)

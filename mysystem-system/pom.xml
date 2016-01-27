@@ -33,6 +33,10 @@
             <groupId>${project.groupId}</groupId>
             <artifactId>mysystem-shell</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>mysystem-tomcat</artifactId>
+        </dependency>
 
         <!-- Akka -->
         <dependency>
